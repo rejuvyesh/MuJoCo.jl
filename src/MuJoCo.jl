@@ -34,6 +34,14 @@ activate(keypath)
 # outside the module, the raw c struct pointer is generally pm, pd
 
 
+#TODO jlModel can try to display unallocated raw pointers which causes segfault
+function display(m::jlModel)
+   #println("MuJoCo.jlModel(", m.m,")")
+   println("MuJoCo.jlModel()")
+end
+
+export display
+
 Base.atexit(deactivate)
 
 end

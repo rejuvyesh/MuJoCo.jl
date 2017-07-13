@@ -81,7 +81,10 @@ function get(m::jlModel, fstruct::Symbol, field::Symbol)
    return unsafe_load(pntr+s_off+f_off, 1)
 end
 
-function get(m::jlData, field::Symbol)
+function get(d::jlData, field::Symbol)
+   f_off, f_type = dinfo[field]
+   pntr = Ptr{f_type}(d.d)
+   return unsafe_load(pntr+f_off, 1)
 end
 
 # TODO cleanup these asserts
