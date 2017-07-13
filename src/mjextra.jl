@@ -62,15 +62,23 @@ vinfo = structinfo(mjVisual)
 sinfo = structinfo(mjStatistic)
 cinfo = structinfo(mjContact)
 
-function update_ptr(p::Ptr, offset::Integer, val::Integer)
-   unsafe_store!(convert(Ptr{Cint}, (p + offset)), convert(Cint, val))
-end
-function update_ptr(p::Ptr, offset::Integer, val::mjtNum)
-   unsafe_store!(convert(Ptr{mjtNum}, (p + offset)), val)
+function moffset(fstruct::Symbol, field::Symbol)
 end
 
 # access mujoco struct fields through the julia version of model and data
 function get(m::jlModel, field::Symbol)
+   f_off, f_type = minfo[field]
+   pntr = Ptr{f_type}(m.m)
+   return unsafe_load(pntr+f_off, 1)
+end
+
+function get(m::jlModel, fstruct::Symbol, field::Symbol)
+   s_off, s_type = minfo[fstruct]
+   @assert s_type in (MuJoCo._mjOption, MuJoCo._mjVisual, MuJoCo._mjStatistic)
+
+   f_off, f_type = structinfo(s_type)[field]
+   pntr = Ptr{f_type}(m.m)
+   return unsafe_load(pntr+s_off+f_off, 1)
 end
 
 function get(m::jlData, field::Symbol)
@@ -78,25 +86,47 @@ end
 
 # TODO cleanup these asserts
 
+function update_ptr(p::Ptr, offset::Integer, val::Integer)
+   unsafe_store!(convert(Ptr{Cint}, (p + offset)), convert(Cint, val))
+end
+function update_ptr(p::Ptr, offset::Integer, val::mjtNum)
+   unsafe_store!(convert(Ptr{mjtNum}, (p + offset)), val)
+end
+
+
 # mutate mujoco struct fields through the julia version of model and data
 function set(m::jlModel, field::Symbol, val::Union{Integer, mjtNum})
    f_off, f_type = minfo[field]
-   @assert f_type == typeof(val) || f_type == typeof(convert(Cint, val))
-   update_ptr(m.m, f_off, val) 
+   #@assert isa(typeof(val), Int64) || isa(typeof(val), Int32) || isa(typeof(val), mjtNum)
+   update_ptr(m.m, f_off, convert(f_type, val)) 
 end
 
+# set struct within mjmodel struct 
 function set(m::jlModel, fstruct::Symbol, field::Symbol, val::Union{Integer, mjtNum})
    s_off, s_type = minfo[fstruct]
    @assert s_type in (MuJoCo._mjOption, MuJoCo._mjVisual, MuJoCo._mjStatistic)
 
    f_off, f_type = structinfo(s_type)[field]
-   update_ptr(m.m, s_off+f_off, val) 
+   #@assert isa(typeof(val), Int64) || isa(typeof(val), Int32) || isa(typeof(val), mjtNum)
+   update_ptr(m.m, s_off+f_off, convert(f_type, val))
 end
 
 
 function set(d::jlData, field::Symbol, val::Union{Integer, mjtNum})
    f_off, f_type = dinfo[field]
-   @assert f_type == typeof(val) || f_type == typeof(convert(Cint, val))
-   update_ptr(d.d, f_off, val) 
+   #@assert isa(typeof(val), Int64) || isa(typeof(val), Int32) || isa(typeof(val), mjtNum)
+   update_ptr(d.d, f_off, convert(f_type, val)) 
 end
 
+
+
+
+#################################### helpers
+
+function step(m::jlModel, d::jlData)
+   step(m.m, d.d)
+end
+
+function resetData(m::jlModel, d::jlData)
+   resetData(m.m, d.d)
+end

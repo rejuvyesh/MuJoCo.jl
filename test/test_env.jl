@@ -22,12 +22,3 @@ d = unsafe_load(pd)
 @test m.nbody == 14
 @test m.opt.timestep == 0.002
 
-
-############################################################# mujoco startup
-
-qpos = unsafe_wrap(Array, d.qpos, m.nq)
-qpos0 = copy(qpos)
-
-mj.step(pm, pd)
-
-@test qpos != qpos0
