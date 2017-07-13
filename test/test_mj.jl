@@ -1,6 +1,5 @@
 #include("./mujoco_common.jl")
 #include("./mj_common.jl")
-include("./mujoco.jl")
 
 using MuJoCo
 
@@ -76,7 +75,7 @@ end
 #   unsafe_store!(convert(Ptr{f_type}, (pm + f_off)), convert(Cint, val))
 #end
 
-# pointer math in julia is bytes, not of type offsets
+# pointer math in julia is bytes, not of type size
 function update_model(pm::Ptr{mjModel}, offset::Integer, val::Integer)
    unsafe_store!(convert(Ptr{Cint}, (pm + offset)), convert(Cint, val))
 end
@@ -88,8 +87,7 @@ function update_model(pm::Ptr{mjModel}, field::Symbol, val::Union{Integer, mjtNu
    f_off, f_type = minfo[field] # get offset & type
    @assert f_type == typeof(val) || f_type == typeof(convert(Cint, val))
 
-   update_model(pm, f_off, val)
-
+   update_model(pm, f_off, convert(f_type, val)) # so that we can write ints
 end
 
 function mutatemodel!(pm) 

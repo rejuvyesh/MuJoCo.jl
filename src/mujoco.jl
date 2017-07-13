@@ -1,32 +1,3 @@
-# Julia wrapper for header: mujoco.h
-# Automatically generated using Clang.jl wrap_c, version 0.0.0
-
-module MuJoCo
-
-const mjVERSION_HEADER = 141
-
-const mjtNum = Cdouble
-const mjtByte = Cuchar
-
-include("./mjmodel.jl")
-include("./mjdata.jl")
-include("./mjvisualize.jl")
-include("./mjrender.jl")
-include("./mjoptim.jl")
-include("./mj_common.jl")
-
-const mj = MuJoCo
-export mj #export the modeul for faster typing
-export mjData, mjModel, mjOption # types exported
-export mjtNum, mjtByte
-
-export jlData, jlModel
-
-
-# Notes on notation:
-# in this module, m and d are mjModel and mjData respectively
-# outside the module, the raw c struct pointer is generally pm, pd
-
 # TODO write these as files
 # Skipping MacroDefinition: mjMARKSTACK int _mark = d -> pstack ;
 # Skipping MacroDefinition: mjFREESTACK d -> pstack = _mark ;
@@ -1257,4 +1228,3 @@ function mjo_GDD_solve(m::Ptr{mjModel},d::Ptr{mjData},opt::Ptr{mjoGDDOption})
    ccall((:mjo_GDD_solve,:libmujoco141nogl),mjoGDDStats,(Ptr{mjModel},Ptr{mjData},Ptr{mjoGDDOption}),m,d,opt)
 end
 
-end
