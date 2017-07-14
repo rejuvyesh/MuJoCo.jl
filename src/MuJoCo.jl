@@ -1,6 +1,15 @@
+__precompile__()
+
 module MuJoCo
 
-const mjVERSION_HEADER = 141
+depsfile = joinpath(dirname(@__FILE__), "..", "deps", "deps.jl")
+if isfile(depsfile)
+   include(depsfile)
+else
+   error("MuJoCo was not downloaded / installed correctly.")
+end
+
+const mjVERSION_HEADER = 150
 
 const mjtNum = Cdouble
 const mjtByte = Cuchar
@@ -10,7 +19,6 @@ include("./mjmodel.jl")
 include("./mjdata.jl")
 include("./mjvisualize.jl")
 include("./mjrender.jl")
-include("./mjoptim.jl")
 
 # additional structs and functionality
 include("./mj_common.jl")
@@ -27,7 +35,23 @@ export mjtNum, mjtByte
 export jlData, jlModel
 
 const keypath = findkey()
-activate(keypath)
+global activated = false
+
+function teardown()
+   deactivate()
+   activated = false
+end
+
+function __init__()
+   val = activate(keypath)
+   if val == 1
+      println("MuJoCo Activated")
+      activated = true
+   else
+      warn("MuJoCo not activated. Could not find license file in MUJOCO_KEY_PATH environment variable or through system search.")
+   end
+   atexit(teardown)
+end
 
 # Notes on notation:
 # in this module, m and d are mjModel and mjData respectively
@@ -39,9 +63,6 @@ function display(m::jlModel)
    #println("MuJoCo.jlModel(", m.m,")")
    println("MuJoCo.jlModel()")
 end
-
 export display
-
-Base.atexit(deactivate)
 
 end

@@ -42,7 +42,6 @@ type jlModel
    dof_jntid::Vector{Cint}
    dof_parentid::Vector{Cint}
    dof_Madr::Vector{Cint}
-   dof_frictional::Vector{mjtByte}
    dof_solref::Vector{mjtNum}
    dof_solimp::Vector{mjtNum}
    dof_frictionloss::Vector{mjtNum}
@@ -153,7 +152,6 @@ type jlModel
    tendon_num::Vector{Cint}
    tendon_matid::Vector{Cint}
    tendon_limited::Vector{mjtByte}
-   tendon_frictional::Vector{mjtByte}
    tendon_width::Vector{mjtNum}
    tendon_solref_lim::Vector{mjtNum}
    tendon_solimp_lim::Vector{mjtNum}
@@ -239,6 +237,7 @@ type jlData
    d::Ptr{mjData} # point to c struct
 
    stack::Vector{mjtNum}
+
    qpos::Vector{mjtNum}
    qvel::Vector{mjtNum}
    act::Vector{mjtNum}
@@ -251,6 +250,7 @@ type jlData
    mocap_quat::Vector{mjtNum}
    userdata::Vector{mjtNum}
    sensordata::Vector{mjtNum}
+
    xpos::Vector{mjtNum}
    xquat::Vector{mjtNum}
    xmat::Vector{mjtNum}
@@ -266,6 +266,7 @@ type jlData
    cam_xmat::Vector{mjtNum}
    light_xpos::Vector{mjtNum}
    light_xdir::Vector{mjtNum}
+
    subtree_com::Vector{mjtNum}
    cdof::Vector{mjtNum}
    cinert::Vector{mjtNum}
@@ -277,34 +278,39 @@ type jlData
    wrap_xpos::Vector{mjtNum}
    actuator_length::Vector{mjtNum}
    actuator_moment::Vector{mjtNum}
+
    crb::Vector{mjtNum}
    qM::Vector{mjtNum}
    qLD::Vector{mjtNum}
    qLDiagInv::Vector{mjtNum}
    qLDiagSqrtInv::Vector{mjtNum}
-   contact::Vector{mjContact} #TODO test for this...
+
+   contact::Vector{mjContact}
+
    efc_type::Vector{Cint}
    efc_id::Vector{Cint}
-   efc_rownnz::Vector{Cint}
-   efc_rowadr::Vector{Cint}
-   efc_colind::Vector{Cint}
-   efc_rownnz_T::Vector{Cint}
-   efc_rowadr_T::Vector{Cint}
-   efc_colind_T::Vector{Cint}
+   efc_J_rownnz::Vector{Cint}
+   efc_J_rowadr::Vector{Cint}
+   efc_J_colind::Vector{Cint}
+   efc_JT_rownnz::Vector{Cint}
+   efc_JT_rowadr::Vector{Cint}
+   efc_JT_colind::Vector{Cint}
    efc_solref::Vector{mjtNum}
    efc_solimp::Vector{mjtNum}
    efc_margin::Vector{mjtNum}
    efc_frictionloss::Vector{mjtNum}
    efc_pos::Vector{mjtNum}
    efc_J::Vector{mjtNum}
-   efc_J_T::Vector{mjtNum}
+   efc_JT::Vector{mjtNum}
    efc_diagApprox::Vector{mjtNum}
    efc_D::Vector{mjtNum}
    efc_R::Vector{mjtNum}
+
+   efc_AR_rownnz::Vector{Cint}
+   efc_AR_rowadr::Vector{Cint}
+   efc_AR_colind::Vector{Cint}
    efc_AR::Vector{mjtNum}
-   e_ARchol::Vector{mjtNum}
-   fc_e_rect::Vector{mjtNum}
-   fc_AR::Vector{mjtNum}
+
    ten_velocity::Vector{mjtNum}
    actuator_velocity::Vector{mjtNum}
    cvel::Vector{mjtNum}
@@ -319,11 +325,15 @@ type jlData
    qfrc_actuator::Vector{mjtNum}
    qfrc_unc::Vector{mjtNum}
    qacc_unc::Vector{mjtNum}
+
    efc_b::Vector{mjtNum}
-   fc_b::Vector{mjtNum}
    efc_force::Vector{mjtNum}
+   efc_state::Vector{Cint}
    qfrc_constraint::Vector{mjtNum}
+   qacc_warmstart::Vector{mjtNum}
+
    qfrc_inverse::Vector{mjtNum}
+
    cacc::Vector{mjtNum}
    cfrc_int::Vector{mjtNum}
    cfrc_ext::Vector{mjtNum}
@@ -381,26 +391,26 @@ function getdatasize(m::mjModel, d::mjData)
                :contact=>(m.nconmax*1),
                :efc_type=>(m.njmax*1),
                :efc_id=>(m.njmax*1),
-               :efc_rownnz=>(m.njmax*1),
-               :efc_rowadr=>(m.njmax*1),
-               :efc_colind=>(m.njmax*m.nv),
-               :efc_rownnz_T=>(m.nv*1),
-               :efc_rowadr_T=>(m.nv*1),
-               :efc_colind_T=>(m.nv*m.njmax),
+               :efc_J_rownnz=>(m.njmax*1),
+               :efc_J_rowadr=>(m.njmax*1),
+               :efc_J_colind=>(m.njmax*m.nv),
+               :efc_JT_rownnz=>(m.nv*1),
+               :efc_JT_rowadr=>(m.nv*1),
+               :efc_JT_colind=>(m.nv*m.njmax),
                :efc_solref=>(m.njmax*mjNREF),
                :efc_solimp=>(m.njmax*mjNIMP),
                :efc_margin=>(m.njmax*1),
                :efc_frictionloss=>(m.njmax*1),
                :efc_pos=>(m.njmax*1),
                :efc_J=>(m.njmax*m.nv),
-               :efc_J_T=>(m.nv*m.njmax),
+               :efc_JT=>(m.nv*m.njmax),
                :efc_diagApprox=>(m.njmax*1),
                :efc_D=>(m.njmax*1),
                :efc_R=>(m.njmax*1),
+               :efc_AR_rownnz=>(m.njmax*1),
+               :efc_AR_rowadr=>(m.njmax*1),
+               :efc_AR_colind=>(m.njmax*m.njmax),
                :efc_AR=>(m.njmax*m.njmax),
-               :e_ARchol=>(m.nemax*m.nemax),
-               :fc_e_rect=>(m.njmax*m.nemax),
-               :fc_AR=>(m.njmax*m.njmax),
                :ten_velocity=>(m.ntendon*1),
                :actuator_velocity=>(m.nu*1),
                :cvel=>(m.nbody*6),
@@ -416,9 +426,10 @@ function getdatasize(m::mjModel, d::mjData)
                :qfrc_unc=>(m.nv*1),
                :qacc_unc=>(m.nv*1),
                :efc_b=>(m.njmax*1),
-               :fc_b=>(m.njmax*1),
                :efc_force=>(m.njmax*1),
+               :efc_state=>(m.njmax*1),
                :qfrc_constraint=>(m.nv*1),
+               :qacc_warmstart=>(m.nv*1),
                :qfrc_inverse=>(m.nv*1),
                :cacc=>(m.nbody*6),
                :cfrc_int=>(m.nbody*6),
@@ -466,7 +477,6 @@ function getmodelsize(m::mjModel)
                :dof_jntid=>(m.nv*1),
                :dof_parentid=>(m.nv*1),
                :dof_Madr=>(m.nv*1),
-               :dof_frictional=>(m.nv*1),
                :dof_solref=>(m.nv*mjNREF),
                :dof_solimp=>(m.nv*mjNIMP),
                :dof_frictionloss=>(m.nv*1),
@@ -577,7 +587,6 @@ function getmodelsize(m::mjModel)
                :tendon_num=>(m.ntendon*1),
                :tendon_matid=>(m.ntendon*1),
                :tendon_limited=>(m.ntendon*1),
-               :tendon_frictional=>(m.ntendon*1),
                :tendon_width=>(m.ntendon*1),
                :tendon_solref_lim=>(m.ntendon*mjNREF),
                :tendon_solimp_lim=>(m.ntendon*mjNIMP),

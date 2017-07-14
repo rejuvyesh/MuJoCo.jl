@@ -1,8 +1,11 @@
 
 
-@enum mjtWarning mjWARN_INERTIA = (UInt32)(0) mjWARN_CONTACTFULL = (UInt32)(1) mjWARN_CNSTRFULL = (UInt32)(2) mjWARN_VGEOMFULL = (UInt32)(3) mjWARN_BADQPOS = (UInt32)(4) mjWARN_BADQVEL = (UInt32)(5) mjWARN_BADQACC = (UInt32)(6) mjWARN_SOLVER = (UInt32)(7) mjNWARNING = (UInt32)(8)
+@enum mjtWarning mjWARN_INERTIA = (UInt32)(0) mjWARN_CONTACTFULL = (UInt32)(1) mjWARN_CNSTRFULL = (UInt32)(2) mjWARN_VGEOMFULL = (UInt32)(3) mjWARN_BADQPOS = (UInt32)(4) mjWARN_BADQVEL = (UInt32)(5) mjWARN_BADQACC = (UInt32)(6) mjWARN_BADCTRL = (UInt32)(7) mjNWARNING = (UInt32)(8)
+const _mjNWARNING = Integer(mjNWARNING)
 
 @enum mjtTimer mjTIMER_STEP = (UInt32)(0) mjTIMER_FORWARD = (UInt32)(1) mjTIMER_INVERSE = (UInt32)(2) mjTIMER_POSITION = (UInt32)(3) mjTIMER_VELOCITY = (UInt32)(4) mjTIMER_ACTUATION = (UInt32)(5) mjTIMER_ACCELERATION = (UInt32)(6) mjTIMER_CONSTRAINT = (UInt32)(7) mjTIMER_POS_KINEMATICS = (UInt32)(8) mjTIMER_POS_INERTIA = (UInt32)(9) mjTIMER_POS_COLLISION = (UInt32)(10) mjTIMER_POS_MAKE = (UInt32)(11) mjTIMER_POS_PROJECT = (UInt32)(12) mjNTIMER = (UInt32)(13)
+const _mjNTIMER = Integer(mjNTIMER)
+
 
 #struct _mjContact
 immutable _mjContact
@@ -14,8 +17,7 @@ immutable _mjContact
    solref::NTuple{2, mjtNum}
    solimp::NTuple{3, mjtNum}
    mu::mjtNum
-   coef::NTuple{5, mjtNum}
-   zone::Cint
+   H::NTuple{36, mjtNum}
    dim::Cint
    geom1::Cint
    geom2::Cint
@@ -25,6 +27,31 @@ end
 
 const mjContact = _mjContact
 
+immutable _mjWarningStat
+   lastinfo::Cint
+   number::Cint
+end
+const mjWarningStat = _mjWarningStat
+
+
+immutable _mjTimerStat
+   duration::mjtNum
+   number::Cint
+end
+const mjTimerStat = _mjTimerStat
+
+
+immutable _mjSolverStat
+   improvement::mjtNum
+   gradient::mjtNum
+   lineslope::mjtNum
+   nactive::Cint
+   nchange::Cint
+   neval::Cint
+   nupdate::Cint
+end
+const mjSolverStat = _mjSolverStat
+
 #mutable struct _mjData
 type _mjData
    nstack::Cint
@@ -33,21 +60,25 @@ type _mjData
    maxuse_stack::Cint
    maxuse_con::Cint
    maxuse_efc::Cint
-   nwarning::NTuple{8, Cint}
-   warning_info::NTuple{8, Cint}
-   timer_ncall::NTuple{13, Cint}
-   timer_duration::NTuple{13, mjtNum}
+
+   warning::NTuple{8, mjWarningStat}
+   timer::NTuple{13, mjTimerStat}
+   solver::NTuple{mjNSOLVER, mjSolverStat}
+
    solver_iter::Cint
-   solver_trace::NTuple{200, mjtNum}
+   solver_nnz::Cint
    solver_fwdinv::NTuple{2, mjtNum}
+
    ne::Cint
    nf::Cint
    nefc::Cint
    ncon::Cint
    time::mjtNum
    energy::NTuple{2, mjtNum}
+
    buffer::Ptr{Void}
    stack::Ptr{mjtNum}
+
    qpos::Ptr{mjtNum}
    qvel::Ptr{mjtNum}
    act::Ptr{mjtNum}
@@ -60,6 +91,7 @@ type _mjData
    mocap_quat::Ptr{mjtNum}
    userdata::Ptr{mjtNum}
    sensordata::Ptr{mjtNum}
+
    xpos::Ptr{mjtNum}
    xquat::Ptr{mjtNum}
    xmat::Ptr{mjtNum}
@@ -75,6 +107,7 @@ type _mjData
    cam_xmat::Ptr{mjtNum}
    light_xpos::Ptr{mjtNum}
    light_xdir::Ptr{mjtNum}
+
    subtree_com::Ptr{mjtNum}
    cdof::Ptr{mjtNum}
    cinert::Ptr{mjtNum}
@@ -86,34 +119,39 @@ type _mjData
    wrap_xpos::Ptr{mjtNum}
    actuator_length::Ptr{mjtNum}
    actuator_moment::Ptr{mjtNum}
+
    crb::Ptr{mjtNum}
    qM::Ptr{mjtNum}
    qLD::Ptr{mjtNum}
    qLDiagInv::Ptr{mjtNum}
    qLDiagSqrtInv::Ptr{mjtNum}
+
    contact::Ptr{mjContact}
+
    efc_type::Ptr{Cint}
    efc_id::Ptr{Cint}
-   efc_rownnz::Ptr{Cint}
-   efc_rowadr::Ptr{Cint}
-   efc_colind::Ptr{Cint}
-   efc_rownnz_T::Ptr{Cint}
-   efc_rowadr_T::Ptr{Cint}
-   efc_colind_T::Ptr{Cint}
+   efc_J_rownnz::Ptr{Cint}
+   efc_J_rowadr::Ptr{Cint}
+   efc_J_colind::Ptr{Cint}
+   efc_JT_rownnz::Ptr{Cint}
+   efc_JT_rowadr::Ptr{Cint}
+   efc_JT_colind::Ptr{Cint}
    efc_solref::Ptr{mjtNum}
    efc_solimp::Ptr{mjtNum}
    efc_margin::Ptr{mjtNum}
    efc_frictionloss::Ptr{mjtNum}
    efc_pos::Ptr{mjtNum}
    efc_J::Ptr{mjtNum}
-   efc_J_T::Ptr{mjtNum}
+   efc_JT::Ptr{mjtNum}
    efc_diagApprox::Ptr{mjtNum}
    efc_D::Ptr{mjtNum}
    efc_R::Ptr{mjtNum}
+
+   efc_AR_rownnz::Ptr{Cint}
+   efc_AR_rowadr::Ptr{Cint}
+   efc_AR_colind::Ptr{Cint}
    efc_AR::Ptr{mjtNum}
-   e_ARchol::Ptr{mjtNum}
-   fc_e_rect::Ptr{mjtNum}
-   fc_AR::Ptr{mjtNum}
+
    ten_velocity::Ptr{mjtNum}
    actuator_velocity::Ptr{mjtNum}
    cvel::Ptr{mjtNum}
@@ -128,11 +166,15 @@ type _mjData
    qfrc_actuator::Ptr{mjtNum}
    qfrc_unc::Ptr{mjtNum}
    qacc_unc::Ptr{mjtNum}
+
    efc_b::Ptr{mjtNum}
-   fc_b::Ptr{mjtNum}
    efc_force::Ptr{mjtNum}
+   efc_state::Ptr{Cint}
    qfrc_constraint::Ptr{mjtNum}
+   qacc_warmstart::Ptr{mjtNum}
+
    qfrc_inverse::Ptr{mjtNum}
+
    cacc::Ptr{mjtNum}
    cfrc_int::Ptr{mjtNum}
    cfrc_ext::Ptr{mjtNum}
@@ -142,6 +184,7 @@ const mjData = _mjData
 # Callback function types TODO
 
 const mjfGeneric = Ptr{Void}
+const mjfConFilt = Ptr{Void}
 const mjfSensor = Ptr{Void}
 const mjfTime = Ptr{Void}
 const mjfAct = Ptr{Void}

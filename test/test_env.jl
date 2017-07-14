@@ -5,7 +5,7 @@ using MuJoCo
 val = mj.activate(ENV["MUJOCO_KEY_PATH"])
 @test val == 1
 
-modelfile = "humanoid.xml"
+modelfile = dirname(@__FILE__)*"/humanoid.xml"
 pm = mj.loadXML(modelfile, "")
 
 @test pm != nothing

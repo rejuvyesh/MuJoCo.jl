@@ -1,20 +1,21 @@
 
-const mjMINVAL = 1.0e-14
+const mjMINVAL = 1.0e-15
 const mjPI = 3.141592653589793
 const mjMAXVAL = 1.0e10
 const mjMINMU = 1.0e-5
 const mjMINIMP = 0.0001
 const mjMAXIMP = 0.9999
-const mjMAXCONPAIR = 16
+const mjMAXCONPAIR = 50
+const mjMAXVFS = 200
+const mjMAXVFSNAME = 100
+
 const mjNEQDATA = 7
 const mjNDYN = 3
 const mjNGAIN = 3
 const mjNBIAS = 3
 const mjNREF = 2
 const mjNIMP = 3
-const mjNTRACE = 200
-const mjNGROUP = 5
-const mjMAXOVERLAY = 500
+const mjNSOLVER = 1000
 
 
 @enum mjtDisableBit mjDSBL_CONSTRAINT = (UInt32)(1) mjDSBL_EQUALITY = (UInt32)(2) mjDSBL_FRICTIONLOSS = (UInt32)(4) mjDSBL_LIMIT = (UInt32)(8) mjDSBL_CONTACT = (UInt32)(16) mjDSBL_MOCAP = (UInt32)(32) mjDSBL_SENSOR = (UInt32)(64) mjDSBL_PASSIVE = (UInt32)(128) mjDSBL_GRAVITY = (UInt32)(256) mjDSBL_CLAMPCTRL = (UInt32)(512) mjDSBL_WARMSTART = (UInt32)(1024) mjDSBL_FILTERPARENT = (UInt32)(2048) mjDSBL_ACTUATION = (UInt32)(4096) mjDSBL_BROADPHASE = (UInt32)(8192) mjDSBL_REFSAFE = (UInt32)(16384) mjNDISABLE = (UInt32)(15)
@@ -55,11 +56,21 @@ const mjMAXOVERLAY = 500
 
 @enum mjtConstraint mjCNSTR_EQUALITY = (UInt32)(0) mjCNSTR_FRICTION_DOF = (UInt32)(1) mjCNSTR_FRICTION_TENDON = (UInt32)(2) mjCNSTR_LIMIT_JOINT = (UInt32)(3) mjCNSTR_LIMIT_TENDON = (UInt32)(4) mjCNSTR_CONTACT_FRICTIONLESS = (UInt32)(5) mjCNSTR_CONTACT_PYRAMIDAL = (UInt32)(6) mjCNSTR_CONTACT_ELLIPTIC = (UInt32)(7) 
 
-@enum mjtSensor mjSENS_TOUCH = (UInt32)(0) mjSENS_ACCELEROMETER = (UInt32)(1) mjSENS_VELOCIMETER = (UInt32)(2) mjSENS_GYRO = (UInt32)(3) mjSENS_FORCE = (UInt32)(4) mjSENS_TORQUE = (UInt32)(5) mjSENS_MAGNETOMETER = (UInt32)(6) mjSENS_JOINTPOS = (UInt32)(7) mjSENS_JOINTVEL = (UInt32)(8) mjSENS_TENDONPOS = (UInt32)(9) mjSENS_TENDONVEL = (UInt32)(10) mjSENS_ACTUATORPOS = (UInt32)(11) mjSENS_ACTUATORVEL = (UInt32)(12) mjSENS_ACTUATORFRC = (UInt32)(13) mjSENS_BALLQUAT = (UInt32)(14) mjSENS_BALLANGVEL = (UInt32)(15) mjSENS_FRAMEPOS = (UInt32)(16) mjSENS_FRAMEQUAT = (UInt32)(17) mjSENS_FRAMEXAXIS = (UInt32)(18) mjSENS_FRAMEYAXIS = (UInt32)(19) mjSENS_FRAMEZAXIS = (UInt32)(20) mjSENS_FRAMELINVEL = (UInt32)(21) mjSENS_FRAMEANGVEL = (UInt32)(22) mjSENS_FRAMELINACC = (UInt32)(23) mjSENS_FRAMEANGACC = (UInt32)(24) mjSENS_SUBTREECOM = (UInt32)(25) mjSENS_SUBTREELINVEL = (UInt32)(26) mjSENS_SUBTREEANGMOM = (UInt32)(27) mjSENS_USER = (UInt32)(28)
+@enum mjtConstraintState mjCNSTRSTATE_SATISFIED = (UInt32)(0) mjCNSTRSTATE_QUADRATIC = (UInt32)(1) mjCNSTRSTATE_LINEARNEG = (UInt32)(2) mjCNSTRSTATE_LINEARPOS = (UInt32)(3) mjCNSTRSTATE_CONE = (UInt32)(4)
+
+@enum mjtSensor mjSENS_TOUCH = (UInt32)(0) mjSENS_ACCELEROMETER = (UInt32)(1) mjSENS_VELOCIMETER = (UInt32)(2) mjSENS_GYRO = (UInt32)(3) mjSENS_FORCE = (UInt32)(4) mjSENS_TORQUE = (UInt32)(5) mjSENS_MAGNETOMETER = (UInt32)(6) mjSENS_RANGEFINDER = (UInt32)(7) mjSENS_JOINTPOS = (UInt32)(8) mjSENS_JOINTVEL = (UInt32)(9) mjSENS_TENDONPOS = (UInt32)(10) mjSENS_TENDONVEL = (UInt32)(11) mjSENS_ACTUATORPOS = (UInt32)(12) mjSENS_ACTUATORVEL = (UInt32)(13) mjSENS_ACTUATORFRC = (UInt32)(14) mjSENS_BALLQUAT = (UInt32)(15) mjSENS_BALLANGVEL = (UInt32)(16) mjSENS_FRAMEPOS = (UInt32)(17) mjSENS_FRAMEQUAT = (UInt32)(18) mjSENS_FRAMEXAXIS = (UInt32)(19) mjSENS_FRAMEYAXIS = (UInt32)(20) mjSENS_FRAMEZAXIS = (UInt32)(21) mjSENS_FRAMELINVEL = (UInt32)(22) mjSENS_FRAMEANGVEL = (UInt32)(23) mjSENS_FRAMELINACC = (UInt32)(24) mjSENS_FRAMEANGACC = (UInt32)(25) mjSENS_SUBTREECOM = (UInt32)(26) mjSENS_SUBTREELINVEL = (UInt32)(27) mjSENS_SUBTREEANGMOM = (UInt32)(28) mjSENS_USER = (UInt32)(29) 
 
 @enum mjtStage mjSTAGE_NONE = (UInt32)(0) mjSTAGE_POS = (UInt32)(1) mjSTAGE_VEL = (UInt32)(2) mjSTAGE_ACC = (UInt32)(3) 
 
-@enum mjtDataType mjDATATYPE_REAL = (UInt32)(0) mjDATATYPE_AXIS = (UInt32)(1) mjDATATYPE_QUAT = (UInt32)(2)
+@enum mjtDataType mjDATATYPE_REAL = (UInt32)(0) mjDATATYPE_POSITIVE = (UInt32)(1) mjDATATYPE_AXIS = (UInt32)(2) mjDATATYPE_QUAT = (UInt32)(3)
+
+immutable _mjVFS
+   nfile::Cint
+   filename::NTuple{mjMAXVFS, NTuple{mjMAXVFSNAME, UInt8}}
+   filesize::NTuple{mjMAXVFS, Cint}
+   filedata::NTuple{mjMAXVFS, Ptr{Void}}
+end
+const mjVFS = _mjVFS;
 
 #struct _mjOption
 immutable _mjOption
@@ -103,6 +114,7 @@ const mjVisual = _mjVisual
 
 #struct _mjStatistic
 immutable _mjStatistic
+   meaninertia::mjtNum
    meanmass::mjtNum
    meansize::mjtNum
    extent::mjtNum
@@ -203,7 +215,6 @@ type _mjModel
    dof_jntid::Ptr{Cint}
    dof_parentid::Ptr{Cint}
    dof_Madr::Ptr{Cint}
-   dof_frictional::Ptr{mjtByte}
    dof_solref::Ptr{mjtNum}
    dof_solimp::Ptr{mjtNum}
    dof_frictionloss::Ptr{mjtNum}
@@ -314,7 +325,6 @@ type _mjModel
    tendon_num::Ptr{Cint}
    tendon_matid::Ptr{Cint}
    tendon_limited::Ptr{mjtByte}
-   tendon_frictional::Ptr{mjtByte}
    tendon_width::Ptr{mjtNum}
    tendon_solref_lim::Ptr{mjtNum}
    tendon_solimp_lim::Ptr{mjtNum}

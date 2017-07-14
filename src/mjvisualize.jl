@@ -2,6 +2,10 @@
 const mjNGROUP = 5
 const mjMAXOVERLAY = 500
 
+const mjMAXLINE = 100
+const mjMAXLINEPNT = 500
+const  mjMAXPLANEGRID = 100
+
 @enum mjtCatBit mjCAT_STATIC = (UInt32)(1) mjCAT_DYNAMIC = (UInt32)(2) mjCAT_DECOR = (UInt32)(4) mjCAT_ALL = (UInt32)(7)
 
 @enum mjtMouse mjMOUSE_NONE = (UInt32)(0) mjMOUSE_ROTATE_V = (UInt32)(1) mjMOUSE_ROTATE_H = (UInt32)(2) mjMOUSE_MOVE_V = (UInt32)(3) mjMOUSE_MOVE_H = (UInt32)(4) mjMOUSE_ZOOM = (UInt32)(5) mjMOUSE_SELECT = (UInt32)(6)
@@ -125,3 +129,29 @@ end
 
 const mjvScene = _mjvScene
 
+type _mjvFigure
+   flg_legend::Cint
+   flg_ticklabel::NTuple{2, Cint}
+   flg_extend::Cint
+   flg_barplot::Cint
+
+   gridsize::NTuple{2, Cint}
+   gridrgb::NTuple{3, Cfloat}
+   gridwidth::Cfloat
+   figurergba::NTuple{4, Cfloat}
+   legendrgba::NTuple{4, Cfloat}
+   textrgb::NTuple{3, Cfloat}
+   range::NTuple{2, NTuple{2, Cfloat}}
+   xlabel::NTuple{100, UInt8}
+   title::NTuple{100, UInt8}
+   xformat::NTuple{20, UInt8}
+   yformat::NTuple{20, UInt8}
+   minwidth::NTuple{20, UInt8}
+
+   linepnt::NTuple{mjMAXLINE, Cint}
+   linergb::NTuple{mjMAXLINE, NTuple{3, Cfloat}}
+   linewidth::NTuple{mjMAXLINE, Cfloat}
+   linedata::NTuple{mjMAXLINE, NTuple{2*mjMAXLINEPNT, Cfloat}}
+   linename::NTuple{mjMAXLINE, NTuple{100, UInt8}}
+end
+const mjvFigure = _mjvFigure

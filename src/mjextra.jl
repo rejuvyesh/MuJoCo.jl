@@ -12,7 +12,6 @@ function findkey()
          println("Set MUJOCO_KEY_PATH environment variable, please.")
       end
    end
-
    return key
 end
 
