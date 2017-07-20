@@ -33,8 +33,8 @@ type _mjrContext
    shadowFBO::UInt32
    shadowTex::UInt32
    ntexture::Cint
-   textureType::NTuple{100, Cint}
-   texture::NTuple{100, UInt32}
+   textureType::SVector{100, Cint}
+   texture::SVector{100, UInt32}
    basePlane::UInt32
    baseMesh::UInt32
    baseHField::UInt32
@@ -47,8 +47,8 @@ type _mjrContext
    rangeHField::Cint
    rangeBuiltin::Cint
    rangeFont::Cint
-   charWidth::NTuple{127, Cint}
-   charWidthBig::NTuple{127, Cint}
+   charWidth::SVector{127, Cint}
+   charWidthBig::SVector{127, Cint}
    charHeight::Cint
    charHeightBig::Cint
    glewInitialized::Cint

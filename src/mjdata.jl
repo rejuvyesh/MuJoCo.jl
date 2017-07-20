@@ -10,14 +10,14 @@ const _mjNTIMER = Integer(mjNTIMER)
 #struct _mjContact
 immutable _mjContact
    dist::mjtNum
-   pos::NTuple{3, mjtNum}
-   frame::NTuple{9, mjtNum}
+   pos::SVector{3, mjtNum}
+   frame::SVector{9, mjtNum}
    includemargin::mjtNum
-   friction::NTuple{5, mjtNum}
-   solref::NTuple{2, mjtNum}
-   solimp::NTuple{3, mjtNum}
+   friction::SVector{5, mjtNum}
+   solref::SVector{2, mjtNum}
+   solimp::SVector{3, mjtNum}
    mu::mjtNum
-   H::NTuple{36, mjtNum}
+   H::SVector{36, mjtNum}
    dim::Cint
    geom1::Cint
    geom2::Cint
@@ -61,20 +61,20 @@ type _mjData
    maxuse_con::Cint
    maxuse_efc::Cint
 
-   warning::NTuple{8, mjWarningStat}
-   timer::NTuple{13, mjTimerStat}
-   solver::NTuple{mjNSOLVER, mjSolverStat}
+   warning::SVector{8, mjWarningStat}
+   timer::SVector{13, mjTimerStat}
+   solver::SVector{mjNSOLVER, mjSolverStat}
 
    solver_iter::Cint
    solver_nnz::Cint
-   solver_fwdinv::NTuple{2, mjtNum}
+   solver_fwdinv::SVector{2, mjtNum}
 
    ne::Cint
    nf::Cint
    nefc::Cint
    ncon::Cint
    time::mjtNum
-   energy::NTuple{2, mjtNum}
+   energy::SVector{2, mjtNum}
 
    buffer::Ptr{Void}
    stack::Ptr{mjtNum}

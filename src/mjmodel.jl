@@ -66,9 +66,9 @@ const mjNSOLVER = 1000
 
 immutable _mjVFS
    nfile::Cint
-   filename::NTuple{mjMAXVFS, NTuple{mjMAXVFSNAME, UInt8}}
-   filesize::NTuple{mjMAXVFS, Cint}
-   filedata::NTuple{mjMAXVFS, Ptr{Void}}
+   filename::SMatrix{mjMAXVFS, mjMAXVFSNAME, UInt8}
+   filesize::SVector{mjMAXVFS, Cint}
+   filedata::SVector{mjMAXVFS, Ptr{Void}}
 end
 const mjVFS = _mjVFS;
 
@@ -78,14 +78,14 @@ immutable _mjOption
    apirate::mjtNum
    tolerance::mjtNum
    impratio::mjtNum
-   gravity::NTuple{3, mjtNum}
-   wind::NTuple{3, mjtNum}
-   magnetic::NTuple{3, mjtNum}
+   gravity::SVector{3, mjtNum}
+   wind::SVector{3, mjtNum}
+   magnetic::SVector{3, mjtNum}
    density::mjtNum
    viscosity::mjtNum
    o_margin::mjtNum
-   o_solref::NTuple{2, mjtNum}
-   o_solimp::NTuple{3, mjtNum}
+   o_solref::SVector{2, mjtNum}
+   o_solimp::SVector{3, mjtNum}
    mpr_tolerance::mjtNum
    mpr_iterations::Cint
    integrator::Cint
@@ -118,7 +118,7 @@ immutable _mjStatistic
    meanmass::mjtNum
    meansize::mjtNum
    extent::mjtNum
-   center::NTuple{3, mjtNum}
+   center::SVector{3, mjtNum}
 end
 
 const mjStatistic = _mjStatistic
