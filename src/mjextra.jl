@@ -122,13 +122,12 @@ end
 
 
 
+#################################### easier wrappers
 
-#################################### helpers
+step(m::jlModel, d::jlData) = step(m.m, d.d)
+forward(m::jlModel, d::jlData) = forward(m.m, d.d)
+forwardSkip(m::jlModel, d::jlData,skipstage::Integer,skipsensorenergy::Integer) = forwardSkip(m.m,d.d,skipstage,skipsensorenergy)
 
-function step(m::jlModel, d::jlData)
-   step(m.m, d.d)
-end
-
-function resetData(m::jlModel, d::jlData)
-   resetData(m.m, d.d)
-end
+inverse(m::jlModel, d::jlData) = inverse(m.m, d.d)
+inverseSkip(m::jlModel, d::jlData,skipstage::Integer,skipsensorenergy::Integer) = forwardSkip(m.m,d.d,skipstage,skipsensorenergy)
+resetData(m::jlModel, d::jlData) = resetData(m.m, d.d)

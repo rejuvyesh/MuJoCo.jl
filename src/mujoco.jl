@@ -1,10 +1,14 @@
+
 # TODO write these as functions
+
 # Skipping MacroDefinition: mjMARKSTACK int _mark = d -> pstack ;
 # Skipping MacroDefinition: mjFREESTACK d -> pstack = _mark ;
+MARKSTACK(d::jlData) = return mj.get(d, :pstack)
+FREESTACK(d::jlData, mark::Cint) = mj.set(d, :pstack, mark)
 # Skipping MacroDefinition: mjDISABLED ( x ) ( m -> opt . disableflags & ( x ) )
 # Skipping MacroDefinition: mjENABLED ( x ) ( m -> opt . enableflags & ( x ) )
-# Skipping MacroDefinition: mjMAX ( a , b ) ( ( ( a ) > ( b ) ) ? ( a ) : ( b ) )
-# Skipping MacroDefinition: mjMIN ( a , b ) ( ( ( a ) < ( b ) ) ? ( a ) : ( b ) )
+mjMAX(a,b) = max(a,b)
+mjMIN(a,b) = min(a,b)
 
 ## user error and memory handlers
 #MJAPI extern void  (*mju_user_error)(const char*);
@@ -1061,6 +1065,8 @@ function mju_derivQuat(res::NTuple{4, mjtNum},quat::NTuple{4, mjtNum},vel::NTupl
 end
 
 # integrate quaterion given 3D angular velocity
+#TODO THIS nTUPLE STUFFJ
+#function mju_quatIntegrate(quat::NTuple{4, mjtNum},vel::NTuple{3, mjtNum},scale::mjtNum)
 function mju_quatIntegrate(quat::NTuple{4, mjtNum},vel::NTuple{3, mjtNum},scale::mjtNum)
    ccall((:mju_quatIntegrate,libmujoco),Void,(NTuple{4, mjtNum},NTuple{3, mjtNum},mjtNum),quat,vel,scale)
 end
@@ -1211,20 +1217,4 @@ function mju_insertionSort(list::Ptr{mjtNum},n::Integer)
    ccall((:mju_insertionSort,libmujoco),Void,(Ptr{mjtNum},Cint),list,n)
 end
 
-#---------------------- Optimization ---------------------------------------------------
-
-# acceleration constraint penalty
-function mjo_penalty(m::Ptr{mjModel},d::Ptr{mjData},jar::Ptr{mjtNum},ghat::Ptr{mjtNum},Hhat::Ptr{mjtNum},state::Ptr{Cint})
-   ccall((:mjo_penalty,libmujoco),mjtNum,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum},Ptr{Cint}),m,d,jar,ghat,Hhat,state)
-end
-
-# set default options for GDD solver
-function mjo_GDD_defaultOption(opt::Ptr{mjoGDDOption})
-   ccall((:mjo_GDD_defaultOption,libmujoco),Void,(Ptr{mjoGDDOption},),opt)
-end
-
-# run GDD solver
-function mjo_GDD_solve(m::Ptr{mjModel},d::Ptr{mjData},opt::Ptr{mjoGDDOption})
-   ccall((:mjo_GDD_solve,libmujoco),mjoGDDStats,(Ptr{mjModel},Ptr{mjData},Ptr{mjoGDDOption}),m,d,opt)
-end
 

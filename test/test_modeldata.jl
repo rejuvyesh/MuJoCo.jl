@@ -43,3 +43,6 @@ mj.resetData(m, d)
 
 @test qpos0 == d.qpos
 @test mj.get(d, :time) == 0.00
+
+
+

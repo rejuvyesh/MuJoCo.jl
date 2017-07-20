@@ -2,6 +2,8 @@ __precompile__()
 
 module MuJoCo
 
+using StaticArrays
+
 depsfile = joinpath(dirname(@__FILE__), "..", "deps", "deps.jl")
 if isfile(depsfile)
    include(depsfile)
