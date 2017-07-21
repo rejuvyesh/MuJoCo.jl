@@ -29,6 +29,8 @@ include("./mjextra.jl")
 # mujoco functions
 include("./mujoco.jl")
 
+include("./mjderiv.jl")
+
 const mj = MuJoCo
 export mj #export the module for faster typing
 export mjData, mjModel, mjOption # types exported
@@ -41,14 +43,14 @@ global activated = false
 
 function teardown()
    deactivate()
-   activated = false
+   global activated = false
 end
 
 function __init__()
    val = activate(keypath)
    if val == 1
       println("MuJoCo Activated")
-      activated = true
+      global activated = true
    else
       warn("MuJoCo not activated. Could not find license file in MUJOCO_KEY_PATH environment variable or through system search.")
    end
@@ -58,13 +60,5 @@ end
 # Notes on notation:
 # in this module, m and d are mjModel and mjData respectively
 # outside the module, the raw c struct pointer is generally pm, pd
-
-
-#TODO jlModel can try to display unallocated raw pointers which causes segfault
-function display(m::jlModel)
-   #println("MuJoCo.jlModel(", m.m,")")
-   println("MuJoCo.jlModel()")
-end
-export display
 
 end

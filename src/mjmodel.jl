@@ -26,7 +26,7 @@ const mjNSOLVER = 1000
 
 @enum mjtGeom mjGEOM_PLANE = (UInt32)(0) mjGEOM_HFIELD = (UInt32)(1) mjGEOM_SPHERE = (UInt32)(2) mjGEOM_CAPSULE = (UInt32)(3) mjGEOM_ELLIPSOID = (UInt32)(4) mjGEOM_CYLINDER = (UInt32)(5) mjGEOM_BOX = (UInt32)(6) mjGEOM_MESH = (UInt32)(7) mjNGEOMTYPES = (UInt32)(8) mjGEOM_ARROW = (UInt32)(100) mjGEOM_ARROW1 = (UInt32)(101) mjGEOM_ARROW2 = (UInt32)(102) mjGEOM_LABEL = (UInt32)(103) mjGEOM_NONE = (UInt32)(1001)  
 
-@enum mjtCamLight  mjCAMLIGHT_FIXED = (UInt32)(0) mjCAMLIGHT_TRACK = (UInt32)(1) mjCAMLIGHT_TRACKCOM = (UInt32)(2) mjCAMLIGHT_TARGETBODY = (UInt32)(3) mjCAMLIGHT_TARGETBODYCOM = (UInt32)(4) 
+@enum mjtCamLight mjCAMLIGHT_FIXED = (UInt32)(0) mjCAMLIGHT_TRACK = (UInt32)(1) mjCAMLIGHT_TRACKCOM = (UInt32)(2) mjCAMLIGHT_TARGETBODY = (UInt32)(3) mjCAMLIGHT_TARGETBODYCOM = (UInt32)(4) 
 
 @enum mjtTexture mjTEXTURE_2D = (UInt32)(0) mjTEXTURE_CUBE = (UInt32)(1) mjTEXTURE_SKYBOX = (UInt32)(2) 
 
@@ -34,7 +34,11 @@ const mjNSOLVER = 1000
 
 @enum mjtCollision mjCOL_ALL = (UInt32)(0) mjCOL_PAIR = (UInt32)(1) mjCOL_DYNAMIC = (UInt32)(2) 
 
-@enum mjtSolver mjSOL_CG = (UInt32)(0) mjSOL_CG_ELLIPTIC = (UInt32)(1) mjSOL_PCG_SPARSE = (UInt32)(2) mjSOL_PCG = (UInt32)(3) mjSOL_PGS = (UInt32)(4) mjSOL_ELLIPTIC = (UInt32)(5) 
+@enum mjtCone mjCONE_PYRAMIDAL = (UInt32)(0) mjCONE_ELLIPTIC = (UInt32)(1)
+
+@enum mjtJacobian mjJAC_DENSE = (UInt32)(0) mjJAC_SPARSE = (UInt32)(1) mjJAC_AUTO = (UInt32)(2)
+
+@enum mjtSolver mjSOL_PGS = (UInt32)(0) mjSOL_CG = (UInt32)(1) mjSOL_NEWTON = (UInt32)(2)
 
 @enum mjtImp mjIMP_CONSTANT = (UInt32)(0) mjIMP_SIGMOID = (UInt32)(1) mjIMP_LINEAR = (UInt32)(2) mjIMP_USER = (UInt32)(3) 
 
@@ -76,333 +80,447 @@ const mjVFS = _mjVFS;
 immutable _mjOption
    timestep::mjtNum
    apirate::mjtNum
-   tolerance::mjtNum
+
    impratio::mjtNum
+   tolerance::mjtNum
+   noslip_tolerance::mjtNum
+   mpr_tolerance::mjtNum
+
    gravity::SVector{3, mjtNum}
    wind::SVector{3, mjtNum}
    magnetic::SVector{3, mjtNum}
    density::mjtNum
    viscosity::mjtNum
+
    o_margin::mjtNum
-   o_solref::SVector{2, mjtNum}
-   o_solimp::SVector{3, mjtNum}
-   mpr_tolerance::mjtNum
-   mpr_iterations::Cint
+   o_solref::SVector{mjNREF, mjtNum}
+   o_solimp::SVector{mjNIMP, mjtNum}
+
    integrator::Cint
    collision::Cint
    impedance::Cint
    reference::Cint
+   cone::Cint
+   jacobian::Cint
    solver::Cint
    iterations::Cint
+   noslip_iterations::Cint
+   mpr_iterations::Cint
    disableflags::Cint
    enableflags::Cint
 end
-
 const mjOption = _mjOption
 
 #struct _mjVisual
-immutable _mjVisual
-   _global::Void
-   quality::Void
-   headlight::Void
-   map::Void
-   scale::Void
-   rgba::Void
+immutable __global
+	fovy::Float32
+	ipd::Float32
+	linewidth::Float32
+	glow::Float32
+	offwidth::Int32
+	offheight::Int32
 end
 
+immutable _quality
+	shadowsize::Int32
+	offsamples::Int32
+	numslices::Int32
+	numstacks::Int32
+	numarrows::Int32
+	numquads::Int32
+end
+
+immutable _headlight
+	ambient::SVector{3, Float32}
+	diffuse::SVector{3, Float32}
+	specular::SVector{3, Float32}
+	active::Int32
+end
+
+immutable _map
+	stiffness::Float32
+	stiffnessrot::Float32
+	force::Float32
+	torque::Float32
+	alpha::Float32
+	fogstart::Float32
+	fogend::Float32
+	znear::Float32
+	zfar::Float32
+	shadowclip::Float32
+	shadowscale::Float32
+end
+
+immutable _scale
+	forcewidth::Float32
+	contactwidth::Float32
+	contactheight::Float32
+	connect::Float32
+	com::Float32
+	camera::Float32
+	light::Float32
+	selectpoint::Float32
+	jointlength::Float32
+	jointwidth::Float32
+	actuatorlength::Float32
+	actuatorwidth::Float32
+	framelength::Float32
+	framewidth::Float32
+	constraint::Float32
+	slidercrank::Float32
+end
+
+immutable _rgba
+	fog::SVector{4, Float32}
+	force::SVector{4, Float32}
+	inertia::SVector{4, Float32}
+	joint::SVector{4, Float32}
+	actuator::SVector{4, Float32}
+	com::SVector{4, Float32}
+	camera::SVector{4, Float32}
+	light::SVector{4, Float32}
+	selectpoint::SVector{4, Float32}
+	connect::SVector{4, Float32}
+	contactpoint::SVector{4, Float32}
+	contactforce::SVector{4, Float32}
+	contactfriction::SVector{4, Float32}
+	contacttorque::SVector{4, Float32}
+	constraint::SVector{4, Float32}
+	slidercrank::SVector{4, Float32}
+	crankbroken::SVector{4, Float32}
+end
+
+immutable _mjVisual
+	_global::__global
+	quality::_quality
+	headlight::_headlight
+	map::_map
+	scale::_scale
+	rgba::_rgba
+end
 const mjVisual = _mjVisual
 
 #struct _mjStatistic
 immutable _mjStatistic
-   meaninertia::mjtNum
-   meanmass::mjtNum
-   meansize::mjtNum
-   extent::mjtNum
-   center::SVector{3, mjtNum}
+	meaninertia::mjtNum
+	meanmass::mjtNum
+	meansize::mjtNum
+	extent::mjtNum
+	center::SVector{3, mjtNum}
 end
-
 const mjStatistic = _mjStatistic
 
-type _mjModel
-   nq::Cint
-   nv::Cint
-   nu::Cint
-   na::Cint
-   nbody::Cint
-   njnt::Cint
-   ngeom::Cint
-   nsite::Cint
-   ncam::Cint
-   nlight::Cint
-   nmesh::Cint
-   nmeshvert::Cint
-   nmeshface::Cint
-   nmeshgraph::Cint
-   nhfield::Cint
-   nhfielddata::Cint
-   ntex::Cint
-   ntexdata::Cint
-   nmat::Cint
-   npair::Cint
-   nexclude::Cint
-   neq::Cint
-   ntendon::Cint
-   nwrap::Cint
-   nsensor::Cint
-   nnumeric::Cint
-   nnumericdata::Cint
-   ntext::Cint
-   ntextdata::Cint
-   ntuple::Cint
-   ntupledata::Cint
-   nkey::Cint
-   nuser_body::Cint
-   nuser_jnt::Cint
-   nuser_geom::Cint
-   nuser_site::Cint
-   nuser_tendon::Cint
-   nuser_actuator::Cint
-   nuser_sensor::Cint
-   nnames::Cint
-   nM::Cint
-   nemax::Cint
-   njmax::Cint
-   nconmax::Cint
-   nstack::Cint
-   nuserdata::Cint
-   nmocap::Cint
-   nsensordata::Cint
-   nbuffer::Cint
-   opt::mjOption
-   vis::mjVisual
-   stat::mjStatistic
-   buffer::Ptr{Void}
-   qpos0::Ptr{mjtNum}
-   qpos_spring::Ptr{mjtNum}
-   body_parentid::Ptr{Cint}
-   body_rootid::Ptr{Cint}
-   body_weldid::Ptr{Cint}
-   body_mocapid::Ptr{Cint}
-   body_jntnum::Ptr{Cint}
-   body_jntadr::Ptr{Cint}
-   body_dofnum::Ptr{Cint}
-   body_dofadr::Ptr{Cint}
-   body_geomnum::Ptr{Cint}
-   body_geomadr::Ptr{Cint}
-   body_pos::Ptr{mjtNum}
-   body_quat::Ptr{mjtNum}
-   body_ipos::Ptr{mjtNum}
-   body_iquat::Ptr{mjtNum}
-   body_mass::Ptr{mjtNum}
-   body_subtreemass::Ptr{mjtNum}
-   body_inertia::Ptr{mjtNum}
-   body_invweight0::Ptr{mjtNum}
-   body_user::Ptr{mjtNum}
-   jnt_type::Ptr{Cint}
-   jnt_qposadr::Ptr{Cint}
-   jnt_dofadr::Ptr{Cint}
-   jnt_bodyid::Ptr{Cint}
-   jnt_limited::Ptr{mjtByte}
-   jnt_solref::Ptr{mjtNum}
-   jnt_solimp::Ptr{mjtNum}
-   jnt_pos::Ptr{mjtNum}
-   jnt_axis::Ptr{mjtNum}
-   jnt_stiffness::Ptr{mjtNum}
-   jnt_range::Ptr{mjtNum}
-   jnt_margin::Ptr{mjtNum}
-   jnt_user::Ptr{mjtNum}
-   dof_bodyid::Ptr{Cint}
-   dof_jntid::Ptr{Cint}
-   dof_parentid::Ptr{Cint}
-   dof_Madr::Ptr{Cint}
-   dof_solref::Ptr{mjtNum}
-   dof_solimp::Ptr{mjtNum}
-   dof_frictionloss::Ptr{mjtNum}
-   dof_armature::Ptr{mjtNum}
-   dof_damping::Ptr{mjtNum}
-   dof_invweight0::Ptr{mjtNum}
-   geom_type::Ptr{Cint}
-   geom_contype::Ptr{Cint}
-   geom_conaffinity::Ptr{Cint}
-   geom_condim::Ptr{Cint}
-   geom_bodyid::Ptr{Cint}
-   geom_dataid::Ptr{Cint}
-   geom_matid::Ptr{Cint}
-   geom_group::Ptr{Cint}
-   geom_solmix::Ptr{mjtNum}
-   geom_solref::Ptr{mjtNum}
-   geom_solimp::Ptr{mjtNum}
-   geom_size::Ptr{mjtNum}
-   geom_rbound::Ptr{mjtNum}
-   geom_pos::Ptr{mjtNum}
-   geom_quat::Ptr{mjtNum}
-   geom_friction::Ptr{mjtNum}
-   geom_margin::Ptr{mjtNum}
-   geom_gap::Ptr{mjtNum}
-   geom_user::Ptr{mjtNum}
-   geom_rgba::Ptr{Cfloat}
-   site_type::Ptr{Cint}
-   site_bodyid::Ptr{Cint}
-   site_matid::Ptr{Cint}
-   site_group::Ptr{Cint}
-   site_size::Ptr{mjtNum}
-   site_pos::Ptr{mjtNum}
-   site_quat::Ptr{mjtNum}
-   site_user::Ptr{mjtNum}
-   site_rgba::Ptr{Cfloat}
-   cam_mode::Ptr{Cint}
-   cam_bodyid::Ptr{Cint}
-   cam_targetbodyid::Ptr{Cint}
-   cam_pos::Ptr{mjtNum}
-   cam_quat::Ptr{mjtNum}
-   cam_poscom0::Ptr{mjtNum}
-   cam_pos0::Ptr{mjtNum}
-   cam_mat0::Ptr{mjtNum}
-   cam_fovy::Ptr{mjtNum}
-   cam_ipd::Ptr{mjtNum}
-   light_mode::Ptr{Cint}
-   light_bodyid::Ptr{Cint}
-   light_targetbodyid::Ptr{Cint}
-   light_directional::Ptr{mjtByte}
-   light_castshadow::Ptr{mjtByte}
-   light_active::Ptr{mjtByte}
-   light_pos::Ptr{mjtNum}
-   light_dir::Ptr{mjtNum}
-   light_poscom0::Ptr{mjtNum}
-   light_pos0::Ptr{mjtNum}
-   light_dir0::Ptr{mjtNum}
-   light_attenuation::Ptr{Cfloat}
-   light_cutoff::Ptr{Cfloat}
-   light_exponent::Ptr{Cfloat}
-   light_ambient::Ptr{Cfloat}
-   light_diffuse::Ptr{Cfloat}
-   light_specular::Ptr{Cfloat}
-   mesh_faceadr::Ptr{Cint}
-   mesh_facenum::Ptr{Cint}
-   mesh_vertadr::Ptr{Cint}
-   mesh_vertnum::Ptr{Cint}
-   mesh_graphadr::Ptr{Cint}
-   mesh_vert::Ptr{Cfloat}
-   mesh_normal::Ptr{Cfloat}
-   mesh_face::Ptr{Cint}
-   mesh_graph::Ptr{Cint}
-   hfield_size::Ptr{mjtNum}
-   hfield_nrow::Ptr{Cint}
-   hfield_ncol::Ptr{Cint}
-   hfield_adr::Ptr{Cint}
-   hfield_data::Ptr{Cfloat}
-   tex_type::Ptr{Cint}
-   tex_height::Ptr{Cint}
-   tex_width::Ptr{Cint}
-   tex_adr::Ptr{Cint}
-   tex_rgb::Ptr{mjtByte}
-   mat_texid::Ptr{Cint}
-   mat_texuniform::Ptr{mjtByte}
-   mat_texrepeat::Ptr{Cfloat}
-   mat_emission::Ptr{Cfloat}
-   mat_specular::Ptr{Cfloat}
-   mat_shininess::Ptr{Cfloat}
-   mat_reflectance::Ptr{Cfloat}
-   mat_rgba::Ptr{Cfloat}
-   pair_dim::Ptr{Cint}
-   pair_geom1::Ptr{Cint}
-   pair_geom2::Ptr{Cint}
-   pair_signature::Ptr{Cint}
-   pair_solref::Ptr{mjtNum}
-   pair_solimp::Ptr{mjtNum}
-   pair_margin::Ptr{mjtNum}
-   pair_gap::Ptr{mjtNum}
-   pair_friction::Ptr{mjtNum}
-   exclude_signature::Ptr{Cint}
-   eq_type::Ptr{Cint}
-   eq_obj1id::Ptr{Cint}
-   eq_obj2id::Ptr{Cint}
-   eq_active::Ptr{mjtByte}
-   eq_solref::Ptr{mjtNum}
-   eq_solimp::Ptr{mjtNum}
-   eq_data::Ptr{mjtNum}
-   tendon_adr::Ptr{Cint}
-   tendon_num::Ptr{Cint}
-   tendon_matid::Ptr{Cint}
-   tendon_limited::Ptr{mjtByte}
-   tendon_width::Ptr{mjtNum}
-   tendon_solref_lim::Ptr{mjtNum}
-   tendon_solimp_lim::Ptr{mjtNum}
-   tendon_solref_fri::Ptr{mjtNum}
-   tendon_solimp_fri::Ptr{mjtNum}
-   tendon_range::Ptr{mjtNum}
-   tendon_margin::Ptr{mjtNum}
-   tendon_stiffness::Ptr{mjtNum}
-   tendon_damping::Ptr{mjtNum}
-   tendon_frictionloss::Ptr{mjtNum}
-   tendon_lengthspring::Ptr{mjtNum}
-   tendon_length0::Ptr{mjtNum}
-   tendon_invweight0::Ptr{mjtNum}
-   tendon_user::Ptr{mjtNum}
-   tendon_rgba::Ptr{Cfloat}
-   wrap_type::Ptr{Cint}
-   wrap_objid::Ptr{Cint}
-   wrap_prm::Ptr{mjtNum}
-   actuator_trntype::Ptr{Cint}
-   actuator_dyntype::Ptr{Cint}
-   actuator_gaintype::Ptr{Cint}
-   actuator_biastype::Ptr{Cint}
-   actuator_trnid::Ptr{Cint}
-   actuator_ctrllimited::Ptr{mjtByte}
-   actuator_forcelimited::Ptr{mjtByte}
-   actuator_dynprm::Ptr{mjtNum}
-   actuator_gainprm::Ptr{mjtNum}
-   actuator_biasprm::Ptr{mjtNum}
-   actuator_ctrlrange::Ptr{mjtNum}
-   actuator_forcerange::Ptr{mjtNum}
-   actuator_gear::Ptr{mjtNum}
-   actuator_cranklength::Ptr{mjtNum}
-   actuator_invweight0::Ptr{mjtNum}
-   actuator_length0::Ptr{mjtNum}
-   actuator_lengthrange::Ptr{mjtNum}
-   actuator_user::Ptr{mjtNum}
-   sensor_type::Ptr{Cint}
-   sensor_datatype::Ptr{Cint}
-   sensor_needstage::Ptr{Cint}
-   sensor_objtype::Ptr{Cint}
-   sensor_objid::Ptr{Cint}
-   sensor_dim::Ptr{Cint}
-   sensor_adr::Ptr{Cint}
-   sensor_noise::Ptr{mjtNum}
-   sensor_user::Ptr{mjtNum}
-   numeric_adr::Ptr{Cint}
-   numeric_size::Ptr{Cint}
-   numeric_data::Ptr{mjtNum}
-   text_adr::Ptr{Cint}
-   text_size::Ptr{Cint}
-   text_data::Ptr{UInt8}
-   tuple_adr::Ptr{Cint}
-   tuple_size::Ptr{Cint}
-   tuple_objtype::Ptr{Cint}
-   tuple_objid::Ptr{Cint}
-   tuple_objprm::Ptr{mjtNum}
-   key_time::Ptr{mjtNum}
-   key_qpos::Ptr{mjtNum}
-   key_qvel::Ptr{mjtNum}
-   key_act::Ptr{mjtNum}
-   name_bodyadr::Ptr{Cint}
-   name_jntadr::Ptr{Cint}
-   name_geomadr::Ptr{Cint}
-   name_siteadr::Ptr{Cint}
-   name_camadr::Ptr{Cint}
-   name_lightadr::Ptr{Cint}
-   name_meshadr::Ptr{Cint}
-   name_hfieldadr::Ptr{Cint}
-   name_texadr::Ptr{Cint}
-   name_matadr::Ptr{Cint}
-   name_eqadr::Ptr{Cint}
-   name_tendonadr::Ptr{Cint}
-   name_actuatoradr::Ptr{Cint}
-   name_sensoradr::Ptr{Cint}
-   name_numericadr::Ptr{Cint}
-   name_textadr::Ptr{Cint}
-   name_tupleadr::Ptr{Cint}
-   names::Ptr{UInt8}
+immutable _mjModel
+	nq::Cint
+	nv::Cint
+	nu::Cint
+	na::Cint
+	nbody::Cint
+	njnt::Cint
+	ngeom::Cint
+	nsite::Cint
+	ncam::Cint
+	nlight::Cint
+	nmesh::Cint
+	nmeshvert::Cint
+	nmeshface::Cint
+	nmeshgraph::Cint
+	nhfield::Cint
+	nhfielddata::Cint
+	ntex::Cint
+	ntexdata::Cint
+	nmat::Cint
+	npair::Cint
+	nexclude::Cint
+	neq::Cint
+	ntendon::Cint
+	nwrap::Cint
+	nsensor::Cint
+	nnumeric::Cint
+	nnumericdata::Cint
+	ntext::Cint
+	ntextdata::Cint
+	ntuple::Cint
+	ntupledata::Cint
+	nkey::Cint
+	nuser_body::Cint
+	nuser_jnt::Cint
+	nuser_geom::Cint
+	nuser_site::Cint
+	nuser_cam::Cint
+	nuser_tendon::Cint
+	nuser_actuator::Cint
+	nuser_sensor::Cint
+	nnames::Cint
+
+	nM::Cint
+	nemax::Cint
+	njmax::Cint
+	nconmax::Cint
+	nstack::Cint
+	nuserdata::Cint
+	nmocap::Cint
+	nsensordata::Cint
+
+	nbuffer::Cint
+
+	opt::mjOption
+	vis::mjVisual
+	stat::mjStatistic
+
+	buffer::Ptr{Void}
+
+	qpos0::Ptr{mjtNum}
+	qpos_spring::Ptr{mjtNum}
+
+	body_parentid::Ptr{Cint}
+	body_rootid::Ptr{Cint}
+	body_weldid::Ptr{Cint}
+	body_mocapid::Ptr{Cint}
+	body_jntnum::Ptr{Cint}
+	body_jntadr::Ptr{Cint}
+	body_dofnum::Ptr{Cint}
+	body_dofadr::Ptr{Cint}
+	body_geomnum::Ptr{Cint}
+	body_geomadr::Ptr{Cint}
+	body_pos::Ptr{mjtNum}
+	body_quat::Ptr{mjtNum}
+	body_ipos::Ptr{mjtNum}
+	body_iquat::Ptr{mjtNum}
+	body_mass::Ptr{mjtNum}
+	body_subtreemass::Ptr{mjtNum}
+	body_inertia::Ptr{mjtNum}
+	body_invweight0::Ptr{mjtNum}
+	body_user::Ptr{mjtNum}
+
+	jnt_type::Ptr{Cint}
+	jnt_qposadr::Ptr{Cint}
+	jnt_dofadr::Ptr{Cint}
+	jnt_bodyid::Ptr{Cint}
+	jnt_limited::Ptr{mjtByte}
+	jnt_solref::Ptr{mjtNum}
+	jnt_solimp::Ptr{mjtNum}
+	jnt_pos::Ptr{mjtNum}
+	jnt_axis::Ptr{mjtNum}
+	jnt_stiffness::Ptr{mjtNum}
+	jnt_range::Ptr{mjtNum}
+	jnt_margin::Ptr{mjtNum}
+	jnt_user::Ptr{mjtNum}
+
+	dof_bodyid::Ptr{Cint}
+	dof_jntid::Ptr{Cint}
+	dof_parentid::Ptr{Cint}
+	dof_Madr::Ptr{Cint}
+	dof_solref::Ptr{mjtNum}
+	dof_solimp::Ptr{mjtNum}
+	dof_frictionloss::Ptr{mjtNum}
+	dof_armature::Ptr{mjtNum}
+	dof_damping::Ptr{mjtNum}
+	dof_invweight0::Ptr{mjtNum}
+
+	geom_type::Ptr{Cint}
+	geom_contype::Ptr{Cint}
+	geom_conaffinity::Ptr{Cint}
+	geom_condim::Ptr{Cint}
+	geom_bodyid::Ptr{Cint}
+	geom_dataid::Ptr{Cint}
+	geom_matid::Ptr{Cint}
+	geom_group::Ptr{Cint}
+	geom_solmix::Ptr{mjtNum}
+	geom_solref::Ptr{mjtNum}
+	geom_solimp::Ptr{mjtNum}
+	geom_size::Ptr{mjtNum}
+	geom_rbound::Ptr{mjtNum}
+	geom_pos::Ptr{mjtNum}
+	geom_quat::Ptr{mjtNum}
+	geom_friction::Ptr{mjtNum}
+	geom_margin::Ptr{mjtNum}
+	geom_gap::Ptr{mjtNum}
+	geom_user::Ptr{mjtNum}
+	geom_rgba::Ptr{Cfloat}
+
+	site_type::Ptr{Cint}
+	site_bodyid::Ptr{Cint}
+	site_matid::Ptr{Cint}
+	site_group::Ptr{Cint}
+	site_size::Ptr{mjtNum}
+	site_pos::Ptr{mjtNum}
+	site_quat::Ptr{mjtNum}
+	site_user::Ptr{mjtNum}
+	site_rgba::Ptr{Cfloat}
+
+	cam_mode::Ptr{Cint}
+	cam_bodyid::Ptr{Cint}
+	cam_targetbodyid::Ptr{Cint}
+	cam_pos::Ptr{mjtNum}
+	cam_quat::Ptr{mjtNum}
+	cam_poscom0::Ptr{mjtNum}
+	cam_pos0::Ptr{mjtNum}
+	cam_mat0::Ptr{mjtNum}
+	cam_fovy::Ptr{mjtNum}
+	cam_ipd::Ptr{mjtNum}
+	cam_user::Ptr{mjtNum}
+
+	light_mode::Ptr{Cint}
+	light_bodyid::Ptr{Cint}
+	light_targetbodyid::Ptr{Cint}
+	light_directional::Ptr{mjtByte}
+	light_castshadow::Ptr{mjtByte}
+	light_active::Ptr{mjtByte}
+	light_pos::Ptr{mjtNum}
+	light_dir::Ptr{mjtNum}
+	light_poscom0::Ptr{mjtNum}
+	light_pos0::Ptr{mjtNum}
+	light_dir0::Ptr{mjtNum}
+	light_attenuation::Ptr{Cfloat}
+	light_cutoff::Ptr{Cfloat}
+	light_exponent::Ptr{Cfloat}
+	light_ambient::Ptr{Cfloat}
+	light_diffuse::Ptr{Cfloat}
+	light_specular::Ptr{Cfloat}
+
+	mesh_faceadr::Ptr{Cint}
+	mesh_facenum::Ptr{Cint}
+	mesh_vertadr::Ptr{Cint}
+	mesh_vertnum::Ptr{Cint}
+	mesh_graphadr::Ptr{Cint}
+	mesh_vert::Ptr{Cfloat}
+	mesh_normal::Ptr{Cfloat}
+	mesh_face::Ptr{Cint}
+	mesh_graph::Ptr{Cint}
+
+	hfield_size::Ptr{mjtNum}
+	hfield_nrow::Ptr{Cint}
+	hfield_ncol::Ptr{Cint}
+	hfield_adr::Ptr{Cint}
+	hfield_data::Ptr{Cfloat}
+
+	tex_type::Ptr{Cint}
+	tex_height::Ptr{Cint}
+	tex_width::Ptr{Cint}
+	tex_adr::Ptr{Cint}
+	tex_rgb::Ptr{mjtByte}
+
+	mat_texid::Ptr{Cint}
+	mat_texuniform::Ptr{mjtByte}
+	mat_texrepeat::Ptr{Cfloat}
+	mat_emission::Ptr{Cfloat}
+	mat_specular::Ptr{Cfloat}
+	mat_shininess::Ptr{Cfloat}
+	mat_reflectance::Ptr{Cfloat}
+	mat_rgba::Ptr{Cfloat}
+
+	pair_dim::Ptr{Cint}
+	pair_geom1::Ptr{Cint}
+	pair_geom2::Ptr{Cint}
+	pair_signature::Ptr{Cint}
+	pair_solref::Ptr{mjtNum}
+	pair_solimp::Ptr{mjtNum}
+	pair_margin::Ptr{mjtNum}
+	pair_gap::Ptr{mjtNum}
+	pair_friction::Ptr{mjtNum}
+
+	exclude_signature::Ptr{Cint}
+
+	eq_type::Ptr{Cint}
+	eq_obj1id::Ptr{Cint}
+	eq_obj2id::Ptr{Cint}
+	eq_active::Ptr{mjtByte}
+	eq_solref::Ptr{mjtNum}
+	eq_solimp::Ptr{mjtNum}
+	eq_data::Ptr{mjtNum}
+
+	tendon_adr::Ptr{Cint}
+	tendon_num::Ptr{Cint}
+	tendon_matid::Ptr{Cint}
+	tendon_limited::Ptr{mjtByte}
+	tendon_width::Ptr{mjtNum}
+	tendon_solref_lim::Ptr{mjtNum}
+	tendon_solimp_lim::Ptr{mjtNum}
+	tendon_solref_fri::Ptr{mjtNum}
+	tendon_solimp_fri::Ptr{mjtNum}
+	tendon_range::Ptr{mjtNum}
+	tendon_margin::Ptr{mjtNum}
+	tendon_stiffness::Ptr{mjtNum}
+	tendon_damping::Ptr{mjtNum}
+	tendon_frictionloss::Ptr{mjtNum}
+	tendon_lengthspring::Ptr{mjtNum}
+	tendon_length0::Ptr{mjtNum}
+	tendon_invweight0::Ptr{mjtNum}
+	tendon_user::Ptr{mjtNum}
+	tendon_rgba::Ptr{Cfloat}
+
+	wrap_type::Ptr{Cint}
+	wrap_objid::Ptr{Cint}
+	wrap_prm::Ptr{mjtNum}
+
+	actuator_trntype::Ptr{Cint}
+	actuator_dyntype::Ptr{Cint}
+	actuator_gaintype::Ptr{Cint}
+	actuator_biastype::Ptr{Cint}
+	actuator_trnid::Ptr{Cint}
+	actuator_ctrllimited::Ptr{mjtByte}
+	actuator_forcelimited::Ptr{mjtByte}
+	actuator_dynprm::Ptr{mjtNum}
+	actuator_gainprm::Ptr{mjtNum}
+	actuator_biasprm::Ptr{mjtNum}
+	actuator_ctrlrange::Ptr{mjtNum}
+	actuator_forcerange::Ptr{mjtNum}
+	actuator_gear::Ptr{mjtNum}
+	actuator_cranklength::Ptr{mjtNum}
+	actuator_invweight0::Ptr{mjtNum}
+	actuator_length0::Ptr{mjtNum}
+	actuator_lengthrange::Ptr{mjtNum}
+	actuator_user::Ptr{mjtNum}
+
+	sensor_type::Ptr{Cint}
+	sensor_datatype::Ptr{Cint}
+	sensor_needstage::Ptr{Cint}
+	sensor_objtype::Ptr{Cint}
+	sensor_objid::Ptr{Cint}
+	sensor_dim::Ptr{Cint}
+	sensor_adr::Ptr{Cint}
+	sensor_cutoff::Ptr{mjtNum}
+	sensor_noise::Ptr{mjtNum}
+	sensor_user::Ptr{mjtNum}
+
+	numeric_adr::Ptr{Cint}
+	numeric_size::Ptr{Cint}
+	numeric_data::Ptr{mjtNum}
+
+	text_adr::Ptr{Cint}
+	text_size::Ptr{Cint}
+	text_data::Ptr{UInt8}
+
+	tuple_adr::Ptr{Cint}
+	tuple_size::Ptr{Cint}
+	tuple_objtype::Ptr{Cint}
+	tuple_objid::Ptr{Cint}
+	tuple_objprm::Ptr{mjtNum}
+
+	key_time::Ptr{mjtNum}
+	key_qpos::Ptr{mjtNum}
+	key_qvel::Ptr{mjtNum}
+	key_act::Ptr{mjtNum}
+
+	name_bodyadr::Ptr{Cint}
+	name_jntadr::Ptr{Cint}
+	name_geomadr::Ptr{Cint}
+	name_siteadr::Ptr{Cint}
+	name_camadr::Ptr{Cint}
+	name_lightadr::Ptr{Cint}
+	name_meshadr::Ptr{Cint}
+	name_hfieldadr::Ptr{Cint}
+	name_texadr::Ptr{Cint}
+	name_matadr::Ptr{Cint}
+	name_eqadr::Ptr{Cint}
+	name_tendonadr::Ptr{Cint}
+	name_actuatoradr::Ptr{Cint}
+	name_sensoradr::Ptr{Cint}
+	name_numericadr::Ptr{Cint}
+	name_textadr::Ptr{Cint}
+	name_tupleadr::Ptr{Cint}
+	names::Ptr{UInt8}
 end
 
 const mjModel = _mjModel

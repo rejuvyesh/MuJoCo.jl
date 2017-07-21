@@ -56,7 +56,9 @@ const mjSolverStat = _mjSolverStat
 type _mjData
    nstack::Cint
    nbuffer::Cint
+
    pstack::Cint
+
    maxuse_stack::Cint
    maxuse_con::Cint
    maxuse_efc::Cint
@@ -64,7 +66,6 @@ type _mjData
    warning::SVector{8, mjWarningStat}
    timer::SVector{13, mjTimerStat}
    solver::SVector{mjNSOLVER, mjSolverStat}
-
    solver_iter::Cint
    solver_nnz::Cint
    solver_fwdinv::SVector{2, mjtNum}

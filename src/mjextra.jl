@@ -24,10 +24,16 @@ function mapmodel(pm::Ptr{mjModel})
    margs[1] = pm
    m_fields = intersect( fieldnames(jlModel), fieldnames(mjModel) )
    m_sizes = mj.getmodelsize(c_model)
+	jminfo = structinfo(jlModel)
+	maxmodelmemptr = convert(UInt64, getfield(c_model, :names))
    for f in m_fields
-      #println(f)
-      # TODO get field type and unsafe_wrap array or string
-      push!(margs, unsafe_wrap(Array, getfield(c_model, f), m_sizes[f]) )
+		adr = convert(UInt64, getfield(c_model, f))
+		if adr == 0x0  || adr > maxmodelmemptr # bad pointer
+			m_off, m_type = jminfo[f]
+			push!(margs, m_type(0) )
+		else
+			push!(margs, unsafe_wrap(Array, getfield(c_model, f), m_sizes[f]) )
+		end
    end
    return jlModel(margs...)
 end
@@ -52,7 +58,6 @@ end
 
 
 # struct manipulation and access
-
 structinfo(T) = Dict(fieldname(T,i)=>(fieldoffset(T,i),  fieldtype(T,i)) for i = 1:nfields(T))
 minfo = structinfo(mjModel)
 dinfo = structinfo(mjData)
@@ -129,5 +134,5 @@ forward(m::jlModel, d::jlData) = forward(m.m, d.d)
 forwardSkip(m::jlModel, d::jlData,skipstage::Integer,skipsensorenergy::Integer) = forwardSkip(m.m,d.d,skipstage,skipsensorenergy)
 
 inverse(m::jlModel, d::jlData) = inverse(m.m, d.d)
-inverseSkip(m::jlModel, d::jlData,skipstage::Integer,skipsensorenergy::Integer) = forwardSkip(m.m,d.d,skipstage,skipsensorenergy)
+inverseSkip(m::jlModel, d::jlData,skipstage::Integer,skipsensorenergy::Integer) = inverseSkip(m.m,d.d,skipstage,skipsensorenergy)
 resetData(m::jlModel, d::jlData) = resetData(m.m, d.d)

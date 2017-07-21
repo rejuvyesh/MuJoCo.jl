@@ -87,6 +87,7 @@ type jlModel
    cam_mat0::Vector{mjtNum}
    cam_fovy::Vector{mjtNum}
    cam_ipd::Vector{mjtNum}
+   cam_user::Vector{mjtNum}
    light_mode::Vector{Cint}
    light_bodyid::Vector{Cint}
    light_targetbodyid::Vector{Cint}
@@ -195,6 +196,7 @@ type jlModel
    sensor_objid::Vector{Cint}
    sensor_dim::Vector{Cint}
    sensor_adr::Vector{Cint}
+	sensor_cutoff::Vector{mjtNum}
    sensor_noise::Vector{mjtNum}
    sensor_user::Vector{mjtNum}
    numeric_adr::Vector{Cint}
@@ -441,6 +443,7 @@ function getmodelsize(m::mjModel)
    return Dict(
                :qpos0=>(m.nq*1),
                :qpos_spring=>(m.nq*1),
+
                :body_parentid=>(m.nbody*1),
                :body_rootid=>(m.nbody*1),
                :body_weldid=>(m.nbody*1),
@@ -522,6 +525,7 @@ function getmodelsize(m::mjModel)
                :cam_mat0=>(m.ncam*9),
                :cam_fovy=>(m.ncam*1),
                :cam_ipd=>(m.ncam*1),
+               :cam_user=>(m.ncam*m.nuser_cam),
                :light_mode=>(m.nlight*1),
                :light_bodyid=>(m.nlight*1),
                :light_targetbodyid=>(m.nlight*1),
@@ -630,6 +634,7 @@ function getmodelsize(m::mjModel)
                :sensor_objid=>(m.nsensor*1),
                :sensor_dim=>(m.nsensor*1),
                :sensor_adr=>(m.nsensor*1),
+               :sensor_cutoff=>(m.nsensor*1),
                :sensor_noise=>(m.nsensor*1),
                :sensor_user=>(m.nsensor*m.nuser_sensor),
                :numeric_adr=>(m.nnumeric*1),
