@@ -35,6 +35,3 @@ end
 
 is_linux() && pop!(BinDeps.defaults)
 
-cd("../src") do
-    run(` make && cp libmujocoextra.so ../deps/mjpro150/bin/ `)
-end
