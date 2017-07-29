@@ -42,6 +42,10 @@ mj.step(m.m, d.d) # our wrapped types track the raw pointers
 ```
 
 # Installation
+
+```
+julia> Pkg.clone("git://www.github.com/klowrey/MuJoCo.jl.git")
+```
 MuJoCo v1.50 should be installed automatically through Julia Pkg. You will need a mjkey.txt license file, and your system should set the environment variable "MUJOCO_KEY_PATH" to be the path to your mjkey.txt file.
 
 Currently, this package is untested in Windows.
