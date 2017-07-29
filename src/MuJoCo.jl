@@ -28,7 +28,6 @@ include("./mjextra.jl")
 
 # mujoco functions
 include("./mujoco.jl")
-
 include("./mjderiv.jl")
 
 const mj = MuJoCo
@@ -56,9 +55,5 @@ function __init__()
    end
    atexit(teardown)
 end
-
-# Notes on notation:
-# in this module, m and d are mjModel and mjData respectively
-# outside the module, the raw c struct pointer is generally pm, pd
 
 end
