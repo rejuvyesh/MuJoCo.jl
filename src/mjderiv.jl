@@ -1,17 +1,4 @@
 
-type jlWorkers
-   nthreads::Cint
-   d::Vector{mjData}
-end
-
-immutable mjDerivatives
-   dinvdpos::Ptr{mjtNum}
-   dinvdvel::Ptr{mjtNum}
-   dinvdacc::Ptr{mjtNum}
-   daccdpos::Ptr{mjtNum}
-   daccdvel::Ptr{mjtNum}
-   daccdfrc::Ptr{mjtNum}
-end
 
 type jlDerivatives
    dinvdpos::Vector{mjtNum} #Matrix{mjtNum}
@@ -40,6 +27,11 @@ type dacc
                            Vector{mjtNum}(nv*nv))
 end
 
+#=
+type jlWorkers
+   nthreads::Cint
+   d::Vector{mjData}
+end
 
 function allocderivs(m::jlModel)
    return dinv(get(m, :nv)), dacc(get(m, :nv))
@@ -76,6 +68,7 @@ function dataworkers(m::jlModel, d::jlData, nthreads::Integer=Threads.nthreads()
 
    #end
 end
+=#
 
 function fdworker(m::jlModel, dmain::jlData, d::jlData,
                   id::Integer, isforward::Bool,
@@ -88,12 +81,8 @@ function fdworker(m::jlModel, dmain::jlData, d::jlData,
 
    mark = mj.MARKSTACK(d)
 
-   #mjtNum* center = mj.stackAlloc(d, nv)
-   #mjtNum* warmstart = mj.stackAlloc(d, nv)
    center = unsafe_wrap(Array, mj.stackAlloc(d.d, nv), nv)
    warmstart = unsafe_wrap(Array, mj.stackAlloc(d.d, nv), nv)
-	#center = zeros(nv)
-	#warmstart = zeros(nv)
 
    # prepare static schedule: range of derivative columns to be computed by this thread
    chunk = Integer(floor( (nv + nthread-1) / nthread ))
@@ -142,7 +131,7 @@ function fdworker(m::jlModel, dmain::jlData, d::jlData,
          copy!(d.qacc_warmstart, warmstart)
          mj.forwardSkip(m, d, Int(mjSTAGE_VEL), 1)
       else
-         mj.inverseSkip(m, d, Int(mjSTAGE_VEL), 1) # TODO WTF
+         mj.inverseSkip(m, d, Int(mjSTAGE_VEL), 1)
       end
 
       # undo perturbation

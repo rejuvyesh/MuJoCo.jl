@@ -28,7 +28,11 @@ include("./mjextra.jl")
 
 # mujoco functions
 include("./mujoco.jl")
-include("./mjderiv.jl")
+if VERSION >= v"0.6"
+   include("./mjderiv.jl")
+else
+   warn("Derivatives supported in Julia v0.6")
+end
 
 const mj = MuJoCo
 export mj #export the module for faster typing

@@ -22,12 +22,15 @@ if is_linux()
 	dlpath = "linux"
 	push!(BinDeps.defaults, Binaries) # fixes some unknown, build-blocking issue...
 	url = baseurl*"linux.zip"
+   info("Downloading: ", url)
 	provides(Binaries, URI(url), mujoco, unpacked_dir=unpack, installed_libpath=libpath)
 elseif is_osx()
 	url = baseurl*"osx.zip"
+   info("Downloading: ", url)
 	provides(Binaries, URI(url), mujoco, unpacked_dir=unpack, installed_libpath=libpath)
 elseif is_windows()
 	url = baseurl*"win$(Sys.WORD_SIZE).zip"
+   info("Downloading: ", url)
 	provides(Binaries, URI(url), mujoco, unpacked_dir=unpack, installed_libpath=libpath)
 end
 
