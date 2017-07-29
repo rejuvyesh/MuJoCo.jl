@@ -24,7 +24,7 @@ Higher level interfacing tries to make it easier to manipulate data in the mjMod
 ```
 m, d  = mj.mapmujoco(pm, pd) # wrap with our jlModel, jlData types
 
-# we an manipulate data in the raw C structs now
+# we can manipulate data in the raw C structs now
 nq = mj.get(m, :nq)
 mj.set(m, :nq, -28)
 @assert mj.get(m, :nq) == -28
@@ -45,10 +45,11 @@ mj.step(m.m, d.d) # our wrapped types track the raw pointers
 
 ```
 julia> Pkg.clone("git://www.github.com/klowrey/MuJoCo.jl.git")
+julia> Pkg.build("MuJoCo")
 ```
 MuJoCo v1.50 should be installed automatically through Julia Pkg. You will need a mjkey.txt license file, and your system should set the environment variable "MUJOCO_KEY_PATH" to be the path to your mjkey.txt file.
 
-Currently, this package is untested in Windows.
+Currently, this package is untested in Windows, or OSX.
 
 # Examples
 Temporary examples can be found in test suite. 
@@ -56,4 +57,9 @@ Temporary examples can be found in test suite.
 # Near Future
 ### Validation of Finite Differenced Derivatives.
 ### Exposure of MuJoCo model names as :symbols for easier indexing; mj.get(d.sensordata, :snsr_name)
+
+
+# Known Issues
+Potential StaticArray and Julia v0.5 issue affecting it's usage to move data to C-library
+OSX installation problem (need OSX to test)
 
