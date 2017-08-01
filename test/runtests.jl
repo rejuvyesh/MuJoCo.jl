@@ -12,3 +12,6 @@ if VERSION >= v"0.6"
 else
    warn("Derivatives supported in Julia v0.6")
 end
+
+info("Testing Name Access Method")
+include("test_names.jl")

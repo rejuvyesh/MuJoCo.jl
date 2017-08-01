@@ -68,3 +68,5 @@ err = mj.checkderiv(m, d,
 println()
 println(err)
 
+mj.deleteModel(m.m)
+mj.deleteData(d.d)

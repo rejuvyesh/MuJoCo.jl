@@ -47,6 +47,8 @@
 
             <geom name='torso1' type='capsule' fromto='0 -.07 0 0 .07 0'  size='0.07'/>
             <geom name='head' type='sphere' pos='0 0 .19' size='.09'/>
+            <site name="imu" type='sphere' pos='0 0 .19' size='.09' rgba='1 0 0 1' />
+
             <geom name='uwaist' type='capsule' fromto='-.01 -.06 -.12 -.01 .06 -.12' size='0.06'/>
             <body name='lwaist' pos='-.01 0 -0.260' quat='1.000 0 -0.002 0' >
                 <geom name='lwaist' type='capsule' fromto='0 -.06 0 0 .06 0'  size='0.06' />
@@ -111,6 +113,50 @@
             </body>
         </body>
     </worldbody>
+
+    <sensor>
+        <jointpos name='pos_right_hip_x'     joint='right_hip_x'   />
+        <jointpos name='pos_right_hip_z'     joint='right_hip_z'   />
+        <jointpos name='pos_right_hip_y'     joint='right_hip_y'   />
+        <jointpos name='pos_right_knee'      joint='right_knee'   />
+        <jointpos name='pos_right_ankle_x'   joint='right_ankle_x' />  
+        <jointpos name='pos_right_ankle_y'   joint='right_ankle_y'  /> 
+        <jointpos name='pos_left_hip_x'      joint='left_hip_x'   />
+        <jointpos name='pos_left_hip_z'      joint='left_hip_z'   />
+        <jointpos name='pos_left_hip_y'      joint='left_hip_y'   />
+        <jointpos name='pos_left_knee'       joint='left_knee'   />
+        <jointpos name='pos_left_ankle_x'    joint='left_ankle_x'  /> 
+        <jointpos name='pos_left_ankle_y'    joint='left_ankle_y'   />
+        <jointpos name='pos_right_shoulder1' joint='right_shoulder1' />  
+        <jointpos name='pos_right_shoulder2' joint='right_shoulder2'  /> 
+        <jointpos name='pos_right_elbow'     joint='right_elbow'   />
+        <jointpos name='pos_left_shoulder1'  joint='left_shoulder1' />  
+        <jointpos name='pos_left_shoulder2'  joint='left_shoulder2'  /> 
+        <jointpos name='pos_left_elbow'      joint='left_elbow'  /> 
+
+        <jointvel name='vel_right_hip_x'     joint='right_hip_x'   />
+        <jointvel name='vel_right_hip_z'     joint='right_hip_z'   />
+        <jointvel name='vel_right_hip_y'     joint='right_hip_y'   />
+        <jointvel name='vel_right_knee'      joint='right_knee'   />
+        <jointvel name='vel_right_ankle_x'   joint='right_ankle_x' />  
+        <jointvel name='vel_right_ankle_y'   joint='right_ankle_y'  /> 
+        <jointvel name='vel_left_hip_x'      joint='left_hip_x'   />
+        <jointvel name='vel_left_hip_z'      joint='left_hip_z'   />
+        <jointvel name='vel_left_hip_y'      joint='left_hip_y'   />
+        <jointvel name='vel_left_knee'       joint='left_knee'   />
+        <jointvel name='vel_left_ankle_x'    joint='left_ankle_x'  /> 
+        <jointvel name='vel_left_ankle_y'    joint='left_ankle_y'   />
+        <jointvel name='vel_right_shoulder1' joint='right_shoulder1' />  
+        <jointvel name='vel_right_shoulder2' joint='right_shoulder2'  /> 
+        <jointvel name='vel_right_elbow'     joint='right_elbow'   />
+        <jointvel name='vel_left_shoulder1'  joint='left_shoulder1' />  
+        <jointvel name='vel_left_shoulder2'  joint='left_shoulder2'  /> 
+        <jointvel name='vel_left_elbow'      joint='left_elbow'  /> 
+
+        <accelerometer name="accel"  site="imu" />
+        <gyro name="gyro"            site="imu" />
+    </sensor>
+
 
     <actuator>
         <motor name='abdomen_y'       gear='200' joint='abdomen_y' />
