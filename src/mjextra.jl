@@ -66,8 +66,7 @@ vinfo = structinfo(mjVisual)
 sinfo = structinfo(mjStatistic)
 cinfo = structinfo(mjContact)
 
-function moffset(fstruct::Symbol, field::Symbol)
-end
+# TODO cleanup these asserts
 
 # access mujoco struct fields through the julia version of model and data
 function get(m::jlModel, field::Symbol)
@@ -91,7 +90,6 @@ function get(d::jlData, field::Symbol)
    return unsafe_load(pntr+f_off, 1)
 end
 
-# TODO cleanup these asserts
 
 function update_ptr(p::Ptr, offset::Integer, val::Integer)
    unsafe_store!(convert(Ptr{Cint}, (p + offset)), convert(Cint, val))
