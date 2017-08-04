@@ -134,3 +134,11 @@ forwardSkip(m::jlModel, d::jlData,skipstage::Integer,skipsensorenergy::Integer) 
 inverse(m::jlModel, d::jlData) = inverse(m.m, d.d)
 inverseSkip(m::jlModel, d::jlData,skipstage::Integer,skipsensorenergy::Integer) = inverseSkip(m.m,d.d,skipstage,skipsensorenergy)
 resetData(m::jlModel, d::jlData) = resetData(m.m, d.d)
+
+
+#################################### Name Wrappers
+
+# sensor name to range
+
+
+

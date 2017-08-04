@@ -196,7 +196,7 @@ type jlModel
    sensor_objid::Vector{Cint}
    sensor_dim::Vector{Cint}
    sensor_adr::Vector{Cint}
-	sensor_cutoff::Vector{mjtNum}
+   sensor_cutoff::Vector{mjtNum}
    sensor_noise::Vector{mjtNum}
    sensor_user::Vector{mjtNum}
    numeric_adr::Vector{Cint}
