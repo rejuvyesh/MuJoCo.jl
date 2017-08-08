@@ -32,7 +32,13 @@ function mapmodel(pm::Ptr{mjModel})
 			m_off, m_type = jminfo[f]
 			push!(margs, m_type(0) )
 		else
-			push!(margs, unsafe_wrap(Array, getfield(c_model, f), m_sizes[f]) )
+         len = m_sizes[f][1] * m_sizes[f][2]
+         raw = unsafe_wrap(Array, getfield(c_model, f), len)
+
+         if m_sizes[f][2] > 1
+            raw = reshape(raw, reverse(m_sizes[f]) )
+         end
+         push!(margs, raw)
 		end
    end
    return jlModel(margs...)
@@ -47,7 +53,12 @@ function mapdata(pm::Ptr{mjModel}, pd::Ptr{mjData})
    d_fields = intersect( fieldnames(jlData), fieldnames(mjData) )
    d_sizes = mj.getdatasize(c_model, c_data)
    for f in d_fields
-      push!(dargs, unsafe_wrap(Array, getfield(c_data, f), d_sizes[f]) )
+      len = d_sizes[f][1] * d_sizes[f][2]
+      raw = unsafe_wrap(Array, getfield(c_data, f), len)
+      if d_sizes[f][2] > 1
+         raw = reshape(raw, reverse(d_sizes[f]) )
+      end
+      push!(dargs, raw)
    end
    return jlData(dargs...)
 end
@@ -138,7 +149,25 @@ resetData(m::jlModel, d::jlData) = resetData(m.m, d.d)
 
 #################################### Name Wrappers
 
-# sensor name to range
+function name2idx(m::jlModel, num::Integer, names::Vector{Cint})
+    sname = String(m.names)
+    idx = names[1] + 1
+    split_names = split(sname[idx:end], '\0', limit=(num+1))[1:num]
+    d = Dict{Symbol, Integer}(Symbol(split_names[i]) => i for i=1:num)
+    return d
+end
 
+function name2range(m::jlModel, names::Vector{Cint}, addresses::Vector{Cint})
+    return name2range(m, names, addresses, ones(Cint, length(addresses)))
+end
+
+function name2range(m::jlModel, num::Integer,
+                    names::Vector{Cint}, addresses::Vector{Cint}, dims::Vector{Cint})
+    sname = String(m.names)
+    idx = names[1] + 1
+    split_names = split(sname[idx:end], '\0', limit=(num+1))[1:num]
+    d = Dict{Symbol, Range}(Symbol(split_names[i]) => (addresses[i]+1):(addresses[i]+dims[i]) for i=1:num)
+    return d
+end
 
 
