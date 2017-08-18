@@ -69,7 +69,7 @@ end
 
 
 # struct manipulation and access
-structinfo(T) = Dict(fieldname(T,i)=>(fieldoffset(T,i),  fieldtype(T,i)) for i = 1:nfields(T))
+structinfo(T) = Dict(fieldname(T,i)=>(fieldoffset(T,i), fieldtype(T,i)) for i = 1:nfields(T))
 minfo = structinfo(mjModel)
 dinfo = structinfo(mjData)
 oinfo = structinfo(mjOption)
@@ -80,13 +80,13 @@ cinfo = structinfo(mjContact)
 # TODO cleanup these asserts
 
 # access mujoco struct fields through the julia version of model and data
-function get(m::jlModel, field::Symbol)
+@inline function get(m::jlModel, field::Symbol)
    f_off, f_type = minfo[field]
    pntr = Ptr{f_type}(m.m)
    return unsafe_load(pntr+f_off, 1)
 end
 
-function get(m::jlModel, fstruct::Symbol, field::Symbol)
+@inline function get(m::jlModel, fstruct::Symbol, field::Symbol)
    s_off, s_type = minfo[fstruct]
    @assert s_type in (MuJoCo._mjOption, MuJoCo._mjVisual, MuJoCo._mjStatistic)
 
@@ -95,7 +95,7 @@ function get(m::jlModel, fstruct::Symbol, field::Symbol)
    return unsafe_load(pntr+s_off+f_off, 1)
 end
 
-function get(d::jlData, field::Symbol)
+@inline function get(d::jlData, field::Symbol)
    f_off, f_type = dinfo[field]
    pntr = Ptr{f_type}(d.d)
    return unsafe_load(pntr+f_off, 1)
