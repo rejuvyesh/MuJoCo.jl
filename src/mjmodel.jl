@@ -25,7 +25,7 @@ const mjMAXOVERLAY = 500
 
 @enum mjtGeom mjGEOM_PLANE = (UInt32)(0) mjGEOM_HFIELD = (UInt32)(1) mjGEOM_SPHERE = (UInt32)(2) mjGEOM_CAPSULE = (UInt32)(3) mjGEOM_ELLIPSOID = (UInt32)(4) mjGEOM_CYLINDER = (UInt32)(5) mjGEOM_BOX = (UInt32)(6) mjGEOM_MESH = (UInt32)(7) mjNGEOMTYPES = (UInt32)(8) mjGEOM_ARROW = (UInt32)(100) mjGEOM_ARROW1 = (UInt32)(101) mjGEOM_ARROW2 = (UInt32)(102) mjGEOM_LABEL = (UInt32)(103) mjGEOM_NONE = (UInt32)(1001)  
 
-@enum mjtCamLight  mjCAMLIGHT_FIXED = (UInt32)(0) mjCAMLIGHT_TRACK = (UInt32)(1) mjCAMLIGHT_TRACKCOM = (UInt32)(2) mjCAMLIGHT_TARGETBODY = (UInt32)(3) mjCAMLIGHT_TARGETBODYCOM = (UInt32)(4) 
+@enum mjtCamLight mjCAMLIGHT_FIXED = (UInt32)(0) mjCAMLIGHT_TRACK = (UInt32)(1) mjCAMLIGHT_TRACKCOM = (UInt32)(2) mjCAMLIGHT_TARGETBODY = (UInt32)(3) mjCAMLIGHT_TARGETBODYCOM = (UInt32)(4) 
 
 @enum mjtTexture mjTEXTURE_2D = (UInt32)(0) mjTEXTURE_CUBE = (UInt32)(1) mjTEXTURE_SKYBOX = (UInt32)(2) 
 
@@ -67,14 +67,14 @@ immutable _mjOption
    apirate::mjtNum
    tolerance::mjtNum
    impratio::mjtNum
-   gravity::NTuple{3, mjtNum}
-   wind::NTuple{3, mjtNum}
-   magnetic::NTuple{3, mjtNum}
+   gravity::SVector{3, mjtNum}
+   wind::SVector{3, mjtNum}
+   magnetic::SVector{3, mjtNum}
    density::mjtNum
    viscosity::mjtNum
    o_margin::mjtNum
-   o_solref::NTuple{2, mjtNum}
-   o_solimp::NTuple{3, mjtNum}
+   o_solref::SVector{2, mjtNum}
+   o_solimp::SVector{3, mjtNum}
    mpr_tolerance::mjtNum
    mpr_iterations::Cint
    integrator::Cint
@@ -106,7 +106,7 @@ immutable _mjStatistic
    meanmass::mjtNum
    meansize::mjtNum
    extent::mjtNum
-   center::NTuple{3, mjtNum}
+   center::SVector{3, mjtNum}
 end
 
 const mjStatistic = _mjStatistic

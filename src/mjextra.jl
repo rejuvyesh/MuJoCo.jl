@@ -12,7 +12,6 @@ function findkey()
          println("Set MUJOCO_KEY_PATH environment variable, please.")
       end
    end
-
    return key
 end
 
@@ -25,10 +24,22 @@ function mapmodel(pm::Ptr{mjModel})
    margs[1] = pm
    m_fields = intersect( fieldnames(jlModel), fieldnames(mjModel) )
    m_sizes = mj.getmodelsize(c_model)
+	jminfo = structinfo(jlModel)
+	maxmodelmemptr = convert(UInt64, getfield(c_model, :names))
    for f in m_fields
-      #println(f)
-      # TODO get field type and unsafe_wrap array or string
-      push!(margs, unsafe_wrap(Array, getfield(c_model, f), m_sizes[f]) )
+		adr = convert(UInt64, getfield(c_model, f))
+		if adr == 0x0  || adr > maxmodelmemptr # bad pointer
+			m_off, m_type = jminfo[f]
+			push!(margs, m_type(0) )
+		else
+         len = m_sizes[f][1] * m_sizes[f][2]
+         raw = unsafe_wrap(Array, getfield(c_model, f), len)
+
+         if m_sizes[f][2] > 1
+            raw = reshape(raw, reverse(m_sizes[f]) )
+         end
+         push!(margs, raw)
+		end
    end
    return jlModel(margs...)
 end
@@ -42,7 +53,12 @@ function mapdata(pm::Ptr{mjModel}, pd::Ptr{mjData})
    d_fields = intersect( fieldnames(jlData), fieldnames(mjData) )
    d_sizes = mj.getdatasize(c_model, c_data)
    for f in d_fields
-      push!(dargs, unsafe_wrap(Array, getfield(c_data, f), d_sizes[f]) )
+      len = d_sizes[f][1] * d_sizes[f][2]
+      raw = unsafe_wrap(Array, getfield(c_data, f), len)
+      if d_sizes[f][2] > 1
+         raw = reshape(raw, reverse(d_sizes[f]) )
+      end
+      push!(dargs, raw)
    end
    return jlData(dargs...)
 end
@@ -53,8 +69,7 @@ end
 
 
 # struct manipulation and access
-
-structinfo(T) = Dict(fieldname(T,i)=>(fieldoffset(T,i),  fieldtype(T,i)) for i = 1:nfields(T))
+structinfo(T) = Dict(fieldname(T,i)=>(fieldoffset(T,i), fieldtype(T,i)) for i = 1:nfields(T))
 minfo = structinfo(mjModel)
 dinfo = structinfo(mjData)
 oinfo = structinfo(mjOption)
@@ -62,17 +77,16 @@ vinfo = structinfo(mjVisual)
 sinfo = structinfo(mjStatistic)
 cinfo = structinfo(mjContact)
 
-function moffset(fstruct::Symbol, field::Symbol)
-end
+# TODO cleanup these asserts
 
 # access mujoco struct fields through the julia version of model and data
-function get(m::jlModel, field::Symbol)
+@inline function get(m::jlModel, field::Symbol)
    f_off, f_type = minfo[field]
    pntr = Ptr{f_type}(m.m)
    return unsafe_load(pntr+f_off, 1)
 end
 
-function get(m::jlModel, fstruct::Symbol, field::Symbol)
+@inline function get(m::jlModel, fstruct::Symbol, field::Symbol)
    s_off, s_type = minfo[fstruct]
    @assert s_type in (MuJoCo._mjOption, MuJoCo._mjVisual, MuJoCo._mjStatistic)
 
@@ -81,13 +95,12 @@ function get(m::jlModel, fstruct::Symbol, field::Symbol)
    return unsafe_load(pntr+s_off+f_off, 1)
 end
 
-function get(d::jlData, field::Symbol)
+@inline function get(d::jlData, field::Symbol)
    f_off, f_type = dinfo[field]
    pntr = Ptr{f_type}(d.d)
    return unsafe_load(pntr+f_off, 1)
 end
 
-# TODO cleanup these asserts
 
 function update_ptr(p::Ptr, offset::Integer, val::Integer)
    unsafe_store!(convert(Ptr{Cint}, (p + offset)), convert(Cint, val))
@@ -123,13 +136,38 @@ end
 
 
 
+#################################### easier wrappers
 
-#################################### helpers
+step(m::jlModel, d::jlData) = step(m.m, d.d)
+forward(m::jlModel, d::jlData) = forward(m.m, d.d)
+forwardSkip(m::jlModel, d::jlData,skipstage::Integer,skipsensorenergy::Integer) = forwardSkip(m.m,d.d,skipstage,skipsensorenergy)
 
-function step(m::jlModel, d::jlData)
-   step(m.m, d.d)
+inverse(m::jlModel, d::jlData) = inverse(m.m, d.d)
+inverseSkip(m::jlModel, d::jlData,skipstage::Integer,skipsensorenergy::Integer) = inverseSkip(m.m,d.d,skipstage,skipsensorenergy)
+resetData(m::jlModel, d::jlData) = resetData(m.m, d.d)
+
+
+#################################### Name Wrappers
+
+function name2idx(m::jlModel, num::Integer, names::Vector{Cint})
+    sname = String(m.names)
+    idx = names[1] + 1
+    split_names = split(sname[idx:end], '\0', limit=(num+1))[1:num]
+    d = Dict{Symbol, Integer}(Symbol(split_names[i]) => i for i=1:num)
+    return d
 end
 
-function resetData(m::jlModel, d::jlData)
-   resetData(m.m, d.d)
+function name2range(m::jlModel, names::Vector{Cint}, addresses::Vector{Cint})
+    return name2range(m, names, addresses, ones(Cint, length(addresses)))
 end
+
+function name2range(m::jlModel, num::Integer,
+                    names::Vector{Cint}, addresses::Vector{Cint}, dims::Vector{Cint})
+    sname = String(m.names)
+    idx = names[1] + 1
+    split_names = split(sname[idx:end], '\0', limit=(num+1))[1:num]
+    d = Dict{Symbol, Range}(Symbol(split_names[i]) => (addresses[i]+1):(addresses[i]+dims[i]) for i=1:num)
+    return d
+end
+
+

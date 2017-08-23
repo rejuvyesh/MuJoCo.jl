@@ -1,10 +1,12 @@
 # TODO write these as files
 # Skipping MacroDefinition: mjMARKSTACK int _mark = d -> pstack ;
 # Skipping MacroDefinition: mjFREESTACK d -> pstack = _mark ;
+MARKSTACK(d::jlData) = return mj.get(d, :pstack)
+FREESTACK(d::jlData, mark::Cint) = mj.set(d, :pstack, mark)
 # Skipping MacroDefinition: mjDISABLED ( x ) ( m -> opt . disableflags & ( x ) )
 # Skipping MacroDefinition: mjENABLED ( x ) ( m -> opt . enableflags & ( x ) )
-# Skipping MacroDefinition: mjMAX ( a , b ) ( ( ( a ) > ( b ) ) ? ( a ) : ( b ) )
-# Skipping MacroDefinition: mjMIN ( a , b ) ( ( ( a ) < ( b ) ) ? ( a ) : ( b ) )
+mjMAX(a,b) = max(a,b)
+mjMIN(a,b) = min(a,b)
 
 ## user error and memory handlers
 #MJAPI extern void  (*mju_user_error)(const char*);
@@ -49,18 +51,18 @@ function deactivate()
 end
 
 # server: generate certificate question
-function certQuestion(question::NTuple{16, mjtNum})
-   ccall((:mj_certQuestion,:libmujoco141nogl),Void,(NTuple{16, mjtNum},),question)
+function certQuestion(question::SVector{16, mjtNum})
+   ccall((:mj_certQuestion,:libmujoco141nogl),Void,(SVector{16, mjtNum},),question)
 end
 
 # client: generate certificate answer given question
-function certAnswer(question::NTuple{16, mjtNum},answer::NTuple{16, mjtNum})
-   ccall((:mj_certAnswer,:libmujoco141nogl),Void,(NTuple{16, mjtNum},NTuple{16, mjtNum}),question,answer)
+function certAnswer(question::SVector{16, mjtNum},answer::SVector{16, mjtNum})
+   ccall((:mj_certAnswer,:libmujoco141nogl),Void,(SVector{16, mjtNum},SVector{16, mjtNum}),question,answer)
 end
 
 # server: check certificate question-answer pair; return 1 if match, 0 if mismatch
-function certCheck(question::NTuple{16, mjtNum},answer::NTuple{16, mjtNum})
-   ccall((:mj_certCheck,:libmujoco141nogl),Cint,(NTuple{16, mjtNum},NTuple{16, mjtNum}),question,answer)
+function certCheck(question::SVector{16, mjtNum},answer::SVector{16, mjtNum})
+   ccall((:mj_certCheck,:libmujoco141nogl),Cint,(SVector{16, mjtNum},SVector{16, mjtNum}),question,answer)
 end
 
 #---------------------- XML parser and C++ compiler (mutex-protected) ------------------
@@ -453,8 +455,8 @@ function mulJacTVec(m::Ptr{mjModel},d::Ptr{mjData},res::Ptr{mjtNum},vec::Ptr{mjt
 end
 
 # compute 3/6-by-nv Jacobian of global point attached to given body
-function jac(m::Ptr{mjModel},d::Ptr{mjData},jacp::Ptr{mjtNum},jacr::Ptr{mjtNum},point::NTuple{3, mjtNum},body::Integer)
-   ccall((:mj_jac,:libmujoco141nogl),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum},NTuple{3, mjtNum},Cint),m,d,jacp,jacr,point,body)
+function jac(m::Ptr{mjModel},d::Ptr{mjData},jacp::Ptr{mjtNum},jacr::Ptr{mjtNum},point::SVector{3, mjtNum},body::Integer)
+   ccall((:mj_jac,:libmujoco141nogl),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum},SVector{3, mjtNum},Cint),m,d,jacp,jacr,point,body)
 end
 
 # compute body frame Jacobian
@@ -478,8 +480,8 @@ function jacSite(m::Ptr{mjModel},d::Ptr{mjData},jacp::Ptr{mjtNum},jacr::Ptr{mjtN
 end
 
 # compute translation Jacobian of point, and rotation Jacobian of axis
-function jacPointAxis(m::Ptr{mjModel},d::Ptr{mjData},jacPoint::Ptr{mjtNum},jacAxis::Ptr{mjtNum},point::NTuple{3, mjtNum},axis::NTuple{3, mjtNum},body::Integer)
-   ccall((:mj_jacPointAxis,:libmujoco141nogl),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum},NTuple{3, mjtNum},NTuple{3, mjtNum},Cint),m,d,jacPoint,jacAxis,point,axis,body)
+function jacPointAxis(m::Ptr{mjModel},d::Ptr{mjData},jacPoint::Ptr{mjtNum},jacAxis::Ptr{mjtNum},point::SVector{3, mjtNum},axis::SVector{3, mjtNum},body::Integer)
+   ccall((:mj_jacPointAxis,:libmujoco141nogl),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum},SVector{3, mjtNum},SVector{3, mjtNum},Cint),m,d,jacPoint,jacAxis,point,axis,body)
 end
 
 # get id of object with specified name; -1: not found; type is mjtObj
@@ -818,98 +820,98 @@ end
 #---------------------- Utility functions: basic math ----------------------------------
 
 # set vector to zero
-function mju_zero3(res::NTuple{3, mjtNum})
-   ccall((:mju_zero3,:libmujoco141nogl),Void,(NTuple{3, mjtNum},),res)
+function mju_zero3(res::SVector{3, mjtNum})
+   ccall((:mju_zero3,:libmujoco141nogl),Void,(SVector{3, mjtNum},),res)
 end
 
 # copy vector
-function mju_copy3(res::NTuple{3, mjtNum},data::NTuple{3, mjtNum})
-   ccall((:mju_copy3,:libmujoco141nogl),Void,(NTuple{3, mjtNum},NTuple{3, mjtNum}),res,data)
+function mju_copy3(res::SVector{3, mjtNum},data::SVector{3, mjtNum})
+   ccall((:mju_copy3,:libmujoco141nogl),Void,(SVector{3, mjtNum},SVector{3, mjtNum}),res,data)
 end
 
 # scale vector
-function mju_scl3(res::NTuple{3, mjtNum},vec::NTuple{3, mjtNum},scl::mjtNum)
-   ccall((:mju_scl3,:libmujoco141nogl),Void,(NTuple{3, mjtNum},NTuple{3, mjtNum},mjtNum),res,vec,scl)
+function mju_scl3(res::SVector{3, mjtNum},vec::SVector{3, mjtNum},scl::mjtNum)
+   ccall((:mju_scl3,:libmujoco141nogl),Void,(SVector{3, mjtNum},SVector{3, mjtNum},mjtNum),res,vec,scl)
 end
 
 # add vectors
-function mju_add3(res::NTuple{3, mjtNum},vec1::NTuple{3, mjtNum},vec2::NTuple{3, mjtNum})
-   ccall((:mju_add3,:libmujoco141nogl),Void,(NTuple{3, mjtNum},NTuple{3, mjtNum},NTuple{3, mjtNum}),res,vec1,vec2)
+function mju_add3(res::SVector{3, mjtNum},vec1::SVector{3, mjtNum},vec2::SVector{3, mjtNum})
+   ccall((:mju_add3,:libmujoco141nogl),Void,(SVector{3, mjtNum},SVector{3, mjtNum},SVector{3, mjtNum}),res,vec1,vec2)
 end
 
 # subtract vectors
-function mju_sub3(res::NTuple{3, mjtNum},vec1::NTuple{3, mjtNum},vec2::NTuple{3, mjtNum})
-   ccall((:mju_sub3,:libmujoco141nogl),Void,(NTuple{3, mjtNum},NTuple{3, mjtNum},NTuple{3, mjtNum}),res,vec1,vec2)
+function mju_sub3(res::SVector{3, mjtNum},vec1::SVector{3, mjtNum},vec2::SVector{3, mjtNum})
+   ccall((:mju_sub3,:libmujoco141nogl),Void,(SVector{3, mjtNum},SVector{3, mjtNum},SVector{3, mjtNum}),res,vec1,vec2)
 end
 
 # add to vector
-function mju_addTo3(res::NTuple{3, mjtNum},vec::NTuple{3, mjtNum})
-   ccall((:mju_addTo3,:libmujoco141nogl),Void,(NTuple{3, mjtNum},NTuple{3, mjtNum}),res,vec)
+function mju_addTo3(res::SVector{3, mjtNum},vec::SVector{3, mjtNum})
+   ccall((:mju_addTo3,:libmujoco141nogl),Void,(SVector{3, mjtNum},SVector{3, mjtNum}),res,vec)
 end
 
 # add scaled to vector
-function mju_addToScl3(res::NTuple{3, mjtNum},vec::NTuple{3, mjtNum},scl::mjtNum)
-   ccall((:mju_addToScl3,:libmujoco141nogl),Void,(NTuple{3, mjtNum},NTuple{3, mjtNum},mjtNum),res,vec,scl)
+function mju_addToScl3(res::SVector{3, mjtNum},vec::SVector{3, mjtNum},scl::mjtNum)
+   ccall((:mju_addToScl3,:libmujoco141nogl),Void,(SVector{3, mjtNum},SVector{3, mjtNum},mjtNum),res,vec,scl)
 end
 
 # res = vec1 + scl*vec2
-function mju_addScl3(res::NTuple{3, mjtNum},vec1::NTuple{3, mjtNum},vec2::NTuple{3, mjtNum},scl::mjtNum)
-   ccall((:mju_addScl3,:libmujoco141nogl),Void,(NTuple{3, mjtNum},NTuple{3, mjtNum},NTuple{3, mjtNum},mjtNum),res,vec1,vec2,scl)
+function mju_addScl3(res::SVector{3, mjtNum},vec1::SVector{3, mjtNum},vec2::SVector{3, mjtNum},scl::mjtNum)
+   ccall((:mju_addScl3,:libmujoco141nogl),Void,(SVector{3, mjtNum},SVector{3, mjtNum},SVector{3, mjtNum},mjtNum),res,vec1,vec2,scl)
 end
 
 # normalize vector, return length before normalization
-function mju_normalize3(res::NTuple{3, mjtNum})
-   ccall((:mju_normalize3,:libmujoco141nogl),mjtNum,(NTuple{3, mjtNum},),res)
+function mju_normalize3(res::SVector{3, mjtNum})
+   ccall((:mju_normalize3,:libmujoco141nogl),mjtNum,(SVector{3, mjtNum},),res)
 end
 
 # compute vector length (without normalizing)
-function mju_norm3(vec::NTuple{3, mjtNum})
-   ccall((:mju_norm3,:libmujoco141nogl),mjtNum,(NTuple{3, mjtNum},),vec)
+function mju_norm3(vec::SVector{3, mjtNum})
+   ccall((:mju_norm3,:libmujoco141nogl),mjtNum,(SVector{3, mjtNum},),vec)
 end
 
 # vector dot-product
-function mju_dot3(vec1::NTuple{3, mjtNum},vec2::NTuple{3, mjtNum})
-   ccall((:mju_dot3,:libmujoco141nogl),mjtNum,(NTuple{3, mjtNum},NTuple{3, mjtNum}),vec1,vec2)
+function mju_dot3(vec1::SVector{3, mjtNum},vec2::SVector{3, mjtNum})
+   ccall((:mju_dot3,:libmujoco141nogl),mjtNum,(SVector{3, mjtNum},SVector{3, mjtNum}),vec1,vec2)
 end
 
 # Cartesian distance between 3D vectors
-function mju_dist3(pos1::NTuple{3, mjtNum},pos2::NTuple{3, mjtNum})
-   ccall((:mju_dist3,:libmujoco141nogl),mjtNum,(NTuple{3, mjtNum},NTuple{3, mjtNum}),pos1,pos2)
+function mju_dist3(pos1::SVector{3, mjtNum},pos2::SVector{3, mjtNum})
+   ccall((:mju_dist3,:libmujoco141nogl),mjtNum,(SVector{3, mjtNum},SVector{3, mjtNum}),pos1,pos2)
 end
 
 # multiply vector by 3D rotation matrix
-function mju_rotVecMat(res::NTuple{3, mjtNum},vec::NTuple{3, mjtNum},mat::NTuple{9, mjtNum})
-   ccall((:mju_rotVecMat,:libmujoco141nogl),Void,(NTuple{3, mjtNum},NTuple{3, mjtNum},NTuple{9, mjtNum}),res,vec,mat)
+function mju_rotVecMat(res::SVector{3, mjtNum},vec::SVector{3, mjtNum},mat::SVector{9, mjtNum})
+   ccall((:mju_rotVecMat,:libmujoco141nogl),Void,(SVector{3, mjtNum},SVector{3, mjtNum},SVector{9, mjtNum}),res,vec,mat)
 end
 
 # multiply vector by transposed 3D rotation matrix
-function mju_rotVecMatT(res::NTuple{3, mjtNum},vec::NTuple{3, mjtNum},mat::NTuple{9, mjtNum})
-   ccall((:mju_rotVecMatT,:libmujoco141nogl),Void,(NTuple{3, mjtNum},NTuple{3, mjtNum},NTuple{9, mjtNum}),res,vec,mat)
+function mju_rotVecMatT(res::SVector{3, mjtNum},vec::SVector{3, mjtNum},mat::SVector{9, mjtNum})
+   ccall((:mju_rotVecMatT,:libmujoco141nogl),Void,(SVector{3, mjtNum},SVector{3, mjtNum},SVector{9, mjtNum}),res,vec,mat)
 end
 
 # vector cross-product, 3D
-function mju_cross(res::NTuple{3, mjtNum},a::NTuple{3, mjtNum},b::NTuple{3, mjtNum})
-   ccall((:mju_cross,:libmujoco141nogl),Void,(NTuple{3, mjtNum},NTuple{3, mjtNum},NTuple{3, mjtNum}),res,a,b)
+function mju_cross(res::SVector{3, mjtNum},a::SVector{3, mjtNum},b::SVector{3, mjtNum})
+   ccall((:mju_cross,:libmujoco141nogl),Void,(SVector{3, mjtNum},SVector{3, mjtNum},SVector{3, mjtNum}),res,a,b)
 end
 
 # set vector to zero
-function mju_zero4(res::NTuple{4, mjtNum})
-   ccall((:mju_zero4,:libmujoco141nogl),Void,(NTuple{4, mjtNum},),res)
+function mju_zero4(res::SVector{4, mjtNum})
+   ccall((:mju_zero4,:libmujoco141nogl),Void,(SVector{4, mjtNum},),res)
 end
 
 # set unit quaterion
-function mju_unit4(res::NTuple{4, mjtNum})
-   ccall((:mju_unit4,:libmujoco141nogl),Void,(NTuple{4, mjtNum},),res)
+function mju_unit4(res::SVector{4, mjtNum})
+   ccall((:mju_unit4,:libmujoco141nogl),Void,(SVector{4, mjtNum},),res)
 end
 
 # copy vector
-function mju_copy4(res::NTuple{4, mjtNum},data::NTuple{4, mjtNum})
-   ccall((:mju_copy4,:libmujoco141nogl),Void,(NTuple{4, mjtNum},NTuple{4, mjtNum}),res,data)
+function mju_copy4(res::SVector{4, mjtNum},data::SVector{4, mjtNum})
+   ccall((:mju_copy4,:libmujoco141nogl),Void,(SVector{4, mjtNum},SVector{4, mjtNum}),res,data)
 end
 
 # normalize vector, return length before normalization
-function mju_normalize4(res::NTuple{4, mjtNum})
-   ccall((:mju_normalize4,:libmujoco141nogl),mjtNum,(NTuple{4, mjtNum},),res)
+function mju_normalize4(res::SVector{4, mjtNum})
+   ccall((:mju_normalize4,:libmujoco141nogl),mjtNum,(SVector{4, mjtNum},),res)
 end
 
 # set vector to zero
@@ -1009,82 +1011,82 @@ end
 
 # coordinate transform of 6D motion or force vector in rotation:translation format
 #  rotnew2old is 3-by-3, NULL means no rotation; flg_force specifies force or motion type
-function mju_transformSpatial(res::NTuple{6, mjtNum},vec::NTuple{6, mjtNum},flg_force::Integer,newpos::NTuple{3, mjtNum},oldpos::NTuple{3, mjtNum},rotnew2old::NTuple{9, mjtNum})
-   ccall((:mju_transformSpatial,:libmujoco141nogl),Void,(NTuple{6, mjtNum},NTuple{6, mjtNum},Cint,NTuple{3, mjtNum},NTuple{3, mjtNum},NTuple{9, mjtNum}),res,vec,flg_force,newpos,oldpos,rotnew2old)
+function mju_transformSpatial(res::SVector{6, mjtNum},vec::SVector{6, mjtNum},flg_force::Integer,newpos::SVector{3, mjtNum},oldpos::SVector{3, mjtNum},rotnew2old::SVector{9, mjtNum})
+   ccall((:mju_transformSpatial,:libmujoco141nogl),Void,(SVector{6, mjtNum},SVector{6, mjtNum},Cint,SVector{3, mjtNum},SVector{3, mjtNum},SVector{9, mjtNum}),res,vec,flg_force,newpos,oldpos,rotnew2old)
 end
 
 #---------------------- Utility functions: quaternions ---------------------------------
 
 # rotate vector by quaternion
-function mju_rotVecQuat(res::NTuple{3, mjtNum},vec::NTuple{3, mjtNum},quat::NTuple{4, mjtNum})
-   ccall((:mju_rotVecQuat,:libmujoco141nogl),Void,(NTuple{3, mjtNum},NTuple{3, mjtNum},NTuple{4, mjtNum}),res,vec,quat)
+function mju_rotVecQuat(res::SVector{3, mjtNum},vec::SVector{3, mjtNum},quat::SVector{4, mjtNum})
+   ccall((:mju_rotVecQuat,:libmujoco141nogl),Void,(SVector{3, mjtNum},SVector{3, mjtNum},SVector{4, mjtNum}),res,vec,quat)
 end
 
 # negate quaternion
-function mju_negQuat(res::NTuple{4, mjtNum},quat::NTuple{4, mjtNum})
-   ccall((:mju_negQuat,:libmujoco141nogl),Void,(NTuple{4, mjtNum},NTuple{4, mjtNum}),res,quat)
+function mju_negQuat(res::SVector{4, mjtNum},quat::SVector{4, mjtNum})
+   ccall((:mju_negQuat,:libmujoco141nogl),Void,(SVector{4, mjtNum},SVector{4, mjtNum}),res,quat)
 end
 
 # muiltiply quaternions
-function mju_mulQuat(res::NTuple{4, mjtNum},quat1::NTuple{4, mjtNum},quat2::NTuple{4, mjtNum})
-   ccall((:mju_mulQuat,:libmujoco141nogl),Void,(NTuple{4, mjtNum},NTuple{4, mjtNum},NTuple{4, mjtNum}),res,quat1,quat2)
+function mju_mulQuat(res::SVector{4, mjtNum},quat1::SVector{4, mjtNum},quat2::SVector{4, mjtNum})
+   ccall((:mju_mulQuat,:libmujoco141nogl),Void,(SVector{4, mjtNum},SVector{4, mjtNum},SVector{4, mjtNum}),res,quat1,quat2)
 end
 
 # muiltiply quaternion and axis
-function mju_mulQuatAxis(res::NTuple{4, mjtNum},quat::NTuple{4, mjtNum},axis::NTuple{3, mjtNum})
-   ccall((:mju_mulQuatAxis,:libmujoco141nogl),Void,(NTuple{4, mjtNum},NTuple{4, mjtNum},NTuple{3, mjtNum}),res,quat,axis)
+function mju_mulQuatAxis(res::SVector{4, mjtNum},quat::SVector{4, mjtNum},axis::SVector{3, mjtNum})
+   ccall((:mju_mulQuatAxis,:libmujoco141nogl),Void,(SVector{4, mjtNum},SVector{4, mjtNum},SVector{3, mjtNum}),res,quat,axis)
 end
 
 # convert axisAngle to quaternion
-function mju_axisAngle2Quat(res::NTuple{4, mjtNum},axis::NTuple{3, mjtNum},angle::mjtNum)
-   ccall((:mju_axisAngle2Quat,:libmujoco141nogl),Void,(NTuple{4, mjtNum},NTuple{3, mjtNum},mjtNum),res,axis,angle)
+function mju_axisAngle2Quat(res::SVector{4, mjtNum},axis::SVector{3, mjtNum},angle::mjtNum)
+   ccall((:mju_axisAngle2Quat,:libmujoco141nogl),Void,(SVector{4, mjtNum},SVector{3, mjtNum},mjtNum),res,axis,angle)
 end
 
 # convert quaternion (corresponding to orientation difference) to 3D velocity
-function mju_quat2Vel(res::NTuple{3, mjtNum},quat::NTuple{4, mjtNum},dt::mjtNum)
-   ccall((:mju_quat2Vel,:libmujoco141nogl),Void,(NTuple{3, mjtNum},NTuple{4, mjtNum},mjtNum),res,quat,dt)
+function mju_quat2Vel(res::SVector{3, mjtNum},quat::SVector{4, mjtNum},dt::mjtNum)
+   ccall((:mju_quat2Vel,:libmujoco141nogl),Void,(SVector{3, mjtNum},SVector{4, mjtNum},mjtNum),res,quat,dt)
 end
 
 # convert quaternion to 3D rotation matrix
-function mju_quat2Mat(res::NTuple{9, mjtNum},quat::NTuple{4, mjtNum})
-   ccall((:mju_quat2Mat,:libmujoco141nogl),Void,(NTuple{9, mjtNum},NTuple{4, mjtNum}),res,quat)
+function mju_quat2Mat(res::SVector{9, mjtNum},quat::SVector{4, mjtNum})
+   ccall((:mju_quat2Mat,:libmujoco141nogl),Void,(SVector{9, mjtNum},SVector{4, mjtNum}),res,quat)
 end
 
 # convert 3D rotation matrix to quaterion
-function mju_mat2Quat(quat::NTuple{4, mjtNum},mat::NTuple{9, mjtNum})
-   ccall((:mju_mat2Quat,:libmujoco141nogl),Void,(NTuple{4, mjtNum},NTuple{9, mjtNum}),quat,mat)
+function mju_mat2Quat(quat::SVector{4, mjtNum},mat::SVector{9, mjtNum})
+   ccall((:mju_mat2Quat,:libmujoco141nogl),Void,(SVector{4, mjtNum},SVector{9, mjtNum}),quat,mat)
 end
 
 # time-derivative of quaternion, given 3D rotational velocity
-function mju_derivQuat(res::NTuple{4, mjtNum},quat::NTuple{4, mjtNum},vel::NTuple{3, mjtNum})
-   ccall((:mju_derivQuat,:libmujoco141nogl),Void,(NTuple{4, mjtNum},NTuple{4, mjtNum},NTuple{3, mjtNum}),res,quat,vel)
+function mju_derivQuat(res::SVector{4, mjtNum},quat::SVector{4, mjtNum},vel::SVector{3, mjtNum})
+   ccall((:mju_derivQuat,:libmujoco141nogl),Void,(SVector{4, mjtNum},SVector{4, mjtNum},SVector{3, mjtNum}),res,quat,vel)
 end
 
 # integrate quaterion given 3D angular velocity
-function mju_quatIntegrate(quat::NTuple{4, mjtNum},vel::NTuple{3, mjtNum},scale::mjtNum)
-   ccall((:mju_quatIntegrate,:libmujoco141nogl),Void,(NTuple{4, mjtNum},NTuple{3, mjtNum},mjtNum),quat,vel,scale)
+function mju_quatIntegrate(quat::SVector{4, mjtNum},vel::SVector{3, mjtNum},scale::mjtNum)
+   ccall((:mju_quatIntegrate,:libmujoco141nogl),Void,(SVector{4, mjtNum},SVector{3, mjtNum},mjtNum),quat,vel,scale)
 end
 
 # compute quaternion performing rotation from z-axis to given vector
-function mju_quatZ2Vec(quat::NTuple{4, mjtNum},vec::NTuple{3, mjtNum})
-   ccall((:mju_quatZ2Vec,:libmujoco141nogl),Void,(NTuple{4, mjtNum},NTuple{3, mjtNum}),quat,vec)
+function mju_quatZ2Vec(quat::SVector{4, mjtNum},vec::SVector{3, mjtNum})
+   ccall((:mju_quatZ2Vec,:libmujoco141nogl),Void,(SVector{4, mjtNum},SVector{3, mjtNum}),quat,vec)
 end
 
 #---------------------- Utility functions: poses (pos, quat) ---------------------------
 
 # multiply two poses
-function mju_mulPose(posres::NTuple{3, mjtNum},quatres::NTuple{4, mjtNum},pos1::NTuple{3, mjtNum},quat1::NTuple{4, mjtNum},pos2::NTuple{3, mjtNum},quat2::NTuple{4, mjtNum})
-   ccall((:mju_mulPose,:libmujoco141nogl),Void,(NTuple{3, mjtNum},NTuple{4, mjtNum},NTuple{3, mjtNum},NTuple{4, mjtNum},NTuple{3, mjtNum},NTuple{4, mjtNum}),posres,quatres,pos1,quat1,pos2,quat2)
+function mju_mulPose(posres::SVector{3, mjtNum},quatres::SVector{4, mjtNum},pos1::SVector{3, mjtNum},quat1::SVector{4, mjtNum},pos2::SVector{3, mjtNum},quat2::SVector{4, mjtNum})
+   ccall((:mju_mulPose,:libmujoco141nogl),Void,(SVector{3, mjtNum},SVector{4, mjtNum},SVector{3, mjtNum},SVector{4, mjtNum},SVector{3, mjtNum},SVector{4, mjtNum}),posres,quatres,pos1,quat1,pos2,quat2)
 end
 
 # negate pose
-function mju_negPose(posres::NTuple{3, mjtNum},quatres::NTuple{4, mjtNum},pos::NTuple{3, mjtNum},quat::NTuple{4, mjtNum})
-   ccall((:mju_negPose,:libmujoco141nogl),Void,(NTuple{3, mjtNum},NTuple{4, mjtNum},NTuple{3, mjtNum},NTuple{4, mjtNum}),posres,quatres,pos,quat)
+function mju_negPose(posres::SVector{3, mjtNum},quatres::SVector{4, mjtNum},pos::SVector{3, mjtNum},quat::SVector{4, mjtNum})
+   ccall((:mju_negPose,:libmujoco141nogl),Void,(SVector{3, mjtNum},SVector{4, mjtNum},SVector{3, mjtNum},SVector{4, mjtNum}),posres,quatres,pos,quat)
 end
 
 # transform vector by pose
-function mju_trnVecPose(res::NTuple{3, mjtNum},pos::NTuple{3, mjtNum},quat::NTuple{4, mjtNum},vec::NTuple{3, mjtNum})
-   ccall((:mju_trnVecPose,:libmujoco141nogl),Void,(NTuple{3, mjtNum},NTuple{3, mjtNum},NTuple{4, mjtNum},NTuple{3, mjtNum}),res,pos,quat,vec)
+function mju_trnVecPose(res::SVector{3, mjtNum},pos::SVector{3, mjtNum},quat::SVector{4, mjtNum},vec::SVector{3, mjtNum})
+   ccall((:mju_trnVecPose,:libmujoco141nogl),Void,(SVector{3, mjtNum},SVector{3, mjtNum},SVector{4, mjtNum},SVector{3, mjtNum}),res,pos,quat,vec)
 end
 
 #---------------------- Utility functions: matrix decomposition ------------------------

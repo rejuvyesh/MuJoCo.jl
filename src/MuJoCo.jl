@@ -1,4 +1,16 @@
+__precompile__()
+
 module MuJoCo
+
+using StaticArrays
+
+depsfile = joinpath(dirname(@__FILE__), "..", "deps", "deps.jl")
+if isfile(depsfile)
+   include(depsfile)
+else
+   error("MuJoCo was not downloaded / installed correctly.")
+end
+
 
 const mjVERSION_HEADER = 141
 
@@ -27,21 +39,22 @@ export mjtNum, mjtByte
 export jlData, jlModel
 
 const keypath = findkey()
-activate(keypath)
+global activated = false
 
-# Notes on notation:
-# in this module, m and d are mjModel and mjData respectively
-# outside the module, the raw c struct pointer is generally pm, pd
-
-
-#TODO jlModel can try to display unallocated raw pointers which causes segfault
-function display(m::jlModel)
-   #println("MuJoCo.jlModel(", m.m,")")
-   println("MuJoCo.jlModel()")
+function teardown()
+   deactivate()
+   global activated = false
 end
 
-export display
-
-Base.atexit(deactivate)
+function __init__()
+   val = activate(keypath)
+   if val == 1
+      println("MuJoCo Activated")
+      global activated = true
+   else
+      warn("MuJoCo not activated. Could not find license file in MUJOCO_KEY_PATH environment variable or through system search.")
+   end
+   atexit(teardown)
+end
 
 end

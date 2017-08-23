@@ -23,9 +23,9 @@ const mjMAXOVERLAY = 500
 type _mjvPerturb
    select::Cint
    active::Cint
-   refpos::NTuple{3, mjtNum}
-   refquat::NTuple{4, mjtNum}
-   localpos::NTuple{3, mjtNum}
+   refpos::SVector{3, mjtNum}
+   refquat::SVector{4, mjtNum}
+   localpos::SVector{3, mjtNum}
    scale::mjtNum
 end
 
@@ -35,7 +35,7 @@ type _mjvCamera
    _type::Cint
    fixedcamid::Cint
    trackbodyid::Cint
-   lookat::NTuple{3, mjtNum}
+   lookat::SVector{3, mjtNum}
    distance::mjtNum
    azimuth::mjtNum
    elevation::mjtNum
@@ -44,9 +44,9 @@ end
 const mjvCamera = _mjvCamera
 
 type _mjvGLCamera
-   pos::NTuple{3, Cfloat}
-   forward::NTuple{3, Cfloat}
-   up::NTuple{3, Cfloat}
+   pos::SVector{3, Cfloat}
+   forward::SVector{3, Cfloat}
+   up::SVector{3, Cfloat}
    frustum_center::Cfloat
    frustum_bottom::Cfloat
    frustum_top::Cfloat
@@ -64,16 +64,16 @@ type _mjvGeom
    category::Cint
    texid::Cint
    texuniform::Cint
-   texrepeat::NTuple{2, Cfloat}
-   size::NTuple{3, Cfloat}
-   pos::NTuple{3, Cfloat}
-   mat::NTuple{9, Cfloat}
-   rgba::NTuple{4, Cfloat}
+   texrepeat::SVector{2, Cfloat}
+   size::SVector{3, Cfloat}
+   pos::SVector{3, Cfloat}
+   mat::SVector{9, Cfloat}
+   rgba::SVector{4, Cfloat}
    emission::Cfloat
    specular::Cfloat
    shininess::Cfloat
    reflectance::Cfloat
-   label::NTuple{100, UInt8}
+   label::SVector{100, UInt8}
    camdist::Cfloat
    rbound::Cfloat
    transparent::mjtByte
@@ -82,14 +82,14 @@ end
 const mjvGeom = _mjvGeom
 
 type _mjvLight
-   pos::NTuple{3, Cfloat}
-   dir::NTuple{3, Cfloat}
-   attenuation::NTuple{3, Cfloat}
+   pos::SVector{3, Cfloat}
+   dir::SVector{3, Cfloat}
+   attenuation::SVector{3, Cfloat}
    cutoff::Cfloat
    exponent::Cfloat
-   ambient::NTuple{3, Cfloat}
-   diffuse::NTuple{3, Cfloat}
-   specular::NTuple{3, Cfloat}
+   ambient::SVector{3, Cfloat}
+   diffuse::SVector{3, Cfloat}
+   specular::SVector{3, Cfloat}
    headlight::mjtByte
    directional::mjtByte
    castshadow::mjtByte
@@ -100,9 +100,9 @@ const mjvLight = _mjvLight
 type _mjvOption
    label::Cint
    frame::Cint
-   geomgroup::NTuple{5, mjtByte}
-   sitegroup::NTuple{5, mjtByte}
-   flags::NTuple{18, mjtByte}
+   geomgroup::SVector{5, mjtByte}
+   sitegroup::SVector{5, mjtByte}
+   flags::SVector{18, mjtByte}
 end
 
 const mjvOption = _mjvOption
@@ -113,14 +113,14 @@ type _mjvScene
    geoms::Ptr{mjvGeom}
    geomorder::Ptr{Cint}
    nlight::Cint
-   lights::NTuple{8, mjvLight}
-   camera::NTuple{2, mjvGLCamera}
+   lights::SVector{8, mjvLight}
+   camera::SVector{2, mjvGLCamera}
    enabletransform::mjtByte
-   translate::NTuple{3, Cfloat}
-   rotate::NTuple{4, Cfloat}
+   translate::SVector{3, Cfloat}
+   rotate::SVector{4, Cfloat}
    scale::Cfloat
    stereo::Cint
-   flags::NTuple{5, mjtByte}
+   flags::SVector{5, mjtByte}
 end
 
 const mjvScene = _mjvScene
