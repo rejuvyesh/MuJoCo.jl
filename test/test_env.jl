@@ -2,10 +2,10 @@ using MuJoCo
 
 ############################################################# mujoco startup
 
-val = mj.activate(ENV["MUJOCO_KEY_PATH"])
-@test val == 1
+#val = mj.activate(ENV["MUJOCO_KEY_PATH"])
+@test mj.activated == true # should be activated on module load
 
-modelfile = "humanoid.xml"
+modelfile = dirname(@__FILE__)*"/humanoid.xml"
 pm = mj.loadXML(modelfile, "")
 
 @test pm != nothing

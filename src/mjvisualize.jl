@@ -2,6 +2,10 @@
 const mjNGROUP = 5
 const mjMAXOVERLAY = 500
 
+const mjMAXLINE = 100
+const mjMAXLINEPNT = 500
+const  mjMAXPLANEGRID = 100
+
 @enum mjtCatBit mjCAT_STATIC = (UInt32)(1) mjCAT_DYNAMIC = (UInt32)(2) mjCAT_DECOR = (UInt32)(4) mjCAT_ALL = (UInt32)(7)
 
 @enum mjtMouse mjMOUSE_NONE = (UInt32)(0) mjMOUSE_ROTATE_V = (UInt32)(1) mjMOUSE_ROTATE_H = (UInt32)(2) mjMOUSE_MOVE_V = (UInt32)(3) mjMOUSE_MOVE_H = (UInt32)(4) mjMOUSE_ZOOM = (UInt32)(5) mjMOUSE_SELECT = (UInt32)(6)
@@ -125,3 +129,29 @@ end
 
 const mjvScene = _mjvScene
 
+type _mjvFigure
+   flg_legend::Cint
+   flg_ticklabel::SVector{2, Cint}
+   flg_extend::Cint
+   flg_barplot::Cint
+
+   gridsize::SVector{2, Cint}
+   gridrgb::SVector{3, Cfloat}
+   gridwidth::Cfloat
+   figurergba::SVector{4, Cfloat}
+   legendrgba::SVector{4, Cfloat}
+   textrgb::SVector{3, Cfloat}
+   range::SMatrix{2, 2, Cfloat}
+   xlabel::SVector{100, UInt8}
+   title::SVector{100, UInt8}
+   xformat::SVector{20, UInt8}
+   yformat::SVector{20, UInt8}
+   minwidth::SVector{20, UInt8}
+
+   linepnt::SVector{mjMAXLINE, Cint}
+	linergb::SMatrix{mjMAXLINE, 3, Cfloat}
+   linewidth::SVector{mjMAXLINE, Cfloat}
+   linedata::SMatrix{mjMAXLINE, 2*mjMAXLINEPNT, Cfloat}
+   linename::SMatrix{mjMAXLINE, 100, UInt8}
+end
+const mjvFigure = _mjvFigure

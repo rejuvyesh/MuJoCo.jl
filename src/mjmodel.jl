@@ -90,13 +90,91 @@ end
 const mjOption = _mjOption
 
 #struct _mjVisual
+immutable __global
+	fovy::Float32
+	ipd::Float32
+	linewidth::Float32
+	glow::Float32
+	offwidth::Int32
+	offheight::Int32
+end
+
+immutable _quality
+	shadowsize::Int32
+	offsamples::Int32
+	numslices::Int32
+	numstacks::Int32
+	numarrows::Int32
+	numquads::Int32
+end
+
+immutable _headlight
+	ambient::SVector{3, Float32}
+	diffuse::SVector{3, Float32}
+	specular::SVector{3, Float32}
+	active::Int32
+end
+
+immutable _map
+	stiffness::Float32
+	stiffnessrot::Float32
+	force::Float32
+	torque::Float32
+	alpha::Float32
+	fogstart::Float32
+	fogend::Float32
+	znear::Float32
+	zfar::Float32
+	shadowclip::Float32
+	shadowscale::Float32
+end
+
+immutable _scale
+	forcewidth::Float32
+	contactwidth::Float32
+	contactheight::Float32
+	connect::Float32
+	com::Float32
+	camera::Float32
+	light::Float32
+	selectpoint::Float32
+	jointlength::Float32
+	jointwidth::Float32
+	actuatorlength::Float32
+	actuatorwidth::Float32
+	framelength::Float32
+	framewidth::Float32
+	constraint::Float32
+	slidercrank::Float32
+end
+
+immutable _rgba
+	fog::SVector{4, Float32}
+	force::SVector{4, Float32}
+	inertia::SVector{4, Float32}
+	joint::SVector{4, Float32}
+	actuator::SVector{4, Float32}
+	com::SVector{4, Float32}
+	camera::SVector{4, Float32}
+	light::SVector{4, Float32}
+	selectpoint::SVector{4, Float32}
+	connect::SVector{4, Float32}
+	contactpoint::SVector{4, Float32}
+	contactforce::SVector{4, Float32}
+	contactfriction::SVector{4, Float32}
+	contacttorque::SVector{4, Float32}
+	constraint::SVector{4, Float32}
+	slidercrank::SVector{4, Float32}
+	crankbroken::SVector{4, Float32}
+end
+
 immutable _mjVisual
-   _global::Void
-   quality::Void
-   headlight::Void
-   map::Void
-   scale::Void
-   rgba::Void
+	_global::__global
+	quality::_quality
+	headlight::_headlight
+	map::_map
+	scale::_scale
+	rgba::_rgba
 end
 
 const mjVisual = _mjVisual
