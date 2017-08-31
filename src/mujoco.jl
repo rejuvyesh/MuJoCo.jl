@@ -502,7 +502,7 @@ function fullM(m::Ptr{mjModel},dst::Ptr{mjtNum},M::PtrVec)
 end
 
 # multiply vector by inertia matrix
-function mulM(m::Ptr{mjModel},d::Ptr{mjData},res::Ptr{mjtNum},vec::Ptr{mjtNum})
+function mulM(m::Ptr{mjModel},d::Ptr{mjData},res::Ptr{mjtNum},vec::PtrVec)
    ccall((:mj_mulM,:libmujoco141nogl),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum}),m,d,res,vec)
 end
 
