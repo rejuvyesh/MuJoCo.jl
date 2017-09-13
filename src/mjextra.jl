@@ -108,6 +108,11 @@ end
 function update_ptr(p::Ptr, offset::Integer, val::mjtNum)
    unsafe_store!(convert(Ptr{mjtNum}, (p + offset)), val)
 end
+function update_ptr(p::Ptr, offset::Integer, val::SVector)
+   for i=1:length(val)
+      unsafe_store!(convert(Ptr{mjtNum}, (p+offset+(i-1)*sizeof(mjtNum))), val[i])
+   end
+end
 
 
 # mutate mujoco struct fields through the julia version of model and data
@@ -118,7 +123,7 @@ function set(m::jlModel, field::Symbol, val::Union{Integer, mjtNum})
 end
 
 # set struct within mjmodel struct 
-function set(m::jlModel, fstruct::Symbol, field::Symbol, val::Union{Integer, mjtNum})
+function set(m::jlModel, fstruct::Symbol, field::Symbol, val::Union{Integer, mjtNum, SVector})
    s_off, s_type = minfo[fstruct]
    @assert s_type in (MuJoCo._mjOption, MuJoCo._mjVisual, MuJoCo._mjStatistic)
 
