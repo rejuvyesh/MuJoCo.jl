@@ -11,11 +11,7 @@ else
    error("MuJoCo was not downloaded / installed correctly.")
 end
 
-
-const mj = MuJoCo
-export mj #export the module for faster typing
-
-const mjVERSION_HEADER = 141
+const mjVERSION_HEADER = 150
 
 const mjtNum = Cdouble
 const mjtByte = Cuchar
@@ -25,7 +21,6 @@ include("./mjmodel.jl")
 include("./mjdata.jl")
 include("./mjvisualize.jl")
 include("./mjrender.jl")
-include("./mjoptim.jl")
 
 # additional structs and functionality
 include("./mj_common.jl")
@@ -33,12 +28,14 @@ include("./mjextra.jl")
 
 # mujoco functions
 include("./mujoco.jl")
-if VERSION >= v"0.6" && mjVERSION_HEADER >= 150
+if VERSION >= v"0.6"
    include("./mjderiv.jl")
 else
-   warn("Derivatives supported in Julia v0.6 for MuJoCo >= 1.50")
+   warn("Derivatives supported in Julia v0.6")
 end
 
+const mj = MuJoCo
+export mj #export the module for faster typing
 export mjData, mjModel, mjOption # types exported
 export mjtNum, mjtByte
 
