@@ -40,6 +40,8 @@ mjMIN(a,b) = min(a,b)
 #MJAPI extern const char* mjRNDSTRING[mjNRNDFLAG][3];
 
 
+const PtrVec = Union{Ptr{mjtNum},Vector{mjtNum}}
+
 #---------------------- License activation and certificate (mutex-protected) -----------
 
 # activate license, call mju_error on failure; return 1 if ok, 0 if failure
@@ -497,12 +499,12 @@ function id2name(m::Ptr{mjModel},_type::Integer,id::Integer)
 end
 
 # convert sparse inertia matrix M into full matrix
-function fullM(m::Ptr{mjModel},dst::Ptr{mjtNum},M::Ptr{mjtNum})
+function fullM(m::Ptr{mjModel},dst::Ptr{mjtNum},M::PtrVec)
    ccall((:mj_fullM,libmujoco),Void,(Ptr{mjModel},Ptr{mjtNum},Ptr{mjtNum}),m,dst,M)
 end
 
 # multiply vector by inertia matrix
-function mulM(m::Ptr{mjModel},d::Ptr{mjData},res::Ptr{mjtNum},vec::Ptr{mjtNum})
+function mulM(m::Ptr{mjModel},d::Ptr{mjData},res::Ptr{mjtNum},vec::PtrVec)
    ccall((:mj_mulM,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum}),m,d,res,vec)
 end
 
