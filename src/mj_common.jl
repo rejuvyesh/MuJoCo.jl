@@ -42,6 +42,7 @@ type jlModel
    dof_jntid::Array{Cint}
    dof_parentid::Array{Cint}
    dof_Madr::Array{Cint}
+   dof_frictional::Array{mjtByte}
    dof_solref::Array{mjtNum}
    dof_solimp::Array{mjtNum}
    dof_frictionloss::Array{mjtNum}
@@ -87,7 +88,6 @@ type jlModel
    cam_mat0::Array{mjtNum}
    cam_fovy::Array{mjtNum}
    cam_ipd::Array{mjtNum}
-   cam_user::Array{mjtNum}
    light_mode::Array{Cint}
    light_bodyid::Array{Cint}
    light_targetbodyid::Array{Cint}
@@ -153,6 +153,7 @@ type jlModel
    tendon_num::Array{Cint}
    tendon_matid::Array{Cint}
    tendon_limited::Array{mjtByte}
+   tendon_frictional::Array{mjtByte}
    tendon_width::Array{mjtNum}
    tendon_solref_lim::Array{mjtNum}
    tendon_solimp_lim::Array{mjtNum}
@@ -196,7 +197,6 @@ type jlModel
    sensor_objid::Array{Cint}
    sensor_dim::Array{Cint}
    sensor_adr::Array{Cint}
-   sensor_cutoff::Array{mjtNum}
    sensor_noise::Array{mjtNum}
    sensor_user::Array{mjtNum}
    numeric_adr::Array{Cint}
@@ -291,28 +291,26 @@ type jlData
 
    efc_type::Array{Cint}
    efc_id::Array{Cint}
-   efc_J_rownnz::Array{Cint}
-   efc_J_rowadr::Array{Cint}
-   efc_J_colind::Array{Cint}
-   efc_JT_rownnz::Array{Cint}
-   efc_JT_rowadr::Array{Cint}
-   efc_JT_colind::Array{Cint}
+   efc_rownnz::Array{Cint}
+   efc_rowadr::Array{Cint}
+   efc_colind::Array{Cint}
+   efc_rownnz_T::Array{Cint}
+   efc_rowadr_T::Array{Cint}
+   efc_colind_T::Array{Cint}
    efc_solref::Array{mjtNum}
    efc_solimp::Array{mjtNum}
    efc_margin::Array{mjtNum}
    efc_frictionloss::Array{mjtNum}
    efc_pos::Array{mjtNum}
    efc_J::Array{mjtNum}
-   efc_JT::Array{mjtNum}
+   efc_J_T::Array{mjtNum}
    efc_diagApprox::Array{mjtNum}
    efc_D::Array{mjtNum}
    efc_R::Array{mjtNum}
-
-   efc_AR_rownnz::Array{Cint}
-   efc_AR_rowadr::Array{Cint}
-   efc_AR_colind::Array{Cint}
    efc_AR::Array{mjtNum}
-
+   e_ARchol::Array{mjtNum}
+   fc_e_rect::Array{mjtNum}
+   fc_AR::Array{mjtNum}
    ten_velocity::Array{mjtNum}
    actuator_velocity::Array{mjtNum}
    cvel::Array{mjtNum}
@@ -329,11 +327,9 @@ type jlData
    qacc_unc::Array{mjtNum}
 
    efc_b::Array{mjtNum}
+   fc_b::Array{mjtNum}
    efc_force::Array{mjtNum}
-   efc_state::Array{Cint}
    qfrc_constraint::Array{mjtNum}
-   qacc_warmstart::Array{mjtNum}
-
    qfrc_inverse::Array{mjtNum}
 
    cacc::Array{mjtNum}
@@ -393,26 +389,26 @@ function getdatasize(m::mjModel, d::mjData)
                :contact=>(m.nconmax,1),
                :efc_type=>(m.njmax,1),
                :efc_id=>(m.njmax,1),
-               :efc_J_rownnz=>(m.njmax,1),
-               :efc_J_rowadr=>(m.njmax,1),
-               :efc_J_colind=>(m.njmax,m.nv),
-               :efc_JT_rownnz=>(m.nv,1),
-               :efc_JT_rowadr=>(m.nv,1),
-               :efc_JT_colind=>(m.nv,m.njmax),
+               :efc_rownnz=>(m.njmax,1),
+               :efc_rowadr=>(m.njmax,1),
+               :efc_colind=>(m.njmax,m.nv),
+               :efc_rownnz_T=>(m.nv,1),
+               :efc_rowadr_T=>(m.nv,1),
+               :efc_colind_T=>(m.nv,m.njmax),
                :efc_solref=>(m.njmax,mjNREF),
                :efc_solimp=>(m.njmax,mjNIMP),
                :efc_margin=>(m.njmax,1),
                :efc_frictionloss=>(m.njmax,1),
                :efc_pos=>(m.njmax,1),
                :efc_J=>(m.njmax,m.nv),
-               :efc_JT=>(m.nv,m.njmax),
+               :efc_J_T=>(m.nv,m.njmax),
                :efc_diagApprox=>(m.njmax,1),
                :efc_D=>(m.njmax,1),
                :efc_R=>(m.njmax,1),
-               :efc_AR_rownnz=>(m.njmax,1),
-               :efc_AR_rowadr=>(m.njmax,1),
-               :efc_AR_colind=>(m.njmax,m.njmax),
                :efc_AR=>(m.njmax,m.njmax),
+               :e_ARchol=>(m.nemax,m.nemax),
+               :fc_e_rect=>(m.njmax,m.nemax),
+               :fc_AR=>(m.njmax,m.njmax),
                :ten_velocity=>(m.ntendon,1),
                :actuator_velocity=>(m.nu,1),
                :cvel=>(m.nbody,6),
@@ -428,10 +424,9 @@ function getdatasize(m::mjModel, d::mjData)
                :qfrc_unc=>(m.nv,1),
                :qacc_unc=>(m.nv,1),
                :efc_b=>(m.njmax,1),
+               :fc_b=>(m.njmax,1),
                :efc_force=>(m.njmax,1),
-               :efc_state=>(m.njmax,1),
                :qfrc_constraint=>(m.nv,1),
-               :qacc_warmstart=>(m.nv,1),
                :qfrc_inverse=>(m.nv,1),
                :cacc=>(m.nbody,6),
                :cfrc_int=>(m.nbody,6),
@@ -480,6 +475,7 @@ function getmodelsize(m::mjModel)
                :dof_jntid=>(m.nv,1),
                :dof_parentid=>(m.nv,1),
                :dof_Madr=>(m.nv,1),
+               :dof_frictional=>(m.nv,1),
                :dof_solref=>(m.nv,mjNREF),
                :dof_solimp=>(m.nv,mjNIMP),
                :dof_frictionloss=>(m.nv,1),
@@ -525,7 +521,6 @@ function getmodelsize(m::mjModel)
                :cam_mat0=>(m.ncam,9),
                :cam_fovy=>(m.ncam,1),
                :cam_ipd=>(m.ncam,1),
-               :cam_user=>(m.ncam,m.nuser_cam),
                :light_mode=>(m.nlight,1),
                :light_bodyid=>(m.nlight,1),
                :light_targetbodyid=>(m.nlight,1),
@@ -591,6 +586,7 @@ function getmodelsize(m::mjModel)
                :tendon_num=>(m.ntendon,1),
                :tendon_matid=>(m.ntendon,1),
                :tendon_limited=>(m.ntendon,1),
+               :tendon_frictional=>(m.ntendon,1),
                :tendon_width=>(m.ntendon,1),
                :tendon_solref_lim=>(m.ntendon,mjNREF),
                :tendon_solimp_lim=>(m.ntendon,mjNIMP),
@@ -634,7 +630,6 @@ function getmodelsize(m::mjModel)
                :sensor_objid=>(m.nsensor,1),
                :sensor_dim=>(m.nsensor,1),
                :sensor_adr=>(m.nsensor,1),
-               :sensor_cutoff=>(m.nsensor,1),
                :sensor_noise=>(m.nsensor,1),
                :sensor_user=>(m.nsensor,m.nuser_sensor),
                :numeric_adr=>(m.nnumeric,1),
