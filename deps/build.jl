@@ -11,9 +11,7 @@ function compatible_version(lib, handle)
    v = ccall(f, Int32, ())
    return v >= 150
 end
-
-#mujoco = library_dependency("libmujoco", aliases=["libmujoco150nogl", "libmujoco150"], validate=compatible_version)
-mujoco = library_dependency("libmujoco", aliases=["libmujoco150"], validate=compatible_version)
+#glfw       = library_dependency("libglfw", aliases=["libglfw"])
 
 baseurl = "https://www.roboti.us/download/mjpro150_"
 basedir = dirname(@__FILE__)
@@ -23,11 +21,14 @@ libpath = unpack*"/bin"
 
 # library source code
 if is_linux()
+   mujoco_nix = library_dependency("libmujoco", aliases=["libmujoco150nogl"], validate=compatible_version)
    push!(BinDeps.defaults, Binaries) # fixes some unknown, build-blocking issue...
    url = baseurl*"linux.zip"
    info("Downloading: ", url, " to ", unpack)
-   provides(Binaries, URI(url), mujoco, unpacked_dir=unpack, installed_libpath=libpath)
+   println(libpath)
+   provides(Binaries, URI(url), mujoco_nix, unpacked_dir=unpack, installed_libpath=libpath)
 elseif is_apple()
+   mujoco_osx = library_dependency("libmujoco", aliases=["libmujoco150"], validate=compatible_version)
    push!(BinDeps.defaults, Binaries) # fixes some unknown, build-blocking issue...
    url = baseurl*"osx.zip"
    info("Downloading: ", url, " to ", unpack)
@@ -38,7 +39,7 @@ elseif is_apple()
                                joinpath(basedir, "downloads/mjpro150_osx.zip"))
                 FileUnpacker(joinpath(basedir, "downloads/mjpro150_osx.zip"),
                              basedir, "mjpro150")
-             end), mujoco, installed_libpath=libpath)
+             end), mujoco_osx, installed_libpath=libpath)
 elseif is_windows()
    url = baseurl*"win$(Sys.WORD_SIZE).zip"
    info("Downloading: ", url, " to ", unpack)
