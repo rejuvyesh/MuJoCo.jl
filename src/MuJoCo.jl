@@ -27,7 +27,7 @@ include("./mj_common.jl")
 include("./mjextra.jl")
 
 # mujoco functions
-include("./mujoco.jl")
+include("./mujoco_c.jl")
 if VERSION >= v"0.6"
    include("./mjderiv.jl")
 else
