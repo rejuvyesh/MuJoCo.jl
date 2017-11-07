@@ -636,6 +636,23 @@ function mjv_applyPerturbForce(m::Ptr{mjModel},d::Ptr{mjData},pert::Ptr{mjvPertu
    ccall((:mjv_applyPerturbForce,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjvPerturb}),m,d,pert)
 end
 
+# Return the average of two OpenGL cameras.
+function mjv_averageCamera(cam1::Ptr{mjvGLCamera}, cam2::Ptr{mjvGLCamera})
+   ccall((:mjv_averageCamera,libmujoco),mjvGLCamera,(Ptr{mjvGLCamera},Ptr{mjvGLCamera}),cam1,cam2)
+end
+
+# Select model geom with mouse, return -1 if none selected. selpnt is the 3D point.
+function mjv_select(m::Ptr{mjModel},d::Ptr{mjData},vopt::Ptr{mjvOption},
+                    aspectratio::mjtNum, relx::mjtNum, rely::mjtNum,
+                    scn::Ptr{mjvScene}, selpnt::PtrVec)
+   ccall((:mjv_select,libmujoco),Cint,(Ptr{mjModel},Ptr{mjData},Ptr{mjvOption},
+                                       mjtNum,mjtNum,mjtNum,
+                                       Ptr{mjvScene},Ptr{Cdouble}),
+         m,d,vopt,aspectratio,relx,rely,
+         scn,selpnt)
+end
+
+
 #---------------------- Asbtract visualization -----------------------------------------
 
 # set default visualization options
@@ -752,11 +769,6 @@ end
 # 3D rendering
 function mjr_render(viewport::mjrRect,scn::Ptr{mjvScene},con::Ptr{mjrContext})
    ccall((:mjr_render,libmujoco),Void,(mjrRect,Ptr{mjvScene},Ptr{mjrContext}),viewport,scn,con)
-end
-
-# 3D selection
-function mjr_select(viewport::mjrRect,scn::Ptr{mjvScene},con::Ptr{mjrContext},mousex::Integer,mousey::Integer,pos::Ptr{mjtNum},depth::Ptr{mjtNum})
-   ccall((:mjr_select,libmujoco),Cint,(mjrRect,Ptr{mjvScene},Ptr{mjrContext},Cint,Cint,Ptr{mjtNum},Ptr{mjtNum}),viewport,scn,con,mousex,mousey,pos,depth)
 end
 
 # call glFinish
