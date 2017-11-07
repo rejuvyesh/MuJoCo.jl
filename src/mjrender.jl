@@ -16,7 +16,7 @@ end
 
 const mjrRect = _mjrRect
 
-type _mjrContext
+immutable _mjrContext
    lineWidth::Cfloat
    shadowClip::Cfloat
    shadowScale::Cfloat

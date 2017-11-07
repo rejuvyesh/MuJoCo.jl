@@ -4,7 +4,7 @@ const mjMAXOVERLAY = 500
 
 const mjMAXLINE = 100
 const mjMAXLINEPNT = 500
-const  mjMAXPLANEGRID = 100
+const mjMAXPLANEGRID = 100
 
 @enum mjtCatBit mjCAT_STATIC = (UInt32)(1) mjCAT_DYNAMIC = (UInt32)(2) mjCAT_DECOR = (UInt32)(4) mjCAT_ALL = (UInt32)(7)
 
@@ -24,7 +24,7 @@ const  mjMAXPLANEGRID = 100
 
 @enum mjtStereo mjSTEREO_NONE = (UInt32)(0) mjSTEREO_QUADBUFFERED = (UInt32)(1) mjSTEREO_SIDEBYSIDE = (UInt32)(2)
 
-type _mjvPerturb
+immutable _mjvPerturb
    select::Cint
    active::Cint
    refpos::SVector{3, mjtNum}
@@ -35,7 +35,7 @@ end
 
 const mjvPerturb = _mjvPerturb
 
-type _mjvCamera
+immutable _mjvCamera
    _type::Cint
    fixedcamid::Cint
    trackbodyid::Cint
@@ -47,7 +47,7 @@ end
 
 const mjvCamera = _mjvCamera
 
-type _mjvGLCamera
+immutable _mjvGLCamera
    pos::SVector{3, Cfloat}
    forward::SVector{3, Cfloat}
    up::SVector{3, Cfloat}
@@ -60,7 +60,7 @@ end
 
 const mjvGLCamera = _mjvGLCamera
 
-type _mjvGeom
+immutable _mjvGeom
    _type::Cint
    dataid::Cint
    objtype::Cint
@@ -85,7 +85,7 @@ end
 
 const mjvGeom = _mjvGeom
 
-type _mjvLight
+immutable _mjvLight
    pos::SVector{3, Cfloat}
    dir::SVector{3, Cfloat}
    attenuation::SVector{3, Cfloat}
@@ -101,7 +101,7 @@ end
 
 const mjvLight = _mjvLight
 
-type _mjvOption
+immutable _mjvOption
    label::Cint
    frame::Cint
    geomgroup::SVector{5, mjtByte}
@@ -111,7 +111,7 @@ end
 
 const mjvOption = _mjvOption
 
-type _mjvScene
+immutable _mjvScene
    maxgeom::Cint
    ngeom::Cint
    geoms::Ptr{mjvGeom}
@@ -129,7 +129,7 @@ end
 
 const mjvScene = _mjvScene
 
-type _mjvFigure
+immutable _mjvFigure
    flg_legend::Cint
    flg_ticklabel::SVector{2, Cint}
    flg_extend::Cint
