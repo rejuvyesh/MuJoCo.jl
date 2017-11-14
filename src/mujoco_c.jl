@@ -29,16 +29,44 @@ mjMIN(a,b) = min(a,b)
 #
 ## collision function table
 #MJAPI extern mjfCollision mjCOLLISIONFUNC[mjNGEOMTYPES][mjNGEOMTYPES];
-#
-## string names
-#MJAPI extern const char* mjDISABLESTRING[mjNDISABLE];
-#MJAPI extern const char* mjENABLESTRING[mjNENABLE];
-#MJAPI extern const char* mjTIMERSTRING[mjNTIMER];
-#MJAPI extern const char* mjLABELSTRING[mjNLABEL];
-#MJAPI extern const char* mjFRAMESTRING[mjNFRAME];
-#MJAPI extern const char* mjVISSTRING[mjNVISFLAG][3];
-#MJAPI extern const char* mjRNDSTRING[mjNRNDFLAG][3];
 
+function mj_globals() # needs to run at module load time; not precompiled
+   function stringsearch(raw::Ptr{Ptr{UInt8}}, n::Int)
+      len = 1
+      r = unsafe_load(raw)
+      for i=1:n
+         while unsafe_load(r, len) != 0 # find nulls
+            len += 1
+         end
+         len += 1
+      end
+      len -= 2 # undo last +1 and strip last \0 null
+      return split(String(unsafe_wrap(Array, r, len)), '\0')
+   end
+   function stringsearch(raw::Ptr{Ptr{UInt8}}, n::Tuple)
+      r = unsafe_wrap(Array, raw, prod(n))
+      strs = Array{String}(n)
+      idx = 1
+      for i=1:n[1]
+         for j=1:n[2]
+            len = 1
+            while unsafe_load(r[idx], len) != 0 # find nulls
+               len += 1
+            end
+            strs[i,j] = unsafe_wrap(Array, r[idx], len-1)
+            idx += 1
+         end
+      end
+      return strs
+   end
+   global DISABLESTRING = stringsearch(cglobal((:mjDISABLESTRING,libmujoco),Ptr{UInt8}),Int(mjNDISABLE))
+   global ENABLESTRING  = stringsearch(cglobal((:mjENABLESTRING,libmujoco), Ptr{UInt8}),Int(mjNENABLE))
+   global TIMERSTRING   = stringsearch(cglobal((:mjTIMERSTRING,libmujoco),  Ptr{UInt8}),Int(mjNTIMER))
+   global LABELSTRING   = stringsearch(cglobal((:mjLABELSTRING,libmujoco),  Ptr{UInt8}),Int(mjNLABEL))
+   global FRAMESTRING   = stringsearch(cglobal((:mjFRAMESTRING,libmujoco),  Ptr{UInt8}),Int(mjNFRAME))
+   global VISSTRING     = stringsearch(cglobal((:mjVISSTRING,libmujoco),Ptr{UInt8}),(Int(mjNVISFLAG),3))
+   global RNDSTRING     = stringsearch(cglobal((:mjRNDSTRING,libmujoco),Ptr{UInt8}),(Int(mjNRNDFLAG),3))
+end
 
 const PtrVec = Union{Ptr{mjtNum},Vector{mjtNum}}
 

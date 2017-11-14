@@ -57,6 +57,9 @@ function __init__()
    else
       warn("MuJoCo not activated. Could not find license file in MUJOCO_KEY_PATH environment variable or through system search.")
    end
+
+   mj_globals() # initialize globals at runtime; not precompiled
+   
    atexit(teardown)
 end
 

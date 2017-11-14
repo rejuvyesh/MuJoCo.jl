@@ -67,26 +67,46 @@ function mapmujoco(pm::Ptr{mjModel}, pd::Ptr{mjData})
    return mapmodel(pm), mapdata(pm, pd)
 end
 
-
 # struct manipulation and access
 structinfo(T) = Dict(fieldname(T,i)=>(fieldoffset(T,i), fieldtype(T,i)) for i = 1:nfields(T))
-minfo = structinfo(mjModel)
-dinfo = structinfo(mjData)
-oinfo = structinfo(mjOption)
-vinfo = structinfo(mjVisual)
-sinfo = structinfo(mjStatistic)
-cinfo = structinfo(mjContact)
+const minfo = structinfo(mjModel)
+const dinfo = structinfo(mjData)
 
-# TODO cleanup these asserts
+const mjstructs = Dict(mjContact     => structinfo(mjContact),
+                       mjWarningStat => structinfo(mjWarningStat),
+                       mjTimerStat   => structinfo(mjTimerStat),
+                       mjSolverStat  => structinfo(mjSolverStat),
+                                        
+                       mjrContext    => structinfo(mjrContext),
+                                        
+                       mjVFS         => structinfo(mjVFS),
+                       mjOption      => structinfo(mjOption),
+                       #_global       => structinfo(_global),
+                       #quality       => structinfo(quality),
+                       #headlight     => structinfo(headlight),
+                       #map           => structinfo(map),
+                       #scale         => structinfo(scale),
+                       #rgba          => structinfo(rgba),
+                       mjVisual      => structinfo(mjVisual),
+                       mjStatistic   => structinfo(mjStatistic),
+                       mjModel       => structinfo(mjModel),
+                                        
+                       mjvPerturb    => structinfo(mjvPerturb),
+                       mjvCamera     => structinfo(mjvCamera),
+                       mjvGLCamera   => structinfo(mjvGLCamera),
+                       mjvGeom       => structinfo(mjvGeom),
+                       mjvLight      => structinfo(mjvLight),
+                       mjvOption     => structinfo(mjvOption),
+                       mjvScene      => structinfo(mjvScene),
+                       mjvFigure     => structinfo(mjvFigure))
 
 # access mujoco struct fields through the julia version of model and data
-@inline function get(m::jlModel, field::Symbol)
+function get(m::jlModel, field::Symbol)
    f_off, f_type = minfo[field]
    pntr = Ptr{f_type}(m.m)
    return unsafe_load(pntr+f_off, 1)
 end
-
-@inline function get(m::jlModel, fstruct::Symbol, field::Symbol)
+function get(m::jlModel, fstruct::Symbol, field::Symbol)
    s_off, s_type = minfo[fstruct]
    @assert s_type in (MuJoCo._mjOption, MuJoCo._mjVisual, MuJoCo._mjStatistic)
 
@@ -94,10 +114,14 @@ end
    pntr = Ptr{f_type}(m.m)
    return unsafe_load(pntr+s_off+f_off, 1)
 end
-
-@inline function get(d::jlData, field::Symbol)
+function get(d::jlData, field::Symbol)
    f_off, f_type = dinfo[field]
    pntr = Ptr{f_type}(d.d)
+   return unsafe_load(pntr+f_off, 1)
+end
+function get{T<:Any}(p::Ptr{T}, field::Symbol)
+   f_off, f_type = mjstructs[T][field]
+   pntr = Ptr{f_type}(p)
    return unsafe_load(pntr+f_off, 1)
 end
 
@@ -109,34 +133,49 @@ function update_ptr(p::Ptr, offset::Integer, val::mjtNum)
    unsafe_store!(convert(Ptr{mjtNum}, (p + offset)), val)
 end
 function update_ptr(p::Ptr, offset::Integer, val::SVector)
+   #T = eltype(SVector)
+   T = typeof(val[1])
    for i=1:length(val)
-      unsafe_store!(convert(Ptr{mjtNum}, (p+offset+(i-1)*sizeof(mjtNum))), val[i])
+      unsafe_store!(convert(Ptr{T}, p+offset+(i-1)*sizeof(T)),
+                    val[i])
    end
 end
 
-
 # mutate mujoco struct fields through the julia version of model and data
+function set(d::jlData, field::Symbol, val::Union{Integer, mjtNum})
+   f_off, f_type = dinfo[field]
+   update_ptr(d.d, f_off, convert(f_type, val)) 
+end
 function set(m::jlModel, field::Symbol, val::Union{Integer, mjtNum})
    f_off, f_type = minfo[field]
-   #@assert isa(typeof(val), Int64) || isa(typeof(val), Int32) || isa(typeof(val), mjtNum)
    update_ptr(m.m, f_off, convert(f_type, val)) 
 end
+function set{T<:Any}(p::Ptr{T}, field::Symbol, val::Union{Integer, mjtNum, SVector})
+   f_off, f_type = mjstructs[T][field]
+   update_ptr(p, f_off, convert(f_type, val)) 
+end
+function set{T<:Any}(p::Ptr{T}, field::Symbol, val, i::Int) # write to element in SVector
+   f_off, f_type = mjstructs[T][field]
+   ET = eltype(f_type)
+   @assert f_type <: SVector
+   @assert typeof(val) == ET
+   @assert i <= length(f_type) && i >= 1
+   unsafe_store!(convert(Ptr{ET}, (p+f_off+(i-1)*sizeof(ET))), val)
+end
+
 
 # set struct within mjmodel struct 
 function set(m::jlModel, fstruct::Symbol, field::Symbol, val::Union{Integer, mjtNum, SVector})
    s_off, s_type = minfo[fstruct]
    @assert s_type in (MuJoCo._mjOption, MuJoCo._mjVisual, MuJoCo._mjStatistic)
 
-   f_off, f_type = structinfo(s_type)[field]
-   #@assert isa(typeof(val), Int64) || isa(typeof(val), Int32) || isa(typeof(val), mjtNum)
+   f_off, f_type = mjstructs[s_type][field]
    update_ptr(m.m, s_off+f_off, convert(f_type, val))
 end
-
-
-function set(d::jlData, field::Symbol, val::Union{Integer, mjtNum})
-   f_off, f_type = dinfo[field]
-   #@assert isa(typeof(val), Int64) || isa(typeof(val), Int32) || isa(typeof(val), mjtNum)
-   update_ptr(d.d, f_off, convert(f_type, val)) 
+function set{T<:Any}(p::Ptr{T}, fstruct::Symbol, field::Symbol, val::Union{Integer, mjtNum})
+   s_off, s_type = mjstructs[T][fstruct]
+   f_off, f_type = mjstructs[s_type][field]
+   update_ptr(p, f_off, convert(f_type, val)) 
 end
 
 
