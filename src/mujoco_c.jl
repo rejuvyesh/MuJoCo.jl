@@ -688,6 +688,22 @@ function mjv_defaultOption(opt::Ptr{mjvOption})
    ccall((:mjv_defaultOption,libmujoco),Void,(Ptr{mjvOption},),opt)
 end
 
+# Set default figure.
+function mjv_defaultFigure(fig::Ptr{mjvFigure})
+   ccall((:mjv_defaultFigure,libmujoco),Void,(Ptr{mjvFigure},),fig)
+end
+
+# Initialize given geom fields when not NULL, set the rest to their default values.
+#MJAPI void mjv_initGeom(mjvGeom* geom, int type, const mjtNum* size,
+#                        const mjtNum* pos, const mjtNum* mat, const float* rgba);
+
+# Set (type, size, pos, mat) for connector-type geom between given points.
+# Assume that mjv_initGeom was already called to set all other properties.
+#MJAPI void mjv_makeConnector(mjvGeom* geom, int type, mjtNum width, 
+#                             mjtNum a0, mjtNum a1, mjtNum a2, 
+#                             mjtNum b0, mjtNum b1, mjtNum b2);
+
+
 # allocate and init abstract scene
 function mjv_makeScene(scn::Ptr{mjvScene},maxgeom::Integer)
    ccall((:mjv_makeScene,libmujoco),Void,(Ptr{mjvScene},Cint),scn,maxgeom)
@@ -790,8 +806,8 @@ function mjr_rectangle(viewport::mjrRect,r::Cfloat,g::Cfloat,b::Cfloat,a::Cfloat
 end
 
 # draw lines
-function mjr_lines(viewport::mjrRect,nline::Integer,rgb::Ptr{Cfloat},npoint::Ptr{Cint},data::PtrVec)
-   ccall((:mjr_lines,libmujoco),Void,(mjrRect,Cint,Ptr{Cfloat},Ptr{Cint},Ptr{mjtNum}),viewport,nline,rgb,npoint,data)
+function mjr_figure(viewport::mjrRect,fig::Ptr{mjvFigure},con::Ptr{mjrContext})
+   ccall((:mjr_figure,libmujoco),Void,(mjrRect,Ptr{mjvFigure},Ptr{mjrContext}),viewport,fig,con)
 end
 
 # 3D rendering

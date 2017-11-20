@@ -141,7 +141,7 @@ immutable _mjvFigure
    figurergba::SVector{4, Cfloat}
    legendrgba::SVector{4, Cfloat}
    textrgb::SVector{3, Cfloat}
-   range::SMatrix{2, 2, Cfloat}
+	range::SVector{2, SVector{2, Cfloat}}
    xlabel::SVector{100, UInt8}
    title::SVector{100, UInt8}
    xformat::SVector{20, UInt8}
@@ -149,9 +149,9 @@ immutable _mjvFigure
    minwidth::SVector{20, UInt8}
 
    linepnt::SVector{mjMAXLINE, Cint}
-	linergb::SMatrix{mjMAXLINE, 3, Cfloat}
+	linergb::SVector{mjMAXLINE, SVector{3, Cfloat}}
    linewidth::SVector{mjMAXLINE, Cfloat}
-   linedata::SMatrix{mjMAXLINE, 2*mjMAXLINEPNT, Cfloat}
-   linename::SMatrix{mjMAXLINE, 100, UInt8}
+	linedata::SVector{mjMAXLINE, SVector{2*mjMAXLINEPNT, Cfloat}}
+	linename::SVector{mjMAXLINE, SVector{100, UInt8}}
 end
 const mjvFigure = _mjvFigure

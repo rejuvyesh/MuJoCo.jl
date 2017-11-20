@@ -41,7 +41,6 @@ export mjtNum, mjtByte
 
 export jlData, jlModel
 
-const keypath = findkey()
 global activated = false
 
 function teardown()
@@ -50,7 +49,18 @@ function teardown()
 end
 
 function __init__()
-   val = activate(keypath)
+   key = ""
+   try
+      key = ENV["MUJOCO_KEY_PATH"]
+   catch e
+      if is_linux()
+         keys = split(readstring(run(`locate mjkey.txt`)), "\n")
+         key = keys[1]
+      else
+         println("Set MUJOCO_KEY_PATH environment variable, please.")
+      end
+   end
+   val = activate(key)
    if val == 1
       println("MuJoCo Activated")
       global activated = true

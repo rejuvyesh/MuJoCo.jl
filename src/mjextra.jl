@@ -1,20 +1,4 @@
 
-# find the Mujoco key txt file for free or paid license.
-function findkey()
-   key = ""
-   try
-      key = ENV["MUJOCO_KEY_PATH"]
-   catch e
-      if is_linux()
-         keys = split(readstring(run(`locate mjkey.txt`)), "\n")
-         key = keys[1]
-      else
-         println("Set MUJOCO_KEY_PATH environment variable, please.")
-      end
-   end
-   return key
-end
-
 # returns a julia centric version of mujoco's model and data fields
 # that allows direct access to Ptr array fields as julia vectors
 function mapmodel(pm::Ptr{mjModel})
@@ -124,6 +108,26 @@ function get{T<:Any}(p::Ptr{T}, field::Symbol)
    pntr = Ptr{f_type}(p)
    return unsafe_load(pntr+f_off, 1)
 end
+function get{T<:Any}(p::Ptr{T}, field::Symbol, i::Int)
+   f_off, f_type = mjstructs[T][field]
+   ET = eltype(f_type)
+   @assert f_type <: SVector
+   pntr = Ptr{ET}(p)
+   unsafe_load(pntr+f_off, i)
+end
+function get{T<:Any}(p::Ptr{T}, field::Symbol, i::Int, j::Int) # does row-col conversion
+   f_off, f_type = mjstructs[T][field]
+	ET = eltype(eltype(f_type))
+	@assert f_type <: SVector && eltype(f_type) <: SVector
+   #r, c = size(f_type)
+	c = sizeof(eltype(f_type))[1]
+   #@assert i <= r && i >= 1
+   #@assert j <= c && i >= 1
+	#idx = (i-1)*c + (j-1)*sizeof(ET)
+	idx = (j-1)*sizeof(ET)
+	pntr = Ptr{ET}(p)
+	unsafe_load(pntr+f_off + (i-1)*c + (j-1)*sizeof(ET), 1)
+end
 
 
 function update_ptr(p::Ptr, offset::Integer, val::Integer)
@@ -158,11 +162,24 @@ function set{T<:Any}(p::Ptr{T}, field::Symbol, val, i::Int) # write to element i
    f_off, f_type = mjstructs[T][field]
    ET = eltype(f_type)
    @assert f_type <: SVector
-   @assert typeof(val) == ET
+   #@assert typeof(val) == ET
+   v = convert(ET, val) # use this as a check
    @assert i <= length(f_type) && i >= 1
-   unsafe_store!(convert(Ptr{ET}, (p+f_off+(i-1)*sizeof(ET))), val)
+   unsafe_store!(convert(Ptr{ET}, (p+f_off+(i-1)*sizeof(ET))), v)
 end
-
+function set{T<:Any}(p::Ptr{T}, field::Symbol, val, i::Int, j::Int) # write to element in SVector
+   f_off, f_type = mjstructs[T][field]
+	@assert f_type <: SVector && eltype(f_type) <: SVector
+	ET = eltype(eltype(f_type))
+   v = convert(ET, val) # use this as a check
+	#r = size(f_type)[1]
+	c = sizeof(eltype(f_type))[1]
+   #@assert i <= r && i >= 1
+   #@assert j <= c && i >= 1
+   #idx = (i-1) + (j-1)*r
+	idx = p+f_off + (i-1)*c + (j-1)*sizeof(ET)
+	unsafe_store!(convert(Ptr{ET}, idx), v)
+end
 
 # set struct within mjmodel struct 
 function set(m::jlModel, fstruct::Symbol, field::Symbol, val::Union{Integer, mjtNum, SVector})

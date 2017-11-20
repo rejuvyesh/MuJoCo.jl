@@ -70,7 +70,7 @@ const mjNSOLVER = 1000
 
 immutable _mjVFS
    nfile::Cint
-   filename::SMatrix{mjMAXVFS, mjMAXVFSNAME, UInt8}
+	filename::SVector{mjMAXVFS, SVector{mjMAXVFSNAME, UInt8}}
    filesize::SVector{mjMAXVFS, Cint}
    filedata::SVector{mjMAXVFS, Ptr{Void}}
 end
