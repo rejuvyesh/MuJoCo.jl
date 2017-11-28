@@ -41,7 +41,6 @@ export mjtNum, mjtByte
 
 export jlData, jlModel
 
-const keypath = findkey()
 global activated = false
 
 function teardown()
@@ -52,13 +51,28 @@ end
 function __init__()
    Libdl.dlopen(libglew, Libdl.RTLD_LAZY | Libdl.RTLD_DEEPBIND | Libdl.RTLD_GLOBAL)
 
-   val = activate(keypath)
+   key = ""
+   try
+      key = ENV["MUJOCO_KEY_PATH"]
+   catch e
+      if is_linux()
+         keys = split(readstring(run(`locate mjkey.txt`)), "\n")
+         key = keys[1]
+      else
+         println("Set MUJOCO_KEY_PATH environment variable, please.")
+      end
+   end
+   val = activate(key)
+
    if val == 1
       println("MuJoCo Activated")
       global activated = true
    else
       warn("MuJoCo not activated. Could not find license file in MUJOCO_KEY_PATH environment variable or through system search.")
    end
+
+   mj_globals() # initialize globals at runtime; not precompiled
+   
    atexit(teardown)
 end
 
