@@ -15,21 +15,40 @@ end
 
 baseurl = "https://www.roboti.us/download/mjpro150_"
 basedir = dirname(@__FILE__)
-println("root: $basedir")
 unpack = joinpath(basedir, "mjpro150")
 libpath = unpack*"/bin"
 
 # library source code
 if is_linux()
-   mujoco_nix = library_dependency("libmujoco", aliases=["libmujoco150nogl"], validate=compatible_version)
-   push!(BinDeps.defaults, Binaries) # fixes some unknown, build-blocking issue...
+   push!(BinDeps.defaults, Binaries)
+
+   # First find three library dependents
+   mujoco_glfw= library_dependency("libglfw", aliases=["libglfw.so.3"])
+   mujoco_glew= library_dependency("libglew", aliases=["libglew"])
+   mujoco_GL  = library_dependency("libGL") # looks in system
+   mujoco_nix = library_dependency("libmujoco", aliases=["libmujoco150.so", "libmujoco150"])
+
    url = baseurl*"linux.zip"
-   info("Downloading: ", url, " to ", unpack)
-   println(libpath)
-   provides(Binaries, URI(url), mujoco_nix, unpacked_dir=unpack, installed_libpath=libpath)
+   if isdir(unpack) == false
+      info("Downloading: ", url, " to ", unpack)
+      file = Base.download(url) # to /tmp
+      run(`unzip -o $file -d $basedir`)
+   end
+
+   preloads = string("Libdl.dlopen(\"$(libpath)/libglew.so\", Libdl.RTLD_LAZY | Libdl.RTLD_DEEPBIND | Libdl.RTLD_GLOBAL)")
+
+   provides(Binaries, URI(url), mujoco_glfw, unpacked_dir=unpack, installed_libpath=libpath)
+   provides(Binaries, URI(url), mujoco_glew, unpacked_dir=unpack, installed_libpath=libpath)
+   eval(parse(preloads))
+   provides(Binaries, URI(url), mujoco_nix, unpacked_dir=unpack, installed_libpath=libpath, preload=preloads)
+
+   @BinDeps.install Dict([(:libglfw, :libglfw),
+                          (:libglew, :libglew),
+                          (:libGL, :libGL),
+                          (:libmujoco, :libmujoco)])
 elseif is_apple()
    mujoco_osx = library_dependency("libmujoco", aliases=["libmujoco150"], validate=compatible_version)
-   push!(BinDeps.defaults, Binaries) # fixes some unknown, build-blocking issue...
+   #push!(BinDeps.defaults, Binaries) # fixes some unknown, build-blocking issue...
    url = baseurl*"osx.zip"
    info("Downloading: ", url, " to ", unpack)
    provides(SimpleBuild,
@@ -40,13 +59,12 @@ elseif is_apple()
                 FileUnpacker(joinpath(basedir, "downloads/mjpro150_osx.zip"),
                              basedir, "mjpro150")
              end), mujoco_osx, installed_libpath=libpath)
+   @BinDeps.install Dict(:libmujoco=>:libmujoco)
 elseif is_windows()
    url = baseurl*"win$(Sys.WORD_SIZE).zip"
    info("Downloading: ", url, " to ", unpack)
    provides(Binaries, URI(url), mujoco, unpacked_dir=unpack, installed_libpath=libpath)
 end
-
-@BinDeps.install Dict(:libmujoco=>:libmujoco)
 
 is_linux() && pop!(BinDeps.defaults)
 

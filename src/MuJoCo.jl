@@ -50,6 +50,8 @@ function teardown()
 end
 
 function __init__()
+   Libdl.dlopen(libglew, Libdl.RTLD_LAZY | Libdl.RTLD_DEEPBIND | Libdl.RTLD_GLOBAL)
+
    val = activate(keypath)
    if val == 1
       println("MuJoCo Activated")
