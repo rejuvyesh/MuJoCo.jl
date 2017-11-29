@@ -11,7 +11,6 @@ function compatible_version(lib, handle)
    v = ccall(f, Int32, ())
    return v >= 150
 end
-#glfw       = library_dependency("libglfw", aliases=["libglfw"])
 
 baseurl = "https://www.roboti.us/download/mjpro150_"
 basedir = dirname(@__FILE__)
@@ -48,7 +47,6 @@ if is_linux()
                           (:libmujoco, :libmujoco)])
 elseif is_apple()
    mujoco_osx = library_dependency("libmujoco", aliases=["libmujoco150"], validate=compatible_version)
-   #push!(BinDeps.defaults, Binaries) # fixes some unknown, build-blocking issue...
    url = baseurl*"osx.zip"
    info("Downloading: ", url, " to ", unpack)
    provides(SimpleBuild,
@@ -61,9 +59,11 @@ elseif is_apple()
              end), mujoco_osx, installed_libpath=libpath)
    @BinDeps.install Dict(:libmujoco=>:libmujoco)
 elseif is_windows()
+   mujoco_win = library_dependency("libmujoco", aliases=["libmujoco150"], validate=compatible_version)
    url = baseurl*"win$(Sys.WORD_SIZE).zip"
    info("Downloading: ", url, " to ", unpack)
-   provides(Binaries, URI(url), mujoco, unpacked_dir=unpack, installed_libpath=libpath)
+   provides(Binaries, URI(url), mujoco_win, unpacked_dir=unpack, installed_libpath=libpath)
+   @BinDeps.install Dict(:libmujoco=>:libmujoco)
 end
 
 is_linux() && pop!(BinDeps.defaults)

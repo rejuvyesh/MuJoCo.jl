@@ -30,43 +30,76 @@ mjMIN(a,b) = min(a,b)
 ## collision function table
 # extern mjfCollision mjCOLLISIONFUNC[mjNGEOMTYPES][mjNGEOMTYPES];
 
-function mj_globals() # needs to run at module load time; not precompiled
-   function stringsearch(raw::Ptr{Ptr{UInt8}}, n::Int)
-      len = 1
-      r = unsafe_load(raw)
-      for i=1:n
-         while unsafe_load(r, len) != 0 # find nulls
-            len += 1
-         end
-         len += 1
-      end
-      len -= 2 # undo last +1 and strip last \0 null
-      return split(String(unsafe_wrap(Array, r, len)), '\0')
-   end
-   function stringsearch(raw::Ptr{Ptr{UInt8}}, n::Tuple)
-      r = unsafe_wrap(Array, raw, prod(n))
-      strs = Array{String}(n)
-      idx = 1
-      for i=1:n[1]
-         for j=1:n[2]
-            len = 1
-            while unsafe_load(r[idx], len) != 0 # find nulls
-               len += 1
-            end
-            strs[i,j] = unsafe_wrap(Array, r[idx], len-1)
-            idx += 1
-         end
-      end
-      return strs
-   end
-   global DISABLESTRING = stringsearch(cglobal((:mjDISABLESTRING,libmujoco),Ptr{UInt8}),Int(mjNDISABLE))
-   global ENABLESTRING  = stringsearch(cglobal((:mjENABLESTRING,libmujoco), Ptr{UInt8}),Int(mjNENABLE))
-   global TIMERSTRING   = stringsearch(cglobal((:mjTIMERSTRING,libmujoco),  Ptr{UInt8}),Int(mjNTIMER))
-   global LABELSTRING   = stringsearch(cglobal((:mjLABELSTRING,libmujoco),  Ptr{UInt8}),Int(mjNLABEL))
-   global FRAMESTRING   = stringsearch(cglobal((:mjFRAMESTRING,libmujoco),  Ptr{UInt8}),Int(mjNFRAME))
-   global VISSTRING     = stringsearch(cglobal((:mjVISSTRING,libmujoco),Ptr{UInt8}),(Int(mjNVISFLAG),3))
-   global RNDSTRING     = stringsearch(cglobal((:mjRNDSTRING,libmujoco),Ptr{UInt8}),(Int(mjNRNDFLAG),3))
-end
+#function mj_globals() # needs to run at module load time; not precompiled
+#   function stringsearch(raw::Ptr{Ptr{UInt8}}, n::Int)
+#      len = 1
+#      r = unsafe_load(raw)
+#      for i=1:n
+#         while unsafe_load(r, len) != 0 # find nulls
+#            len += 1
+#         end
+#         len += 1
+#      end
+#      len -= 2 # undo last +1 and strip last \0 null
+#      return split(String(unsafe_wrap(Array, r, len)), '\0')
+#   end
+#   function stringsearch(raw::Ptr{Ptr{UInt8}}, n::Tuple)
+#      r = unsafe_wrap(Array, raw, prod(n))
+#      strs = Array{String}(n)
+#      idx = 1
+#      for i=1:n[1]
+#         for j=1:n[2]
+#            len = 1
+#            while unsafe_load(r[idx], len) != 0 # find nulls
+#               len += 1
+#            end
+#            strs[i,j] = unsafe_wrap(Array, r[idx], len-1)
+#            idx += 1
+#         end
+#      end
+#      return strs
+#   end
+#   global const DISABLESTRING = stringsearch(cglobal((:mjDISABLESTRING,libmujoco),Ptr{UInt8}),Int(mjNDISABLE))
+#   global const ENABLESTRING  = stringsearch(cglobal((:mjENABLESTRING,libmujoco), Ptr{UInt8}),Int(mjNENABLE))
+#   global const TIMERSTRING   = stringsearch(cglobal((:mjTIMERSTRING,libmujoco),  Ptr{UInt8}),Int(mjNTIMER))
+#   global const LABELSTRING   = stringsearch(cglobal((:mjLABELSTRING,libmujoco),  Ptr{UInt8}),Int(mjNLABEL))
+#   global const FRAMESTRING   = stringsearch(cglobal((:mjFRAMESTRING,libmujoco),  Ptr{UInt8}),Int(mjNFRAME))
+#   global const VISSTRING     = stringsearch(cglobal((:mjVISSTRING,libmujoco),Ptr{UInt8}),(Int(mjNVISFLAG),3))
+#   global const RNDSTRING     = stringsearch(cglobal((:mjRNDSTRING,libmujoco),Ptr{UInt8}),(Int(mjNRNDFLAG),3))
+#end
+
+global const DISABLESTRING = ["Constraint","Equality","Frictionloss","Limit","Contact","Passive","Gravity","Clampctrl","Warmstart","Filterparent","Actuation","Refsafe","","",""]
+global const ENABLESTRING  = ["Override","Energy","Fwdinv","Sensornoise","Constraint"]
+global const TIMERSTRING   = ["step","apirate","impratio","noslip_tolerance","mpr_tolerance","gravity","wind","density","viscosity","o_margin","o_solref","o_solimp","integrator"]
+global const LABELSTRING   = ["None","Body","Geom","Site","World","Tendon","Actuator","Selection","SelPoint","ContactForce","","",""]
+global const FRAMESTRING   = ["None","Body","Geom","Site","World","Tendon","Actuator"]
+global const VISSTRING     = ["Convex Hull"     "0"  "H";
+                              "Texture"         "1"  "X";
+                              "Joint"           "0"  "J";
+                              "Actuator"        "0"  "U";
+                              "Camera"          "0"  "Q";
+                              "Light"           "0"  "Z";
+                              "Constraint"      "0"  "N";
+                              "Inertia"         "0"  "I";
+                              "Perturb Force"   "0"  "B";
+                              "Perturb Object"  "1"  "O";
+                              "Contact Point"   "0"  "C";
+                              "Contact Force"   "0"  "F";
+                              "Contact Split"   "0"  "P";
+                              "Transparent"     "0"  "T";
+                              "Auto Connect"    "0"  "A";
+                              "Center of Mass"  "0"  "M";
+                              "Select Point"    "0"  "E";
+                              "Static Body"     "1"  "D"]
+global const RNDSTRING     = ["Shadow"      "1"  "S";
+                              "Wireframe"   "0"  "W";
+                              "Reflection"  "1"  "R";
+                              "Fog"         "0"  "G";
+                              "Skybox"      "1"  "K";]
+
+
+
+
 
 const PV{T} = Union{Ptr{T},Vector{T}}
 
@@ -101,32 +134,32 @@ end
 
 # Initialize VFS to empty (no deallocation).
 function defaultVFS(vfs::Ptr{mjVFS})
-	ccall((:mj_defaultVFS,libmujoco),Void,(Ptr{mjVFS},),vfs)
+   ccall((:mj_defaultVFS,libmujoco),Void,(Ptr{mjVFS},),vfs)
 end
 
 # Add file to VFS, return 0: success, 1: full, 2: repeated name, -1: not found on disk.
 function addFileVFS(vfs::Ptr{mjVFS},directory::String,filename::String)
-	ccall((:mj_addFileVFS,libmujoco),Cint,(Ptr{mjVFS},Cstring,Cstring),vfs,directory,filename)
+   ccall((:mj_addFileVFS,libmujoco),Cint,(Ptr{mjVFS},Cstring,Cstring),vfs,directory,filename)
 end
 
 # Make empty file in VFS, return 0: success, 1: full, 2: repeated name.
 function makeEmptyFileVFS(vfs::Ptr{mjVFS},filename::String,filesize::Integer)
-	ccall((:mj_makeEmptyFileVFS,libmujoco),Cint,(Ptr{mjVFS},Cstring,Cstring),vfs,filename,filesize)
+   ccall((:mj_makeEmptyFileVFS,libmujoco),Cint,(Ptr{mjVFS},Cstring,Cstring),vfs,filename,filesize)
 end
 
 # Return file index in VFS, or -1 if not found in VFS.
 function findFileVFS(vfs::Ptr{mjVFS},filename::String)
-	ccall((:mj_findFileVFS,libmujoco),Cint,(Ptr{mjVFS},Cstring),vfs,filename)
+   ccall((:mj_findFileVFS,libmujoco),Cint,(Ptr{mjVFS},Cstring),vfs,filename)
 end
 
 # Delete file from VFS, return 0: success, -1: not found in VFS.
 function deleteFileVFS(vfs::Ptr{mjVFS},filename::String)
-	ccall((:mj_deleteFileVFS,libmujoco),Cint,(Ptr{mjVFS},Cstring),vfs,filename)
+   ccall((:mj_deleteFileVFS,libmujoco),Cint,(Ptr{mjVFS},Cstring),vfs,filename)
 end
 
 # Delete all files from VFS.
 function deleteVFS(vfs::Ptr{mjVFS})
-	ccall((:mj_deleteVFS,libmujoco),Void,(Ptr{mjVFS},),vfs)
+   ccall((:mj_deleteVFS,libmujoco),Void,(Ptr{mjVFS},),vfs)
 end
 
 
@@ -138,7 +171,7 @@ end
 function loadXML(filename::String,vfs::Union{Ptr{mjVFS},Ptr{Void}})
    errsz = 1000
    err = Vector{UInt8}(errsz) 
-	m=ccall((:mj_loadXML,libmujoco),Ptr{mjModel},(Cstring,Cstring,Ptr{UInt8},Cint),filename,vfs,err,errsz)
+   m=ccall((:mj_loadXML,libmujoco),Ptr{mjModel},(Cstring,Cstring,Ptr{UInt8},Cint),filename,vfs,err,errsz)
    if m == C_NULL
       err[end] = 0;
       warn("Error in XML loading: ", unsafe_string(pointer(err)), "\nCheck path and .xml file.")
@@ -154,7 +187,7 @@ function saveLastXML(filename::String,m::Ptr{mjModel},error::String,error_sz::In
 end
 
 function freeLastXML()
-	ccall((:mj_freeLastXML,libmujoco),Void,(Void,),Void)
+   ccall((:mj_freeLastXML,libmujoco),Void,(Void,),Void)
 end
 
 # print internal XML schema as plain text or HTML, with style-padding or &nbsp;
@@ -306,7 +339,7 @@ end
 
 # Print sparse matrix to screen.
 function mju_printMatSparse(mat::PV{mjtNum},nr::Integer,rownnz::Vector{Integer},rowadr::Vector{Integer},colind::Vector{Integer})
-	ccall((:mju_printMatSparse,libmujoco),Void,(Ptr{mjtNum},Cint,Ptr{Cint},Ptr{Cint},Ptr{Cint}),mat,nr,rownnz,rowadr,colind)
+   ccall((:mju_printMatSparse,libmujoco),Void,(Ptr{mjtNum},Cint,Ptr{Cint},Ptr{Cint},Ptr{Cint}),mat,nr,rownnz,rowadr,colind)
 end
 
 #---------------------- Components: forward dynamics -----------------------------------
@@ -500,7 +533,7 @@ end
 # Compute efc_state, efc_force, qfrc_constraint, and (optionally) cone Hessians.
 # If cost is not NULL, set *cost = s(jar) where jar = Jac*qacc-aref.
 function constraintUpdate(m::Ptr{mjModel},d::Ptr{mjData},jar::PV{mjtNum},cost::PV{mjtNum},flg_coneHessian::Integer)
-	ccall((:mj_constraintUpdate,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},PV{mjtNum},PV{mjtNum},Integer),m,d,jar,cost,flg_coneHessian)
+   ccall((:mj_constraintUpdate,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},PV{mjtNum},PV{mjtNum},Integer),m,d,jar,cost,flg_coneHessian)
 end
 
 
@@ -590,7 +623,7 @@ end
 # Add inertia matrix to destination matrix.
 # Destination can be sparse uncompressed, or dense when all int* are NULL
 function addM(m::Ptr{mjModel},d::Ptr{mjData},dst::PV{mjtNum},rownnz::Vector{Integer},rowadr::Vector{Integer},colind::Vector{Integer})
-	ccall((:mj_addM,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{Cint},Ptr{Cint},Ptr{Cint}),m,d,dst,rownnz,rowadr,colind)
+   ccall((:mj_addM,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{Cint},Ptr{Cint},Ptr{Cint}),m,d,dst,rownnz,rowadr,colind)
 end
 
 # apply cartesian force and torque (outside xfrc_applied mechanism)
@@ -654,29 +687,29 @@ end
 # Return geomid and distance (x) to nearest surface, or -1 if no intersection.
 # geomgroup, flg_static are as in mjvOption; geomgroup==NULL skips group exclusion.
 function ray(m::Ptr{mjModel},d::Ptr{mjData},pnt::PV{mjtNum},vec::PV{mjtNum},
-				 geomgroup::Vector{mjtByte},flg_static::mjtByte,bodyexclude::Integer, 
-				 geomid::Vector{Integer})
-	ccall((:mj_ray,libmujoco),mjtNum,
-			(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtByte},mjtByte,Cint,Ptr{Cint}),
-			m,d,pnt,vec,
-			geomgroup,flg_static,bodyexclude, 
-			geomid)
+             geomgroup::Vector{mjtByte},flg_static::mjtByte,bodyexclude::Integer, 
+             geomid::Vector{Integer})
+   ccall((:mj_ray,libmujoco),mjtNum,
+         (Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtByte},mjtByte,Cint,Ptr{Cint}),
+         m,d,pnt,vec,
+         geomgroup,flg_static,bodyexclude, 
+        geomid)
 end
 
 # Interect ray with hfield, return nearest distance or -1 if no intersection.
 function rayHfield(m::Ptr{mjModel},d::Ptr{mjData},geomid::Integer,
-						 pnt::PV{mjtNum},vec::PV{mjtNum});
-	ccall((:mj_rayHfield,libmujoco),mjtNum,(Ptr{mjModel},Ptr{mjData},Cint,Ptr{mjtNum},Ptr{mjtNum}),m,d,geomid,pnt,vec)
+                   pnt::PV{mjtNum},vec::PV{mjtNum});
+   ccall((:mj_rayHfield,libmujoco),mjtNum,(Ptr{mjModel},Ptr{mjData},Cint,Ptr{mjtNum},Ptr{mjtNum}),m,d,geomid,pnt,vec)
 end
 
 # Interect ray with mesh, return nearest distance or -1 if no intersection.
 function rayMesh(m::Ptr{mjModel},d::Ptr{mjData},geomid::Integer,pnt::PV{mjtNum},vec::PV{mjtNum})
-	ccall((:mj_rayMesh,libmujoco),mjtNum,(Ptr{mjModel},Ptr{mjData},Cint,Ptr{mjtNum},Ptr{mjtNum}),m,d,geomid,pnt,vec)
+   ccall((:mj_rayMesh,libmujoco),mjtNum,(Ptr{mjModel},Ptr{mjData},Cint,Ptr{mjtNum},Ptr{mjtNum}),m,d,geomid,pnt,vec)
 end
 
 # Interect ray with pure geom, return nearest distance or -1 if no intersection.
 function mju_rayGeom(pos::PV{mjtNum},mat::PV{mjtNum},size::PV{mjtNum},pnt::PV{mjtNum},vec::PV{mjtNum},geomtype::Integer)
-	ccall((:mju_rayGeom,libmujoco),mjtNum,(Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum},Cint),pos,mat,size,pnt,vec,geomtype)
+   ccall((:mju_rayGeom,libmujoco),mjtNum,(Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum},Cint),pos,mat,size,pnt,vec,geomtype)
 end
 
 
@@ -784,16 +817,16 @@ end
 
 # Initialize given geom fields when not NULL, set the rest to their default values.
 function mjv_initGeom(geom::Ptr{mjvGeom},_type::Integer,size::PV{mjtNum},
-							 pos::PV{mjtNum},mat::PV{mjtNum},rgba::Ptr{Float32})
-	ccall((:mjv_initGeom,libmujoco),Void,(Ptr{mjvGeom},Cint,Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum},Ptr{Cfloat}),geom,_type,size,pos,mat,rbga)
+                     pos::PV{mjtNum},mat::PV{mjtNum},rgba::Ptr{Float32})
+   ccall((:mjv_initGeom,libmujoco),Void,(Ptr{mjvGeom},Cint,Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum},Ptr{Cfloat}),geom,_type,size,pos,mat,rbga)
 end
 
 # Set (type, size, pos, mat) for connector-type geom between given points.
 # Assume that mjv_initGeom was already called to set all other properties.
 function mjv_makeConnector(geom::Ptr{mjvGeom},_type::Integer,width::mjtNum, 
-									a0::mjtNum,a1::mjtNum,a2::mjtNum, 
-									b0::mjtNum,b1::mjtNum,b2::mjtNum)
-	ccall((:mjv_makeConnector,libmujoco),Void,(Ptr{mjvGeom},Cint,mjtNum,mjtNum,mjtNum,mjtNum,mjtNum,mjtNum,mjtNum),geom,_type,width,a0,a1,a2,b0,b1,b2)
+                           a0::mjtNum,a1::mjtNum,a2::mjtNum, 
+                           b0::mjtNum,b1::mjtNum,b2::mjtNum)
+   ccall((:mjv_makeConnector,libmujoco),Void,(Ptr{mjvGeom},Cint,mjtNum,mjtNum,mjtNum,mjtNum,mjtNum,mjtNum,mjtNum),geom,_type,width,a0,a1,a2,b0,b1,b2)
 end
 
 # allocate and init abstract scene
@@ -971,7 +1004,7 @@ end
 
 # Write [datetime, type: message] to MUJOCO_LOG.TXT.
 function mju_writeLog(_type::String,msg::String)
-	ccall((:mju_writeLog,libmujoco),Void,(Cstring,Cstring),_type,msg)
+   ccall((:mju_writeLog,libmujoco),Void,(Cstring,Cstring),_type,msg)
 end
 
 #---------------------- Utility functions: basic math ----------------------------------
@@ -1181,78 +1214,78 @@ end
 
 # Return dot-product of vec1 and vec2, where vec1 is sparse.
 function mju_dotSparse(vec1::PV{mjtNum},vec2::PV{mjtNum},nnz1::Integer,ind1::PV{Cint})
-	ccall((:mju_dotSparse,libmujoco),mjtNum,(Ptr{mjtNum},Ptr{mjtNum},Cint,Ptr{Cint}),vec1,vec2,nnz1,ind1)
+   ccall((:mju_dotSparse,libmujoco),mjtNum,(Ptr{mjtNum},Ptr{mjtNum},Cint,Ptr{Cint}),vec1,vec2,nnz1,ind1)
 end
 
 # Return dot-product of vec1 and vec2, where both vectors are sparse.
 function mju_dotSparse2(vec1::PV{mjtNum},vec2::PV{mjtNum},
-								nnz1::Integer,ind1::PV{Cint},
-								nnz2::Integer,ind2::PV{Cint})
-	ccall((:mju_dotSparse2,libmujoco),mjtNum,(Ptr{mjtNum},Ptr{mjtNum},Cint,Ptr{Cint},Cint,Ptr{Cint}),vec1,vec2,nnz1,ind1,nnz2,ind2)
+                        nnz1::Integer,ind1::PV{Cint},
+                        nnz2::Integer,ind2::PV{Cint})
+   ccall((:mju_dotSparse2,libmujoco),mjtNum,(Ptr{mjtNum},Ptr{mjtNum},Cint,Ptr{Cint},Cint,Ptr{Cint}),vec1,vec2,nnz1,ind1,nnz2,ind2)
 end
 
 # Convert matrix from dense to sparse format.
 function mju_dense2sparse(res::PV{mjtNum},mat::PV{mjtNum},nr::Integer,nc::Integer,
-								  rownnz::PV{Cint},rowadr::PV{Cint},colind::PV{Cint})
-	ccall((:mju_dense2sparse,libmujoco),Void,
-			(Ptr{mjtNum},Ptr{mjtNum},Cint,Cint,Ptr{Integer},Ptr{Integer},Ptr{Integer}),
-			res,mat,nr,nc,rownnz,rowadr,colind)
+                          rownnz::PV{Cint},rowadr::PV{Cint},colind::PV{Cint})
+   ccall((:mju_dense2sparse,libmujoco),Void,
+         (Ptr{mjtNum},Ptr{mjtNum},Cint,Cint,Ptr{Integer},Ptr{Integer},Ptr{Integer}),
+         res,mat,nr,nc,rownnz,rowadr,colind)
 end
 
 # Convert matrix from sparse to dense format.
 function mju_sparse2dense(res::PV{mjtNum},mat::PV{mjtNum},nr::Integer,nc::Integer,
-								  rownnz::PV{Cint},rowadr::PV{Cint},colind::PV{Cint})
-	ccall((:mju_sparse2dense,libmujoco),Void,
-			(Ptr{mjtNum},Ptr{mjtNum},Cint,Cint,Ptr{Integer},Ptr{Integer},Ptr{Integer}),
-			res,mat,nr,nc,rownnz,rowadr,colind)
+                          rownnz::PV{Cint},rowadr::PV{Cint},colind::PV{Cint})
+   ccall((:mju_sparse2dense,libmujoco),Void,
+         (Ptr{mjtNum},Ptr{mjtNum},Cint,Cint,Ptr{Integer},Ptr{Integer},Ptr{Integer}),
+         res,mat,nr,nc,rownnz,rowadr,colind)
 end
 
 # Multiply sparse matrix and dense vector:  res = mat * vec.
 function mju_mulMatVecSparse(res::PV{mjtNum},mat::PV{mjtNum},vec::PV{mjtNum},nr::Integer,
-									  rownnz::PV{Cint},rowadr::PV{Cint},colind::PV{Cint})
-	ccall((:mju_mulMatVecSparse,libmujoco),Void,
-			(Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum},Cint,Ptr{Integer},Ptr{Integer},Ptr{Integer}),
-			res,mat,vec,nr,rownnz,rowadr,colind)
+                             rownnz::PV{Cint},rowadr::PV{Cint},colind::PV{Cint})
+   ccall((:mju_mulMatVecSparse,libmujoco),Void,
+         (Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum},Cint,Ptr{Integer},Ptr{Integer},Ptr{Integer}),
+         res,mat,vec,nr,rownnz,rowadr,colind)
 end
 
 # Compress layout of sparse matrix.
 function mju_compressSparse(mat::PV{mjtNum},nr::Integer,nc::Integer,
-									rownnz::PV{Cint},rowadr::PV{Cint},colind::PV{Cint})
-	ccall((:mju_compressSparse,libmujoco),Void,
-			(Ptr{mjtNum},Cint,Cint,Ptr{Integer},Ptr{Integer},Ptr{Integer}),
-			mat,nr,nc,rownnz,rowadr,colind)
+                            rownnz::PV{Cint},rowadr::PV{Cint},colind::PV{Cint})
+   ccall((:mju_compressSparse,libmujoco),Void,
+         (Ptr{mjtNum},Cint,Cint,Ptr{Integer},Ptr{Integer},Ptr{Integer}),
+         mat,nr,nc,rownnz,rowadr,colind)
 end
 
 # Set dst = a*dst + b*src, return nnz of result, modify dst sparsity pattern as needed.
 # Both vectors are sparse. The required scratch space is 2*n.
 function mju_combineSparse(dst::PV{mjtNum},src::PV{mjtNum},n::Integer,a::mjtNum,b::mjtNum,
-									dst_nnz::Integer,src_nnz::Integer,dst_ind::PV{Cint},src_ind::PV{Cint}, 
-									scratch::PV{mjtNum},nscratch::Integer)
-	ccall((:mju_combineSparse,libmujoco),Cint,(Ptr{mjtNum},Ptr{mjtNum},Cint,mjtNum,mjtNum,
-															 Cint,Cint,Ptr{Cint},Ptr{Cint},Ptr{mjtNum},Cint),
-			dst,src,n,a,b,dst_nnz,src_nnz,dst_ind,src_ind,scratch,nscratch)
+                           dst_nnz::Integer,src_nnz::Integer,dst_ind::PV{Cint},src_ind::PV{Cint}, 
+                          scratch::PV{mjtNum},nscratch::Integer)
+   ccall((:mju_combineSparse,libmujoco),Cint,(Ptr{mjtNum},Ptr{mjtNum},Cint,mjtNum,mjtNum,
+                                              Cint,Cint,Ptr{Cint},Ptr{Cint},Ptr{mjtNum},Cint),
+         dst,src,n,a,b,dst_nnz,src_nnz,dst_ind,src_ind,scratch,nscratch)
 end
 
 # Set res = matT * diag * mat if diag is not NULL, and res = matT * mat otherwise.
 # The required scratch space is 3*nc. The result has uncompressed layout.
 function mju_sqrMatTDSparse(res::PV{mjtNum},mat::PV{mjtNum},matT::PV{mjtNum}, 
-								diag::PV{mjtNum},nr::Integer,nc::Integer, 
-								res_rownnz::PV{Cint},res_rowadr::PV{Cint},res_colind::PV{Cint},
-								rownnz::PV{Cint},rowadr::PV{Cint},colind::PV{Cint},
-								rownnzT::PV{Cint},rowadrT::PV{Cint},colindT::PV{Cint},
-								scratch::PV{mjtNum},nscratch::Integer)
-	ccall((:mju_sqrMatTDSparse,libmujoco),Void,(PV{mjtNum},PV{mjtNum},PV{mjtNum},PV{mjtNum},Cint,Cint,
-															  PV{Cint},PV{Cint},PV{Cint},PV{Cint},PV{Cint},PV{Cint},PV{Cint},PV{Cint},PV{Cint},PV{mjtNum},PV{Cint}),
-			res,mat,matT,diag,nr,nc,res_rownnz,res_rowadr,res_colind,rownnz,rowadr,colind,rownnzT,rowadrT,colindT,scratch,nscratch)
+                            diag::PV{mjtNum},nr::Integer,nc::Integer, 
+                            res_rownnz::PV{Cint},res_rowadr::PV{Cint},res_colind::PV{Cint},
+                            rownnz::PV{Cint},rowadr::PV{Cint},colind::PV{Cint},
+                           rownnzT::PV{Cint},rowadrT::PV{Cint},colindT::PV{Cint},
+                           scratch::PV{mjtNum},nscratch::Integer)
+   ccall((:mju_sqrMatTDSparse,libmujoco),Void,(PV{mjtNum},PV{mjtNum},PV{mjtNum},PV{mjtNum},Cint,Cint,
+                                               PV{Cint},PV{Cint},PV{Cint},PV{Cint},PV{Cint},PV{Cint},PV{Cint},PV{Cint},PV{Cint},PV{mjtNum},PV{Cint}),
+         res,mat,matT,diag,nr,nc,res_rownnz,res_rowadr,res_colind,rownnz,rowadr,colind,rownnzT,rowadrT,colindT,scratch,nscratch)
 end
 
 # Transpose sparse matrix.
 function mju_transposeSparse(res::PV{mjtNum},mat::PV{mjtNum},nr::Integer,nc::Integer,
-								  res_rownnz::PV{Cint},res_rowadr::PV{Cint},res_colind::PV{Cint},
-								  rownnz::PV{Cint},rowadr::PV{Cint},colind::PV{Cint})
-	ccall((:mju_transposeSparse,libmujoco),Void,(PV{mjtNum},PV{mjtNum},Cint,Cint,
-																PV{Cint},PV{Cint},PV{Cint},PV{Cint},PV{Cint},PV{Cint}),
-			res,mat,nr,nc,res_rownnz,res_rowadr,res_colind,rownnz,rowadr,colind)
+                             res_rownnz::PV{Cint},res_rowadr::PV{Cint},res_colind::PV{Cint},
+                             rownnz::PV{Cint},rowadr::PV{Cint},colind::PV{Cint})
+   ccall((:mju_transposeSparse,libmujoco),Void,(PV{mjtNum},PV{mjtNum},Cint,Cint,
+                                                PV{Cint},PV{Cint},PV{Cint},PV{Cint},PV{Cint},PV{Cint}),
+         res,mat,nr,nc,res_rownnz,res_rowadr,res_colind,rownnz,rowadr,colind)
 end
 
 
@@ -1357,30 +1390,30 @@ end
 # mat must have uncompressed layout; rownnz is modified to end at diagonal.
 # The required scratch space is 2*n.
 function mju_cholFactorSparse(mat::PV{mjtNum},n::Integer, 
-										rownnz::PV{Cint},rowadr::PV{Cint},colind::PV{Cint},
-										scratch::PV{mjtNum},nscratch::Integer)
-	ccall((:mju_cholFactorSparse,libmujoco),Cint,
-			(Ptr{mjtNum},Cint,Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{mjtNum},Cint),
-			mat,n,rownnz,rowadr,colind,scratch,nscratch)
+                              rownnz::PV{Cint},rowadr::PV{Cint},colind::PV{Cint},
+                              scratch::PV{mjtNum},nscratch::Integer)
+   ccall((:mju_cholFactorSparse,libmujoco),Cint,
+         (Ptr{mjtNum},Cint,Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{mjtNum},Cint),
+         mat,n,rownnz,rowadr,colind,scratch,nscratch)
 end
 
 # Solve mat * res = vec, where mat is sparse reverse-order Cholesky factorized.
 function mju_cholSolveSparse(res::PV{mjtNum},mat::PV{mjtNum},vec::PV{mjtNum},n::Integer,
-									  rownnz::PV{Cint},rowadr::PV{Cint},colind::PV{Cint})
-	ccall((:mju_cholSolveSparse,libmujoco),Void,
-			(Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum},Cint,Ptr{Cint},Ptr{Cint},Ptr{Cint}),
-			res,mat,vec,n,rownnz,rowadr,colind)
+                             rownnz::PV{Cint},rowadr::PV{Cint},colind::PV{Cint})
+   ccall((:mju_cholSolveSparse,libmujoco),Void,
+         (Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum},Cint,Ptr{Cint},Ptr{Cint},Ptr{Cint}),
+         res,mat,vec,n,rownnz,rowadr,colind)
 end
 
 # Sparse reverse-order Cholesky rank-one update: L'*L +/- x*x'; return rank.
 # The vector x is sparse; changes in sparsity pattern of mat are not allowed.
 # The required scratch space is 2*n.
 function mju_cholUpdateSparse(mat::PV{mjtNum},x::PV{mjtNum},n::Integer,flg_plus::Integer,
-								 rownnz::PV{Cint},rowadr::PV{Cint},colind::PV{Cint},x_nnz::Integer,x_ind::PV{Cint},
-								 scratch::PV{mjtNum},nscratch::Integer)
-	ccall((:mju_cholUpdateSparse,libmujoco),Cint,
-			(Ptr{mjtNum},Ptr{mjtNum},Cint,Cint,Ptr{Cint},Ptr{Cint},Ptr{Cint},Cint,Ptr{Cint},Ptr{mjtNum},Cint),
-			mat,vec,n,flg_plus,rownnz,rowadr,colind,x_nnz,x_ind,scratch,nscratch)
+                              rownnz::PV{Cint},rowadr::PV{Cint},colind::PV{Cint},x_nnz::Integer,x_ind::PV{Cint},
+                              scratch::PV{mjtNum},nscratch::Integer)
+   ccall((:mju_cholUpdateSparse,libmujoco),Cint,
+         (Ptr{mjtNum},Ptr{mjtNum},Cint,Cint,Ptr{Cint},Ptr{Cint},Ptr{Cint},Cint,Ptr{Cint},Ptr{mjtNum},Cint),
+         mat,vec,n,flg_plus,rownnz,rowadr,colind,x_nnz,x_ind,scratch,nscratch)
 end
 
 
@@ -1499,6 +1532,6 @@ end
 
 # Generate Halton sequence.
 function mju_Halton(index::Integer,base::Integer)
-	ccall((:mju_Halton,libmujoco),mjtNum,(Cint,Cint),index,base)
+   ccall((:mju_Halton,libmujoco),mjtNum,(Cint,Cint),index,base)
 end
 
