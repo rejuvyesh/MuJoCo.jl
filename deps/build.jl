@@ -51,14 +51,15 @@ elseif is_apple()
    #push!(BinDeps.defaults, Binaries) # fixes some unknown, build-blocking issue...
    url = baseurl*"osx.zip"
    info("Downloading: ", url, " to ", unpack)
-   provides(SimpleBuild,
-            (@build_steps begin
-                CreateDirectory(joinpath(basedir, "downloads"))
-                FileDownloader(string(url),
-                               joinpath(basedir, "downloads/mjpro150_osx.zip"))
-                FileUnpacker(joinpath(basedir, "downloads/mjpro150_osx.zip"),
-                             basedir, "mjpro150")
-             end), mujoco_osx, installed_libpath=libpath)
+   provides(Binaries, URI(url), mujoco_osx, unpacked_dir=unpack, installed_libpath=libpath)
+   #provides(SimpleBuild,
+   #         (@build_steps begin
+   #             CreateDirectory(joinpath(basedir, "downloads"))
+   #             FileDownloader(string(url),
+   #                            joinpath(basedir, "downloads/mjpro150_osx.zip"))
+   #             FileUnpacker(joinpath(basedir, "downloads/mjpro150_osx.zip"),
+   #                          basedir, "mjpro150")
+   #          end), mujoco_osx, installed_libpath=libpath)
    @BinDeps.install Dict(:libmujoco=>:libmujoco)
 elseif is_windows()
    url = baseurl*"win$(Sys.WORD_SIZE).zip"
