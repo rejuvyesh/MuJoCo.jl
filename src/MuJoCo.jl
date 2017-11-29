@@ -4,7 +4,7 @@ module MuJoCo
 
 using StaticArrays
 
-depsfile = joinpath(dirname(@__FILE__), "..", "deps", "deps.jl")
+const depsfile = joinpath(dirname(@__FILE__), "..", "deps", "deps.jl")
 if isfile(depsfile)
    include(depsfile)
 else
@@ -48,9 +48,7 @@ function teardown()
    global activated = false
 end
 
-function __init__()
-   Libdl.dlopen(libglew, Libdl.RTLD_LAZY | Libdl.RTLD_DEEPBIND | Libdl.RTLD_GLOBAL)
-
+function start()
    key = ""
    try
       key = ENV["MUJOCO_KEY_PATH"]
@@ -70,10 +68,17 @@ function __init__()
    else
       warn("MuJoCo not activated. Could not find license file in MUJOCO_KEY_PATH environment variable or through system search.")
    end
+end
 
-   mj_globals() # initialize globals at runtime; not precompiled
-   
+function __init__()
+   if is_linux()
+      Libdl.dlopen_e(libglew, Libdl.RTLD_LAZY | Libdl.RTLD_DEEPBIND | Libdl.RTLD_GLOBAL)
+   end
+
+   start()
+
    atexit(teardown)
 end
+
 
 end
