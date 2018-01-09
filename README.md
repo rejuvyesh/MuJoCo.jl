@@ -52,14 +52,5 @@ MuJoCo v1.50 should be installed automatically through Julia Pkg. You will need 
 Currently, this package is untested in Windows, or OSX.
 
 # Examples
-Temporary examples can be found in test suite. 
-
-# Near Future
-### Validation of Finite Differenced Derivatives.
-### Exposure of MuJoCo model names as :symbols for easier indexing; mj.get(d.sensordata, :snsr_name)
-
-
-# Known Issues
-Potential StaticArray and Julia v0.5 issue affecting it's usage to move data to C-library
-OSX installation problem (need OSX to test)
+Temporary examples can be found in test suite.
 
