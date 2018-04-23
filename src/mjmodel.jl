@@ -1,83 +1,81 @@
 
-const mjMINVAL = 1.0e-15
-const mjPI = 3.141592653589793
-const mjMAXVAL = 1.0e10
-const mjMINMU = 1.0e-5
-const mjMINIMP = 0.0001
-const mjMAXIMP = 0.9999
-const mjMAXCONPAIR = 50
-const mjMAXVFS = 200
-const mjMAXVFSNAME = 100
+const MINVAL = 1.0e-15
+const PI = 3.141592653589793
+const MAXVAL = 1.0e10
+const MINMU = 1.0e-5
+const MINIMP = 0.0001
+const MAXIMP = 0.9999
+const MAXCONPAIR = 50
+const MAXVFS = 200
+const MAXVFSNAME = 100
 
-const mjNEQDATA = 7
-const mjNDYN = 3
-const mjNGAIN = 3
-const mjNBIAS = 3
-const mjNREF = 2
-const mjNIMP = 3
-const mjNSOLVER = 1000
+const NEQDATA = 7
+const NDYN = 3
+const NGAIN = 3
+const NBIAS = 3
+const NREF = 2
+const NIMP = 3
+const NSOLVER = 1000
 
 
-@enum mjtDisableBit mjDSBL_CONSTRAINT = (UInt32)(1) mjDSBL_EQUALITY = (UInt32)(2) mjDSBL_FRICTIONLOSS = (UInt32)(4) mjDSBL_LIMIT = (UInt32)(8) mjDSBL_CONTACT = (UInt32)(16) mjDSBL_MOCAP = (UInt32)(32) mjDSBL_SENSOR = (UInt32)(64) mjDSBL_PASSIVE = (UInt32)(128) mjDSBL_GRAVITY = (UInt32)(256) mjDSBL_CLAMPCTRL = (UInt32)(512) mjDSBL_WARMSTART = (UInt32)(1024) mjDSBL_FILTERPARENT = (UInt32)(2048) mjDSBL_ACTUATION = (UInt32)(4096) mjDSBL_BROADPHASE = (UInt32)(8192) mjDSBL_REFSAFE = (UInt32)(16384) mjNDISABLE = (UInt32)(15)
+@enum mjtDisableBit DSBL_CONSTRAINT = (UInt32)(1) DSBL_EQUALITY = (UInt32)(2) DSBL_FRICTIONLOSS = (UInt32)(4) DSBL_LIMIT = (UInt32)(8) DSBL_CONTACT = (UInt32)(16) DSBL_MOCAP = (UInt32)(32) DSBL_SENSOR = (UInt32)(64) DSBL_PASSIVE = (UInt32)(128) DSBL_GRAVITY = (UInt32)(256) DSBL_CLAMPCTRL = (UInt32)(512) DSBL_WARMSTART = (UInt32)(1024) DSBL_FILTERPARENT = (UInt32)(2048) DSBL_ACTUATION = (UInt32)(4096) DSBL_BROADPHASE = (UInt32)(8192) DSBL_REFSAFE = (UInt32)(16384) NDISABLE = (UInt32)(15)
 
-@enum mjtEnableBit mjENBL_OVERRIDE = (UInt32)(1) mjENBL_BOXCONVEX = (UInt32)(2) mjENBL_ENERGY = (UInt32)(4) mjENBL_FWDINV = (UInt32)(8) mjENBL_SENSORNOISE = (UInt32)(16) mjNENABLE = (UInt32)(5) 
+@enum mjtEnableBit ENBL_OVERRIDE = (UInt32)(1) ENBL_BOXCONVEX = (UInt32)(2) ENBL_ENERGY = (UInt32)(4) ENBL_FWDINV = (UInt32)(8) ENBL_SENSORNOISE = (UInt32)(16) NENABLE = (UInt32)(5) 
 
-@enum mjtJoint mjJNT_FREE = (UInt32)(0) mjJNT_BALL = (UInt32)(1) mjJNT_SLIDE = (UInt32)(2) mjJNT_HINGE = (UInt32)(3) 
+@enum mjtJoint JNT_FREE = (UInt32)(0) JNT_BALL = (UInt32)(1) JNT_SLIDE = (UInt32)(2) JNT_HINGE = (UInt32)(3) 
 
-@enum mjtGeom mjGEOM_PLANE = (UInt32)(0) mjGEOM_HFIELD = (UInt32)(1) mjGEOM_SPHERE = (UInt32)(2) mjGEOM_CAPSULE = (UInt32)(3) mjGEOM_ELLIPSOID = (UInt32)(4) mjGEOM_CYLINDER = (UInt32)(5) mjGEOM_BOX = (UInt32)(6) mjGEOM_MESH = (UInt32)(7) mjNGEOMTYPES = (UInt32)(8) mjGEOM_ARROW = (UInt32)(100) mjGEOM_ARROW1 = (UInt32)(101) mjGEOM_ARROW2 = (UInt32)(102) mjGEOM_LABEL = (UInt32)(103) mjGEOM_NONE = (UInt32)(1001)  
+@enum mjtGeom GEOM_PLANE = (UInt32)(0) GEOM_HFIELD = (UInt32)(1) GEOM_SPHERE = (UInt32)(2) GEOM_CAPSULE = (UInt32)(3) GEOM_ELLIPSOID = (UInt32)(4) GEOM_CYLINDER = (UInt32)(5) GEOM_BOX = (UInt32)(6) GEOM_MESH = (UInt32)(7) NGEOMTYPES = (UInt32)(8) GEOM_ARROW = (UInt32)(100) GEOM_ARROW1 = (UInt32)(101) GEOM_ARROW2 = (UInt32)(102) GEOM_LABEL = (UInt32)(103) GEOM_NONE = (UInt32)(1001)  
 
-@enum mjtCamLight mjCAMLIGHT_FIXED = (UInt32)(0) mjCAMLIGHT_TRACK = (UInt32)(1) mjCAMLIGHT_TRACKCOM = (UInt32)(2) mjCAMLIGHT_TARGETBODY = (UInt32)(3) mjCAMLIGHT_TARGETBODYCOM = (UInt32)(4) 
+@enum mjtCamLight CAMLIGHT_FIXED = (UInt32)(0) CAMLIGHT_TRACK = (UInt32)(1) CAMLIGHT_TRACKCOM = (UInt32)(2) CAMLIGHT_TARGETBODY = (UInt32)(3) CAMLIGHT_TARGETBODYCOM = (UInt32)(4) 
 
-@enum mjtTexture mjTEXTURE_2D = (UInt32)(0) mjTEXTURE_CUBE = (UInt32)(1) mjTEXTURE_SKYBOX = (UInt32)(2) 
+@enum mjtTexture mjtEXTURE_2D = (UInt32)(0) mjtEXTURE_CUBE = (UInt32)(1) mjtEXTURE_SKYBOX = (UInt32)(2) 
 
-@enum mjtIntegrator mjINT_EULER = (UInt32)(0) mjINT_RK4 = (UInt32)(1) 
+@enum mjtIntegrator INT_EULER = (UInt32)(0) INT_RK4 = (UInt32)(1) 
 
-@enum mjtCollision mjCOL_ALL = (UInt32)(0) mjCOL_PAIR = (UInt32)(1) mjCOL_DYNAMIC = (UInt32)(2) 
+@enum mjtCollision COL_ALL = (UInt32)(0) COL_PAIR = (UInt32)(1) COL_DYNAMIC = (UInt32)(2) 
 
-@enum mjtCone mjCONE_PYRAMIDAL = (UInt32)(0) mjCONE_ELLIPTIC = (UInt32)(1)
+@enum mjtCone CONE_PYRAMIDAL = (UInt32)(0) CONE_ELLIPTIC = (UInt32)(1)
 
-@enum mjtJacobian mjJAC_DENSE = (UInt32)(0) mjJAC_SPARSE = (UInt32)(1) mjJAC_AUTO = (UInt32)(2)
+@enum mjtJacobian JAC_DENSE = (UInt32)(0) JAC_SPARSE = (UInt32)(1) JAC_AUTO = (UInt32)(2)
 
-@enum mjtSolver mjSOL_PGS = (UInt32)(0) mjSOL_CG = (UInt32)(1) mjSOL_NEWTON = (UInt32)(2)
+@enum mjtSolver SOL_PGS = (UInt32)(0) SOL_CG = (UInt32)(1) SOL_NEWTON = (UInt32)(2)
 
-@enum mjtImp mjIMP_CONSTANT = (UInt32)(0) mjIMP_SIGMOID = (UInt32)(1) mjIMP_LINEAR = (UInt32)(2) mjIMP_USER = (UInt32)(3) 
+@enum mjtImp IMP_CONSTANT = (UInt32)(0) IMP_SIGMOID = (UInt32)(1) IMP_LINEAR = (UInt32)(2) IMP_USER = (UInt32)(3) 
 
-@enum mjtRef mjREF_SPRING = (UInt32)(0) mjREF_USER = (UInt32)(1) 
+@enum mjtRef REF_SPRING = (UInt32)(0) REF_USER = (UInt32)(1) 
 
-@enum mjtEq mjEQ_CONNECT = (UInt32)(0) mjEQ_WELD = (UInt32)(1) mjEQ_JOINT = (UInt32)(2) mjEQ_TENDON = (UInt32)(3) mjEQ_DISTANCE = (UInt32)(4) 
+@enum mjtEq EQ_CONNECT = (UInt32)(0) EQ_WELD = (UInt32)(1) EQ_JOINT = (UInt32)(2) EQ_TENDON = (UInt32)(3) EQ_DISTANCE = (UInt32)(4) 
 
-@enum mjtWrap mjWRAP_NONE = (UInt32)(0) mjWRAP_JOINT = (UInt32)(1) mjWRAP_PULLEY = (UInt32)(2) mjWRAP_SITE = (UInt32)(3) mjWRAP_SPHERE = (UInt32)(4) mjWRAP_CYLINDER = (UInt32)(5) 
+@enum mjtWrap WRAP_NONE = (UInt32)(0) WRAP_JOINT = (UInt32)(1) WRAP_PULLEY = (UInt32)(2) WRAP_SITE = (UInt32)(3) WRAP_SPHERE = (UInt32)(4) WRAP_CYLINDER = (UInt32)(5) 
 
-@enum mjtTrn mjTRN_JOINT = (UInt32)(0) mjTRN_JOINTINPARENT = (UInt32)(1) mjTRN_SLIDERCRANK = (UInt32)(2) mjTRN_TENDON = (UInt32)(3) mjTRN_SITE = (UInt32)(4) mjTRN_UNDEFINED = (UInt32)(1000) 
+@enum mjtTrn mjtRN_JOINT = (UInt32)(0) mjtRN_JOINTINPARENT = (UInt32)(1) mjtRN_SLIDERCRANK = (UInt32)(2) mjtRN_TENDON = (UInt32)(3) mjtRN_SITE = (UInt32)(4) mjtRN_UNDEFINED = (UInt32)(1000) 
 
-@enum mjtDyn mjDYN_NONE = (UInt32)(0) mjDYN_INTEGRATOR = (UInt32)(1) mjDYN_FILTER = (UInt32)(2) mjDYN_USER = (UInt32)(3) 
+@enum mjtDyn DYN_NONE = (UInt32)(0) DYN_INTEGRATOR = (UInt32)(1) DYN_FILTER = (UInt32)(2) DYN_USER = (UInt32)(3) 
 
-@enum mjtGain mjGAIN_FIXED = (UInt32)(0) mjGAIN_USER = (UInt32)(1) 
+@enum mjtGain GAIN_FIXED = (UInt32)(0) GAIN_USER = (UInt32)(1) 
 
-@enum mjtBias mjBIAS_NONE = (UInt32)(0) mjBIAS_AFFINE = (UInt32)(1) mjBIAS_USER = (UInt32)(2) 
+@enum mjtBias BIAS_NONE = (UInt32)(0) BIAS_AFFINE = (UInt32)(1) BIAS_USER = (UInt32)(2) 
 
-@enum mjtObj mjOBJ_UNKNOWN = (UInt32)(0) mjOBJ_BODY = (UInt32)(1) mjOBJ_XBODY = (UInt32)(2) mjOBJ_JOINT = (UInt32)(3) mjOBJ_DOF = (UInt32)(4) mjOBJ_GEOM = (UInt32)(5) mjOBJ_SITE = (UInt32)(6) mjOBJ_CAMERA = (UInt32)(7) mjOBJ_LIGHT = (UInt32)(8) mjOBJ_MESH = (UInt32)(9) mjOBJ_HFIELD = (UInt32)(10) mjOBJ_TEXTURE = (UInt32)(11) mjOBJ_MATERIAL = (UInt32)(12) mjOBJ_PAIR = (UInt32)(13) mjOBJ_EXCLUDE = (UInt32)(14) mjOBJ_EQUALITY = (UInt32)(15) mjOBJ_TENDON = (UInt32)(16) mjOBJ_ACTUATOR = (UInt32)(17) mjOBJ_SENSOR = (UInt32)(18) mjOBJ_NUMERIC = (UInt32)(19) mjOBJ_TEXT = (UInt32)(20) mjOBJ_TUPLE = (UInt32)(21) mjOBJ_KEY = (UInt32)(22) 
+@enum mjtObj OBJ_UNKNOWN = (UInt32)(0) OBJ_BODY = (UInt32)(1) OBJ_XBODY = (UInt32)(2) OBJ_JOINT = (UInt32)(3) OBJ_DOF = (UInt32)(4) OBJ_GEOM = (UInt32)(5) OBJ_SITE = (UInt32)(6) OBJ_CAMERA = (UInt32)(7) OBJ_LIGHT = (UInt32)(8) OBJ_MESH = (UInt32)(9) OBJ_HFIELD = (UInt32)(10) OBJ_TEXTURE = (UInt32)(11) OBJ_MATERIAL = (UInt32)(12) OBJ_PAIR = (UInt32)(13) OBJ_EXCLUDE = (UInt32)(14) OBJ_EQUALITY = (UInt32)(15) OBJ_TENDON = (UInt32)(16) OBJ_ACTUATOR = (UInt32)(17) OBJ_SENSOR = (UInt32)(18) OBJ_NUMERIC = (UInt32)(19) OBJ_TEXT = (UInt32)(20) OBJ_TUPLE = (UInt32)(21) OBJ_KEY = (UInt32)(22) 
 
-@enum mjtConstraint mjCNSTR_EQUALITY = (UInt32)(0) mjCNSTR_FRICTION_DOF = (UInt32)(1) mjCNSTR_FRICTION_TENDON = (UInt32)(2) mjCNSTR_LIMIT_JOINT = (UInt32)(3) mjCNSTR_LIMIT_TENDON = (UInt32)(4) mjCNSTR_CONTACT_FRICTIONLESS = (UInt32)(5) mjCNSTR_CONTACT_PYRAMIDAL = (UInt32)(6) mjCNSTR_CONTACT_ELLIPTIC = (UInt32)(7) 
+@enum mjtConstraint CNSTR_EQUALITY = (UInt32)(0) CNSTR_FRICTION_DOF = (UInt32)(1) CNSTR_FRICTION_TENDON = (UInt32)(2) CNSTR_LIMIT_JOINT = (UInt32)(3) CNSTR_LIMIT_TENDON = (UInt32)(4) CNSTR_CONTACT_FRICTIONLESS = (UInt32)(5) CNSTR_CONTACT_PYRAMIDAL = (UInt32)(6) CNSTR_CONTACT_ELLIPTIC = (UInt32)(7) 
 
-@enum mjtConstraintState mjCNSTRSTATE_SATISFIED = (UInt32)(0) mjCNSTRSTATE_QUADRATIC = (UInt32)(1) mjCNSTRSTATE_LINEARNEG = (UInt32)(2) mjCNSTRSTATE_LINEARPOS = (UInt32)(3) mjCNSTRSTATE_CONE = (UInt32)(4)
+@enum mjtConstraintState CNSTRSTATE_SATISFIED = (UInt32)(0) CNSTRSTATE_QUADRATIC = (UInt32)(1) CNSTRSTATE_LINEARNEG = (UInt32)(2) CNSTRSTATE_LINEARPOS = (UInt32)(3) CNSTRSTATE_CONE = (UInt32)(4)
 
-@enum mjtSensor mjSENS_TOUCH = (UInt32)(0) mjSENS_ACCELEROMETER = (UInt32)(1) mjSENS_VELOCIMETER = (UInt32)(2) mjSENS_GYRO = (UInt32)(3) mjSENS_FORCE = (UInt32)(4) mjSENS_TORQUE = (UInt32)(5) mjSENS_MAGNETOMETER = (UInt32)(6) mjSENS_RANGEFINDER = (UInt32)(7) mjSENS_JOINTPOS = (UInt32)(8) mjSENS_JOINTVEL = (UInt32)(9) mjSENS_TENDONPOS = (UInt32)(10) mjSENS_TENDONVEL = (UInt32)(11) mjSENS_ACTUATORPOS = (UInt32)(12) mjSENS_ACTUATORVEL = (UInt32)(13) mjSENS_ACTUATORFRC = (UInt32)(14) mjSENS_BALLQUAT = (UInt32)(15) mjSENS_BALLANGVEL = (UInt32)(16) mjSENS_FRAMEPOS = (UInt32)(17) mjSENS_FRAMEQUAT = (UInt32)(18) mjSENS_FRAMEXAXIS = (UInt32)(19) mjSENS_FRAMEYAXIS = (UInt32)(20) mjSENS_FRAMEZAXIS = (UInt32)(21) mjSENS_FRAMELINVEL = (UInt32)(22) mjSENS_FRAMEANGVEL = (UInt32)(23) mjSENS_FRAMELINACC = (UInt32)(24) mjSENS_FRAMEANGACC = (UInt32)(25) mjSENS_SUBTREECOM = (UInt32)(26) mjSENS_SUBTREELINVEL = (UInt32)(27) mjSENS_SUBTREEANGMOM = (UInt32)(28) mjSENS_USER = (UInt32)(29) 
+@enum mjtSensor SENS_TOUCH = (UInt32)(0) SENS_ACCELEROMETER = (UInt32)(1) SENS_VELOCIMETER = (UInt32)(2) SENS_GYRO = (UInt32)(3) SENS_FORCE = (UInt32)(4) SENS_TORQUE = (UInt32)(5) SENS_MAGNETOMETER = (UInt32)(6) SENS_RANGEFINDER = (UInt32)(7) SENS_JOINTPOS = (UInt32)(8) SENS_JOINTVEL = (UInt32)(9) SENS_TENDONPOS = (UInt32)(10) SENS_TENDONVEL = (UInt32)(11) SENS_ACTUATORPOS = (UInt32)(12) SENS_ACTUATORVEL = (UInt32)(13) SENS_ACTUATORFRC = (UInt32)(14) SENS_BALLQUAT = (UInt32)(15) SENS_BALLANGVEL = (UInt32)(16) SENS_FRAMEPOS = (UInt32)(17) SENS_FRAMEQUAT = (UInt32)(18) SENS_FRAMEXAXIS = (UInt32)(19) SENS_FRAMEYAXIS = (UInt32)(20) SENS_FRAMEZAXIS = (UInt32)(21) SENS_FRAMELINVEL = (UInt32)(22) SENS_FRAMEANGVEL = (UInt32)(23) SENS_FRAMELINACC = (UInt32)(24) SENS_FRAMEANGACC = (UInt32)(25) SENS_SUBTREECOM = (UInt32)(26) SENS_SUBTREELINVEL = (UInt32)(27) SENS_SUBTREEANGMOM = (UInt32)(28) SENS_USER = (UInt32)(29) 
 
-@enum mjtStage mjSTAGE_NONE = (UInt32)(0) mjSTAGE_POS = (UInt32)(1) mjSTAGE_VEL = (UInt32)(2) mjSTAGE_ACC = (UInt32)(3) 
+@enum mjtStage STAGE_NONE = (UInt32)(0) STAGE_POS = (UInt32)(1) STAGE_VEL = (UInt32)(2) STAGE_ACC = (UInt32)(3) 
 
-@enum mjtDataType mjDATATYPE_REAL = (UInt32)(0) mjDATATYPE_POSITIVE = (UInt32)(1) mjDATATYPE_AXIS = (UInt32)(2) mjDATATYPE_QUAT = (UInt32)(3)
+@enum mjtDataType DATATYPE_REAL = (UInt32)(0) DATATYPE_POSITIVE = (UInt32)(1) DATATYPE_AXIS = (UInt32)(2) DATATYPE_QUAT = (UInt32)(3)
 
-immutable _mjVFS
+immutable VFS
    nfile::Cint
-	filename::SVector{mjMAXVFS, SVector{mjMAXVFSNAME, UInt8}}
-   filesize::SVector{mjMAXVFS, Cint}
-   filedata::SVector{mjMAXVFS, Ptr{Void}}
+	filename::SVector{MAXVFS, SVector{MAXVFSNAME, UInt8}}
+   filesize::SVector{MAXVFS, Cint}
+   filedata::SVector{MAXVFS, Ptr{Void}}
 end
-const mjVFS = _mjVFS;
 
-#struct _mjOption
-immutable _mjOption
+immutable Option
    timestep::mjtNum
    apirate::mjtNum
 
@@ -93,8 +91,8 @@ immutable _mjOption
    viscosity::mjtNum
 
    o_margin::mjtNum
-   o_solref::SVector{mjNREF, mjtNum}
-   o_solimp::SVector{mjNIMP, mjtNum}
+   o_solref::SVector{NREF, mjtNum}
+   o_solimp::SVector{NIMP, mjtNum}
 
    integrator::Cint
    collision::Cint
@@ -109,10 +107,8 @@ immutable _mjOption
    disableflags::Cint
    enableflags::Cint
 end
-const mjOption = _mjOption
 
-#struct _mjVisual
-immutable __global
+immutable _global
 	fovy::Float32
 	ipd::Float32
 	linewidth::Float32
@@ -121,7 +117,7 @@ immutable __global
 	offheight::Int32
 end
 
-immutable _quality
+immutable quality
 	shadowsize::Int32
 	offsamples::Int32
 	numslices::Int32
@@ -130,14 +126,14 @@ immutable _quality
 	numquads::Int32
 end
 
-immutable _headlight
+immutable headlight
 	ambient::SVector{3, Float32}
 	diffuse::SVector{3, Float32}
 	specular::SVector{3, Float32}
 	active::Int32
 end
 
-immutable _map
+immutable map
 	stiffness::Float32
 	stiffnessrot::Float32
 	force::Float32
@@ -151,7 +147,7 @@ immutable _map
 	shadowscale::Float32
 end
 
-immutable _scale
+immutable scale
 	forcewidth::Float32
 	contactwidth::Float32
 	contactheight::Float32
@@ -170,7 +166,7 @@ immutable _scale
 	slidercrank::Float32
 end
 
-immutable _rgba
+immutable rgba
 	fog::SVector{4, Float32}
 	force::SVector{4, Float32}
 	inertia::SVector{4, Float32}
@@ -190,27 +186,25 @@ immutable _rgba
 	crankbroken::SVector{4, Float32}
 end
 
-immutable _mjVisual
-	_global::__global
-	quality::_quality
-	headlight::_headlight
-	map::_map
-	scale::_scale
-	rgba::_rgba
+immutable Visual
+	_global::_global
+	quality::quality
+	headlight::headlight
+	map::map
+	scale::scale
+	rgba::rgba
 end
-const mjVisual = _mjVisual
 
-#struct _mjStatistic
-immutable _mjStatistic
+#struct _Statistic
+immutable Statistic
 	meaninertia::mjtNum
 	meanmass::mjtNum
 	meansize::mjtNum
 	extent::mjtNum
 	center::SVector{3, mjtNum}
 end
-const mjStatistic = _mjStatistic
 
-immutable _mjModel
+immutable Model
 	nq::Cint
 	nv::Cint
 	nu::Cint
@@ -264,9 +258,9 @@ immutable _mjModel
 
 	nbuffer::Cint
 
-	opt::mjOption
-	vis::mjVisual
-	stat::mjStatistic
+	opt::Option
+	vis::Visual
+	stat::Statistic
 
 	buffer::Ptr{Void}
 
@@ -523,6 +517,5 @@ immutable _mjModel
 	names::Ptr{UInt8}
 end
 
-const mjModel = _mjModel
 
 

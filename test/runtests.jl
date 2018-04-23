@@ -1,6 +1,9 @@
 using MuJoCo
 using Base.Test
 
+#modelfile = dirname(@__FILE__)*"/humanoid.xml"
+modelfile = dirname(@__FILE__)*"/swimmer.xml"
+
 # write your own tests here
 info("Testing General Mujoco Environment")
 include("test_env.jl")

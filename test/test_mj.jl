@@ -9,7 +9,7 @@ val = mj.activate("/home/klowrey/.mujoco/mjkey.txt")
 println("Acivation: $val")
 
 modelfile = "/home/klowrey/Dropbox/robotics/mjulia/models/humanoid.xml"
-pm = mj.loadXML(modelfile, "") #, "", 0)
+pm = mj.loadXML(modelfile, C_NULL)
 
 if pm == nothing 
    println("Bad load")
@@ -42,9 +42,9 @@ end
 #structinfo(T) = [(fieldoffset(T,i), fieldname(T,i), fieldtype(T,i)) for i = 1:nfields(T)]
 structinfo(T) = Dict(fieldname(T,i)=>(fieldoffset(T,i),  fieldtype(T,i)) for i = 1:nfields(T))
 
-dinfo = structinfo(mjData)
-minfo = structinfo(mjModel)
-oinfo = structinfo(mjOption)
+dinfo = structinfo(mj.Data)
+minfo = structinfo(mj.Model)
+oinfo = structinfo(mj.Option)
 
 optionoffset = minfo[:opt][1] # bit offset
 viscosityoffset = oinfo[:viscosity][1] # bit offset
@@ -52,9 +52,8 @@ viscosityoffset = oinfo[:viscosity][1] # bit offset
 # sets viscosity in model.options
 #unsafe_store!(convert(Ptr{mjtNum}, (pm + optionoffset + viscosityoffset)), 1234.5678)
 
-mtypes = [fieldtype(mjModel, i) for i=1:nfields(mjModel)]
-dtypes = [fieldtype(mjData, i) for i=1:nfields(mjData)]
-
+mtypes = [fieldtype(mj.Model, i) for i=1:nfields(mj.Model)]
+dtypes = [fieldtype(mj.Data, i) for i=1:nfields(mj.Data)]
 
 
 # BROKEN::
@@ -99,13 +98,13 @@ end
 
 ##############
 
-function bad_map_data(pd::Ptr{mjData}) 
+function bad_map_data(pd::Ptr{mj.Data}) 
    # FUCKING NOPE
    c_data = unsafe_load(pd)
    mydata = unsafe_load( Ptr{jlData}(Libc.malloc(sizeof(jlData))) ) # make our data
    mydata.d = pd
 
-   ptr_fields = intersect( fieldnames(jlData), fieldnames(mjData) )
+   ptr_fields = intersect( fieldnames(jlData), fieldnames(mj.Data) )
 
    for f in ptr_fields
       #qpos = unsafe_wrap(Array, d.qpos, m.nq)
@@ -113,7 +112,7 @@ function bad_map_data(pd::Ptr{mjData})
    end
 end
 
-function map_data(pm::Ptr{mjModel}, pd::Ptr{mjData}) 
+function map_data(pm::Ptr{mjModel}, pd::Ptr{mj.Data}) 
    c_data = unsafe_load(pd)
    #mydata = unsafe_load( Ptr{jlData}(Libc.malloc(sizeof(jlData))) ) # make our data
    #mydata.d = pd

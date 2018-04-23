@@ -1,14 +1,12 @@
 
 # TODO write these as functions
 
-# Skipping MacroDefinition: mjMARKSTACK int _mark = d -> pstack ;
-# Skipping MacroDefinition: mjFREESTACK d -> pstack = _mark ;
 MARKSTACK(d::jlData) = return mj.get(d, :pstack)
 FREESTACK(d::jlData, mark::Cint) = mj.set(d, :pstack, mark)
 # Skipping MacroDefinition: mjDISABLED ( x ) ( m -> opt . disableflags & ( x ) )
 # Skipping MacroDefinition: mjENABLED ( x ) ( m -> opt . enableflags & ( x ) )
-mjMAX(a,b) = max(a,b)
-mjMIN(a,b) = min(a,b)
+MAX(a,b) = max(a,b)
+MIN(a,b) = min(a,b)
 
 ## user error and memory handlers
 # extern void  (*mju_user_error)(const char*);
@@ -29,44 +27,6 @@ mjMIN(a,b) = min(a,b)
 #
 ## collision function table
 # extern mjfCollision mjCOLLISIONFUNC[mjNGEOMTYPES][mjNGEOMTYPES];
-
-#function mj_globals() # needs to run at module load time; not precompiled
-#   function stringsearch(raw::Ptr{Ptr{UInt8}}, n::Int)
-#      len = 1
-#      r = unsafe_load(raw)
-#      for i=1:n
-#         while unsafe_load(r, len) != 0 # find nulls
-#            len += 1
-#         end
-#         len += 1
-#      end
-#      len -= 2 # undo last +1 and strip last \0 null
-#      return split(String(unsafe_wrap(Array, r, len)), '\0')
-#   end
-#   function stringsearch(raw::Ptr{Ptr{UInt8}}, n::Tuple)
-#      r = unsafe_wrap(Array, raw, prod(n))
-#      strs = Array{String}(n)
-#      idx = 1
-#      for i=1:n[1]
-#         for j=1:n[2]
-#            len = 1
-#            while unsafe_load(r[idx], len) != 0 # find nulls
-#               len += 1
-#            end
-#            strs[i,j] = unsafe_wrap(Array, r[idx], len-1)
-#            idx += 1
-#         end
-#      end
-#      return strs
-#   end
-#   global const DISABLESTRING = stringsearch(cglobal((:mjDISABLESTRING,libmujoco),Ptr{UInt8}),Int(mjNDISABLE))
-#   global const ENABLESTRING  = stringsearch(cglobal((:mjENABLESTRING,libmujoco), Ptr{UInt8}),Int(mjNENABLE))
-#   global const TIMERSTRING   = stringsearch(cglobal((:mjTIMERSTRING,libmujoco),  Ptr{UInt8}),Int(mjNTIMER))
-#   global const LABELSTRING   = stringsearch(cglobal((:mjLABELSTRING,libmujoco),  Ptr{UInt8}),Int(mjNLABEL))
-#   global const FRAMESTRING   = stringsearch(cglobal((:mjFRAMESTRING,libmujoco),  Ptr{UInt8}),Int(mjNFRAME))
-#   global const VISSTRING     = stringsearch(cglobal((:mjVISSTRING,libmujoco),Ptr{UInt8}),(Int(mjNVISFLAG),3))
-#   global const RNDSTRING     = stringsearch(cglobal((:mjRNDSTRING,libmujoco),Ptr{UInt8}),(Int(mjNRNDFLAG),3))
-#end
 
 global const DISABLESTRING = ["Constraint","Equality","Frictionloss","Limit","Contact","Passive","Gravity","Clampctrl","Warmstart","Filterparent","Actuation","Refsafe","","",""]
 global const ENABLESTRING  = ["Override","Energy","Fwdinv","Sensornoise","Constraint"]
@@ -99,8 +59,6 @@ global const RNDSTRING     = ["Shadow"      "1"  "S";
 
 
 
-
-
 const PV{T} = Union{Ptr{T},Vector{T}}
 
 #---------------------- License activation and certificate (mutex-protected) -----------
@@ -116,50 +74,55 @@ function deactivate()
 end
 
 # server: generate certificate question
-function certQuestion(question::SVector{16, mjtNum})
-   ccall((:mj_certQuestion,libmujoco),Void,(SVector{16, mjtNum},),question)
+function certQuestion(question::Vector{mjtNum})
+   @assert length(question) >= 16
+   ccall((:mj_certQuestion,libmujoco),Void,(Vector{mjtNum},),question)
 end
 
 # client: generate certificate answer given question
-function certAnswer(question::SVector{16, mjtNum},answer::SVector{16, mjtNum})
-   ccall((:mj_certAnswer,libmujoco),Void,(SVector{16, mjtNum},SVector{16, mjtNum}),question,answer)
+function certAnswer(question::Vector{mjtNum},answer::Vector{mjtNum})
+   @assert length(question) >= 16
+   @assert length(answer) >= 16
+   ccall((:mj_certAnswer,libmujoco),Void,(Vector{mjtNum},Vector{mjtNum}),question,answer)
 end
 
 # server: check certificate question-answer pair; return 1 if match, 0 if mismatch
-function certCheck(question::SVector{16, mjtNum},answer::SVector{16, mjtNum})
-   ccall((:mj_certCheck,libmujoco),Cint,(SVector{16, mjtNum},SVector{16, mjtNum}),question,answer)
+function certCheck(question::Vector{mjtNum},answer::Vector{mjtNum})
+   @assert length(question) >= 16
+   @assert length(answer) >= 16
+   ccall((:mj_certCheck,libmujoco),Cint,(Vector{mjtNum},Vector{mjtNum}),question,answer)
 end
 
 #---------------------- Virtual file system --------------------------------------------
 
 # Initialize VFS to empty (no deallocation).
-function defaultVFS(vfs::Ptr{mjVFS})
-   ccall((:mj_defaultVFS,libmujoco),Void,(Ptr{mjVFS},),vfs)
+function defaultVFS(vfs::Ptr{VFS})
+   ccall((:mj_defaultVFS,libmujoco),Void,(Ptr{VFS},),vfs)
 end
 
 # Add file to VFS, return 0: success, 1: full, 2: repeated name, -1: not found on disk.
-function addFileVFS(vfs::Ptr{mjVFS},directory::String,filename::String)
-   ccall((:mj_addFileVFS,libmujoco),Cint,(Ptr{mjVFS},Cstring,Cstring),vfs,directory,filename)
+function addFileVFS(vfs::Ptr{VFS},directory::String,filename::String)
+   ccall((:mj_addFileVFS,libmujoco),Cint,(Ptr{VFS},Cstring,Cstring),vfs,directory,filename)
 end
 
 # Make empty file in VFS, return 0: success, 1: full, 2: repeated name.
-function makeEmptyFileVFS(vfs::Ptr{mjVFS},filename::String,filesize::Integer)
-   ccall((:mj_makeEmptyFileVFS,libmujoco),Cint,(Ptr{mjVFS},Cstring,Cstring),vfs,filename,filesize)
+function makeEmptyFileVFS(vfs::Ptr{VFS},filename::String,filesize::Integer)
+   ccall((:mj_makeEmptyFileVFS,libmujoco),Cint,(Ptr{VFS},Cstring,Cstring),vfs,filename,filesize)
 end
 
 # Return file index in VFS, or -1 if not found in VFS.
-function findFileVFS(vfs::Ptr{mjVFS},filename::String)
-   ccall((:mj_findFileVFS,libmujoco),Cint,(Ptr{mjVFS},Cstring),vfs,filename)
+function findFileVFS(vfs::Ptr{VFS},filename::String)
+   ccall((:mj_findFileVFS,libmujoco),Cint,(Ptr{VFS},Cstring),vfs,filename)
 end
 
 # Delete file from VFS, return 0: success, -1: not found in VFS.
-function deleteFileVFS(vfs::Ptr{mjVFS},filename::String)
-   ccall((:mj_deleteFileVFS,libmujoco),Cint,(Ptr{mjVFS},Cstring),vfs,filename)
+function deleteFileVFS(vfs::Ptr{VFS},filename::String)
+   ccall((:mj_deleteFileVFS,libmujoco),Cint,(Ptr{VFS},Cstring),vfs,filename)
 end
 
 # Delete all files from VFS.
-function deleteVFS(vfs::Ptr{mjVFS})
-   ccall((:mj_deleteVFS,libmujoco),Void,(Ptr{mjVFS},),vfs)
+function deleteVFS(vfs::Ptr{VFS})
+   ccall((:mj_deleteVFS,libmujoco),Void,(Ptr{VFS},),vfs)
 end
 
 
@@ -168,10 +131,10 @@ end
 # parse XML file or string in MJCF or URDF format, compile it, return low-level model
 #  if xmlstring is not NULL, it has precedence over filename
 #  error can be NULL; otherwise assumed to have size error_sz
-function loadXML(filename::String,vfs::Union{Ptr{mjVFS},Ptr{Void}})
+function loadXML(filename::String,vfs::Union{Ptr{VFS},Ptr{Void}})
    errsz = 1000
    err = Vector{UInt8}(errsz) 
-   m=ccall((:mj_loadXML,libmujoco),Ptr{mjModel},(Cstring,Cstring,Ptr{UInt8},Cint),filename,vfs,err,errsz)
+   m=ccall((:mj_loadXML,libmujoco),Ptr{Model},(Cstring,Cstring,Ptr{UInt8},Cint),filename,vfs,err,errsz)
    if m == C_NULL
       err[end] = 0;
       warn("Error in XML loading: ", unsafe_string(pointer(err)), "\nCheck path and .xml file.")
@@ -182,8 +145,8 @@ end
 
 # update XML data structures with info from low-level model, save as MJCF
 #  error can be NULL; otherwise assumed to have size error_sz
-function saveLastXML(filename::String,m::Ptr{mjModel},error::String,error_sz::Integer)
-   ccall((:mj_saveLastXML,libmujoco),Cint,(Cstring,Ptr{mjModel},Cstring,Cint),filename,m,error,error_sz)
+function saveLastXML(filename::String,m::Ptr{Model},error::String,error_sz::Integer)
+   ccall((:mj_saveLastXML,libmujoco),Cint,(Cstring,Ptr{Model},Cstring,Cint),filename,m,error,error_sz)
 end
 
 function freeLastXML()
@@ -199,38 +162,38 @@ end
 
 
 # advance simulation: use control callback, no external force, RK4 available
-function step(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_step,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function step(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_step,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # advance simulation in two steps: before external force/control is set by user
-function step1(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_step1,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function step1(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_step1,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # advance simulation in two steps: after external force/control is set by user
-function step2(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_step2,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function step2(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_step2,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # forward dynamics
-function forward(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_forward,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function forward(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_forward,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # inverse dynamics
-function inverse(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_inverse,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function inverse(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_inverse,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # forward dynamics with skip; skipstage is mjtStage
-function forwardSkip(m::Ptr{mjModel},d::Ptr{mjData},skipstage::Integer,skipsensorenergy::Integer)
-   ccall((:mj_forwardSkip,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Cint,Cint),m,d,skipstage,skipsensorenergy)
+function forwardSkip(m::Ptr{Model},d::Ptr{Data},skipstage::Integer,skipsensorenergy::Integer)
+   ccall((:mj_forwardSkip,libmujoco),Void,(Ptr{Model},Ptr{Data},Cint,Cint),m,d,skipstage,skipsensorenergy)
 end
 
 # inverse dynamics with skip; skipstage is mjtStage
-function inverseSkip(m::Ptr{mjModel},d::Ptr{mjData},skipstage::Integer,skipsensorenergy::Integer)
-   ccall((:mj_inverseSkip,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Cint,Cint),m,d,skipstage,skipsensorenergy)
+function inverseSkip(m::Ptr{Model},d::Ptr{Data},skipstage::Integer,skipsensorenergy::Integer)
+   ccall((:mj_inverseSkip,libmujoco),Void,(Ptr{Model},Ptr{Data},Cint,Cint),m,d,skipstage,skipsensorenergy)
 end
 
 #---------------------- Model and data initialization ----------------------------------
@@ -241,73 +204,73 @@ function defaultSolRefImp(solref::PV{mjtNum},solimp::PV{mjtNum})
 end
 
 # set physics options to default values
-function defaultOption(opt::Ptr{mjOption})
-   ccall((:mj_defaultOption,libmujoco),Void,(Ptr{mjOption},),opt)
+function defaultOption(opt::Ptr{Option})
+   ccall((:mj_defaultOption,libmujoco),Void,(Ptr{Option},),opt)
 end
 
 # set visual options to default values
-function defaultVisual(vis::Ptr{mjVisual})
-   ccall((:mj_defaultVisual,libmujoco),Void,(Ptr{mjVisual},),vis)
+function defaultVisual(vis::Ptr{Visual})
+   ccall((:mj_defaultVisual,libmujoco),Void,(Ptr{Visual},),vis)
 end
 
-# copy mjModel; allocate new if dest is NULL
-function copyModel(dest::Ptr{mjModel},src::Ptr{mjModel})
-   ccall((:mj_copyModel,libmujoco),Ptr{mjModel},(Ptr{mjModel},Ptr{mjModel}),dest,src)
+# copy Model; allocate new if dest is NULL
+function copyModel(dest::Ptr{Model},src::Ptr{Model})
+   ccall((:mj_copyModel,libmujoco),Ptr{Model},(Ptr{Model},Ptr{Model}),dest,src)
 end
 
 # save model to binary file or memory buffer (buffer has precedence if szbuf>0)
-function saveModel(m::Ptr{mjModel},filename::String,buffer::Ptr{Void},buffer_sz::Integer)
-   ccall((:mj_saveModel,libmujoco),Void,(Ptr{mjModel},Cstring,Ptr{Void},Cint),m,filename,buffer,buffer_sz)
+function saveModel(m::Ptr{Model},filename::String,buffer::Ptr{Void},buffer_sz::Integer)
+   ccall((:mj_saveModel,libmujoco),Void,(Ptr{Model},Cstring,Ptr{Void},Cint),m,filename,buffer,buffer_sz)
 end
 
 # load model from binary file or memory buffer (buffer has precedence if szbuf>0)
 function loadModel(filename::String,buffer::Ptr{Void},buffer_sz::Integer)
-   ccall((:mj_loadModel,libmujoco),Ptr{mjModel},(Cstring,Ptr{Void},Cint),filename,buffer,buffer_sz)
+   ccall((:mj_loadModel,libmujoco),Ptr{Model},(Cstring,Ptr{Void},Cint),filename,buffer,buffer_sz)
 end
 
 # de-allocate model
-function deleteModel(m::Ptr{mjModel})
-   ccall((:mj_deleteModel,libmujoco),Void,(Ptr{mjModel},),m)
+function deleteModel(m::Ptr{Model})
+   ccall((:mj_deleteModel,libmujoco),Void,(Ptr{Model},),m)
 end
 
 # size of buffer needed to hold model
-function sizeModel(m::Ptr{mjModel})
-   ccall((:mj_sizeModel,libmujoco),Cint,(Ptr{mjModel},),m)
+function sizeModel(m::Ptr{Model})
+   ccall((:mj_sizeModel,libmujoco),Cint,(Ptr{Model},),m)
 end
 
-# allocate mjData correponding to given model
-function makeData(m::Ptr{mjModel})
-   ccall((:mj_makeData,libmujoco),Ptr{mjData},(Ptr{mjModel},),m)
+# allocate Data correponding to given model
+function makeData(m::Ptr{Model})
+   ccall((:mj_makeData,libmujoco),Ptr{Data},(Ptr{Model},),m)
 end
 
-# copy mjData
-function copyData(dest::Ptr{mjData},m::Ptr{mjModel},src::Ptr{mjData})
-   ccall((:mj_copyData,libmujoco),Ptr{mjData},(Ptr{mjData},Ptr{mjModel},Ptr{mjData}),dest,m,src)
+# copy Data
+function copyData(dest::Ptr{Data},m::Ptr{Model},src::Ptr{Data})
+   ccall((:mj_copyData,libmujoco),Ptr{Data},(Ptr{Data},Ptr{Model},Ptr{Data}),dest,m,src)
 end
 
 # set data to defaults
-function resetData(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_resetData,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function resetData(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_resetData,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # set data to defaults, fill everything else with debug_value
-function resetDataDebug(m::Ptr{mjModel},d::Ptr{mjData},debug_value::Cuchar)
-   ccall((:mj_resetDataDebug,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Cuchar),m,d,debug_value)
+function resetDataDebug(m::Ptr{Model},d::Ptr{Data},debug_value::Cuchar)
+   ccall((:mj_resetDataDebug,libmujoco),Void,(Ptr{Model},Ptr{Data},Cuchar),m,d,debug_value)
 end
 
 # reset data, set fields from specified keyframe
-function resetDataKeyframe(m::Ptr{mjModel},d::Ptr{mjData},key::Integer)
-   ccall((:mj_resetDataKeyframe,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Cint),m,d,key)
+function resetDataKeyframe(m::Ptr{Model},d::Ptr{Data},key::Integer)
+   ccall((:mj_resetDataKeyframe,libmujoco),Void,(Ptr{Model},Ptr{Data},Cint),m,d,key)
 end
 
-# mjData stack allocate
-function stackAlloc(d::Ptr{mjData},size::Integer)
-   ccall((:mj_stackAlloc,libmujoco),Ptr{mjtNum},(Ptr{mjData},Cint),d,size)
+# Data stack allocate
+function stackAlloc(d::Ptr{Data},size::Integer)
+   ccall((:mj_stackAlloc,libmujoco),Ptr{mjtNum},(Ptr{Data},Cint),d,size)
 end
 
 # de-allocate data
-function deleteData(d::Ptr{mjData})
-   ccall((:mj_deleteData,libmujoco),Void,(Ptr{mjData},),d)
+function deleteData(d::Ptr{Data})
+   ccall((:mj_deleteData,libmujoco),Void,(Ptr{Data},),d)
 end
 
 # reset callbacks to defaults
@@ -315,21 +278,21 @@ function resetCallbacks()
    ccall((:mj_resetCallbacks,libmujoco),Void,())
 end
 
-# set constant fields of mjModel
-function setConst(m::Ptr{mjModel},d::Ptr{mjData},flg_actrange::Integer)
-   ccall((:mj_setConst,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Cint),m,d,flg_actrange)
+# set constant fields of Model
+function setConst(m::Ptr{Model},d::Ptr{Data},flg_actrange::Integer)
+   ccall((:mj_setConst,libmujoco),Void,(Ptr{Model},Ptr{Data},Cint),m,d,flg_actrange)
 end
 
 #---------------------- Printing -------------------------------------------------------
 
 # print model to text file
-function printModel(m::Ptr{mjModel},filename::String)
-   ccall((:mj_printModel,libmujoco),Void,(Ptr{mjModel},Cstring),m,filename)
+function printModel(m::Ptr{Model},filename::String)
+   ccall((:mj_printModel,libmujoco),Void,(Ptr{Model},Cstring),m,filename)
 end
 
 # print data to text file
-function printData(m::Ptr{mjModel},d::Ptr{mjData},filename::String)
-   ccall((:mj_printData,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Cstring),m,d,filename)
+function printData(m::Ptr{Model},d::Ptr{Data},filename::String)
+   ccall((:mj_printData,libmujoco),Void,(Ptr{Model},Ptr{Data},Cstring),m,d,filename)
 end
 
 # print matrix to screen
@@ -345,195 +308,195 @@ end
 #---------------------- Components: forward dynamics -----------------------------------
 
 # position-dependent computations
-function fwdPosition(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_fwdPosition,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function fwdPosition(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_fwdPosition,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # velocity-dependent computations
-function fwdVelocity(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_fwdVelocity,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function fwdVelocity(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_fwdVelocity,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # compute actuator force
-function fwdActuation(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_fwdActuation,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function fwdActuation(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_fwdActuation,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # add up all non-constraint forces, compute qacc_unc
-function fwdAcceleration(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_fwdAcceleration,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function fwdAcceleration(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_fwdAcceleration,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # constraint solver
-function fwdConstraint(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_fwdConstraint,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function fwdConstraint(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_fwdConstraint,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # Euler integrator, semi-implicit in velocity
-function Euler(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_Euler,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function Euler(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_Euler,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # Runge-Kutta explicit order-N integrator
-function RungeKutta(m::Ptr{mjModel},d::Ptr{mjData},N::Integer)
-   ccall((:mj_RungeKutta,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Cint),m,d,N)
+function RungeKutta(m::Ptr{Model},d::Ptr{Data},N::Integer)
+   ccall((:mj_RungeKutta,libmujoco),Void,(Ptr{Model},Ptr{Data},Cint),m,d,N)
 end
 
 #---------------------- Components: inverse dynamics -----------------------------------
 
 # position-dependent computations
-function invPosition(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_invPosition,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function invPosition(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_invPosition,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # velocity-dependent computations
-function invVelocity(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_invVelocity,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function invVelocity(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_invVelocity,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # constraint solver
-function invConstraint(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_invConstraint,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function invConstraint(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_invConstraint,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # compare forward and inverse dynamics, without changing results of forward dynamics
-function compareFwdInv(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_compareFwdInv,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function compareFwdInv(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_compareFwdInv,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 #---------------------- Components: forward and inverse dynamics -----------------------
 
 # position-dependent sensors
-function sensorPos(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_sensorPos,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function sensorPos(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_sensorPos,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # velocity-dependent sensors
-function sensorVel(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_sensorVel,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function sensorVel(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_sensorVel,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # acceleration/force-dependent sensors
-function sensorAcc(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_sensorAcc,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function sensorAcc(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_sensorAcc,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # position-dependent energy (potential)
-function energyPos(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_energyPos,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function energyPos(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_energyPos,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # velocity-dependent energy (kinetic)
-function energyVel(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_energyVel,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function energyVel(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_energyVel,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 #---------------------- Sub-components -------------------------------------------------
 
 # check positions; reset if bad
-function checkPos(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_checkPos,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function checkPos(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_checkPos,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # check velocities; reset if bad
-function checkVel(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_checkVel,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function checkVel(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_checkVel,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # check accelerations; reset if bad
-function checkAcc(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_checkAcc,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function checkAcc(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_checkAcc,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # forward kinematics
-function kinematics(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_kinematics,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function kinematics(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_kinematics,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # map inertias and motion dofs to global frame centered at CoM
-function comPos(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_comPos,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function comPos(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_comPos,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # compute camera and light positions and orientations
-function camlight(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_camlight,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function camlight(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_camlight,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # compute tendon lengths, velocities and moment arms
-function tendon(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_tendon,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function tendon(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_tendon,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # compute actuator transmission lengths and moments
-function transmission(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_transmission,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function transmission(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_transmission,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # composite rigid body inertia algorithm
-function crb(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_crb,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function crb(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_crb,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # sparse L'*D*L factorizaton of the inertia matrix
-function factorM(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_factorM,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function factorM(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_factorM,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # Solve linear system M * x = y using factorization:  x = inv(L'*D*L)*y
-function solveM(m::Ptr{mjModel},d::Ptr{mjData},x::PV{mjtNum},y::PV{mjtNum},n::Integer)
-   ccall((:mj_solveM,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum},Cint),m,d,x,y,n)
+function solveM(m::Ptr{Model},d::Ptr{Data},x::PV{mjtNum},y::PV{mjtNum},n::Integer)
+   ccall((:mj_solveM,libmujoco),Void,(Ptr{Model},Ptr{Data},Ptr{mjtNum},Ptr{mjtNum},Cint),m,d,x,y,n)
 end
 
 # Half of linear solve:  x = sqrt(inv(D))*inv(L')*y
-function solveM2(m::Ptr{mjModel},d::Ptr{mjData},x::PV{mjtNum},y::PV{mjtNum},n::Integer)
-   ccall((:mj_solveM2,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum},Cint),m,d,x,y,n)
+function solveM2(m::Ptr{Model},d::Ptr{Data},x::PV{mjtNum},y::PV{mjtNum},n::Integer)
+   ccall((:mj_solveM2,libmujoco),Void,(Ptr{Model},Ptr{Data},Ptr{mjtNum},Ptr{mjtNum},Cint),m,d,x,y,n)
 end
 
 # compute cvel, cdof_dot
-function comVel(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_comVel,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function comVel(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_comVel,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # spring-dampers and body viscosity
-function passive(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_passive,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function passive(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_passive,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # RNE: compute M(qpos)*qacc + C(qpos,qvel); flg_acc=0 removes inertial term
-function rne(m::Ptr{mjModel},d::Ptr{mjData},flg_acc::Integer,result::PV{mjtNum})
-   ccall((:mj_rne,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Cint,Ptr{mjtNum}),m,d,flg_acc,result)
+function rne(m::Ptr{Model},d::Ptr{Data},flg_acc::Integer,result::PV{mjtNum})
+   ccall((:mj_rne,libmujoco),Void,(Ptr{Model},Ptr{Data},Cint,Ptr{mjtNum}),m,d,flg_acc,result)
 end
 
 # RNE with complete data: compute cacc, cfrc_ext, cfrc_int
-function rnePostConstraint(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_rnePostConstraint,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function rnePostConstraint(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_rnePostConstraint,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # collision detection
-function collision(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_collision,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function collision(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_collision,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # construct constraints
-function makeConstraint(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_makeConstraint,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function makeConstraint(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_makeConstraint,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # compute dense matrices: efc_AR, e_ARchol, fc_half, fc_AR
-function projectConstraint(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_projectConstraint,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function projectConstraint(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_projectConstraint,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # compute efc_vel, efc_aref
-function referenceConstraint(m::Ptr{mjModel},d::Ptr{mjData})
-   ccall((:mj_referenceConstraint,libmujoco),Void,(Ptr{mjModel},Ptr{mjData}),m,d)
+function referenceConstraint(m::Ptr{Model},d::Ptr{Data})
+   ccall((:mj_referenceConstraint,libmujoco),Void,(Ptr{Model},Ptr{Data}),m,d)
 end
 
 # Compute efc_state, efc_force, qfrc_constraint, and (optionally) cone Hessians.
 # If cost is not NULL, set *cost = s(jar) where jar = Jac*qacc-aref.
-function constraintUpdate(m::Ptr{mjModel},d::Ptr{mjData},jar::PV{mjtNum},cost::PV{mjtNum},flg_coneHessian::Integer)
-   ccall((:mj_constraintUpdate,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},PV{mjtNum},PV{mjtNum},Integer),m,d,jar,cost,flg_coneHessian)
+function constraintUpdate(m::Ptr{Model},d::Ptr{Data},jar::PV{mjtNum},cost::PV{mjtNum},flg_coneHessian::Integer)
+   ccall((:mj_constraintUpdate,libmujoco),Void,(Ptr{Model},Ptr{Data},PV{mjtNum},PV{mjtNum},Integer),m,d,jar,cost,flg_coneHessian)
 end
 
 
@@ -541,139 +504,139 @@ end
 #---------------------- Support functions ----------------------------------------------
 
 # add contact to d->contact list; return 0 if success; 1 if buffer full
-function addContact(m::Ptr{mjModel},d::Ptr{mjData},con::Ptr{mjContact})
-   ccall((:mj_addContact,libmujoco),Cint,(Ptr{mjModel},Ptr{mjData},Ptr{mjContact}),m,d,con)
+function addContact(m::Ptr{Model},d::Ptr{Data},con::Ptr{Contact})
+   ccall((:mj_addContact,libmujoco),Cint,(Ptr{Model},Ptr{Data},Ptr{Contact}),m,d,con)
 end
 
 # determine type of friction cone
-function isPyramidal(m::Ptr{mjModel})
-   ccall((:mj_isPyramidal,libmujoco),Cint,(Ptr{mjModel},),m)
+function isPyramidal(m::Ptr{Model})
+   ccall((:mj_isPyramidal,libmujoco),Cint,(Ptr{Model},),m)
 end
 
 # determine type of constraint Jacobian
-function isSparse(m::Ptr{mjModel})
-   ccall((:mj_isSparse,libmujoco),Cint,(Ptr{mjModel},),m)
+function isSparse(m::Ptr{Model})
+   ccall((:mj_isSparse,libmujoco),Cint,(Ptr{Model},),m)
 end
 
 # Determine type of solver (PGS is dual, CG and Newton are primal).
-function isDual(m::Ptr{mjModel})
-   ccall((:mj_isDual,libmujoco),Cint,(Ptr{mjModel},),m)
+function isDual(m::Ptr{Model})
+   ccall((:mj_isDual,libmujoco),Cint,(Ptr{Model},),m)
 end
 
 # multiply Jacobian by vector
-function mulJacVec(m::Ptr{mjModel},d::Ptr{mjData},res::PV{mjtNum},vec::PV{mjtNum})
-   ccall((:mj_mulJacVec,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum}),m,d,res,vec)
+function mulJacVec(m::Ptr{Model},d::Ptr{Data},res::PV{mjtNum},vec::PV{mjtNum})
+   ccall((:mj_mulJacVec,libmujoco),Void,(Ptr{Model},Ptr{Data},Ptr{mjtNum},Ptr{mjtNum}),m,d,res,vec)
 end
 
 # multiply JacobianT by vector
-function mulJacTVec(m::Ptr{mjModel},d::Ptr{mjData},res::PV{mjtNum},vec::PV{mjtNum})
-   ccall((:mj_mulJacTVec,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum}),m,d,res,vec)
+function mulJacTVec(m::Ptr{Model},d::Ptr{Data},res::PV{mjtNum},vec::PV{mjtNum})
+   ccall((:mj_mulJacTVec,libmujoco),Void,(Ptr{Model},Ptr{Data},Ptr{mjtNum},Ptr{mjtNum}),m,d,res,vec)
 end
 
 # compute 3/6-by-nv Jacobian of global point attached to given body
-function jac(m::Ptr{mjModel},d::Ptr{mjData},jacp::PV{mjtNum},jacr::PV{mjtNum},point::SVector{3, mjtNum},body::Integer)
-   ccall((:mj_jac,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum},SVector{3, mjtNum},Cint),m,d,jacp,jacr,point,body)
+function jac(m::Ptr{Model},d::Ptr{Data},jacp::PV{mjtNum},jacr::PV{mjtNum},point::SVector{3, mjtNum},body::Integer)
+   ccall((:mj_jac,libmujoco),Void,(Ptr{Model},Ptr{Data},Ptr{mjtNum},Ptr{mjtNum},SVector{3, mjtNum},Cint),m,d,jacp,jacr,point,body)
 end
 
 # compute body frame Jacobian
-function jacBody(m::Ptr{mjModel},d::Ptr{mjData},jacp::PV{mjtNum},jacr::PV{mjtNum},body::Integer)
-   ccall((:mj_jacBody,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum},Cint),m,d,jacp,jacr,body)
+function jacBody(m::Ptr{Model},d::Ptr{Data},jacp::PV{mjtNum},jacr::PV{mjtNum},body::Integer)
+   ccall((:mj_jacBody,libmujoco),Void,(Ptr{Model},Ptr{Data},Ptr{mjtNum},Ptr{mjtNum},Cint),m,d,jacp,jacr,body)
 end
 
 # compute body center-of-mass Jacobian
-function jacBodyCom(m::Ptr{mjModel},d::Ptr{mjData},jacp::PV{mjtNum},jacr::PV{mjtNum},body::Integer)
-   ccall((:mj_jacBodyCom,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum},Cint),m,d,jacp,jacr,body)
+function jacBodyCom(m::Ptr{Model},d::Ptr{Data},jacp::PV{mjtNum},jacr::PV{mjtNum},body::Integer)
+   ccall((:mj_jacBodyCom,libmujoco),Void,(Ptr{Model},Ptr{Data},Ptr{mjtNum},Ptr{mjtNum},Cint),m,d,jacp,jacr,body)
 end
 
 # compute geom Jacobian
-function jacGeom(m::Ptr{mjModel},d::Ptr{mjData},jacp::PV{mjtNum},jacr::PV{mjtNum},geom::Integer)
-   ccall((:mj_jacGeom,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum},Cint),m,d,jacp,jacr,geom)
+function jacGeom(m::Ptr{Model},d::Ptr{Data},jacp::PV{mjtNum},jacr::PV{mjtNum},geom::Integer)
+   ccall((:mj_jacGeom,libmujoco),Void,(Ptr{Model},Ptr{Data},Ptr{mjtNum},Ptr{mjtNum},Cint),m,d,jacp,jacr,geom)
 end
 
 # compute site Jacobian
-function jacSite(m::Ptr{mjModel},d::Ptr{mjData},jacp::PV{mjtNum},jacr::PV{mjtNum},site::Integer)
-   ccall((:mj_jacSite,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum},Cint),m,d,jacp,jacr,site)
+function jacSite(m::Ptr{Model},d::Ptr{Data},jacp::PV{mjtNum},jacr::PV{mjtNum},site::Integer)
+   ccall((:mj_jacSite,libmujoco),Void,(Ptr{Model},Ptr{Data},Ptr{mjtNum},Ptr{mjtNum},Cint),m,d,jacp,jacr,site)
 end
 
 # compute translation Jacobian of point, and rotation Jacobian of axis
-function jacPointAxis(m::Ptr{mjModel},d::Ptr{mjData},jacPoint::PV{mjtNum},jacAxis::PV{mjtNum},point::SVector{3, mjtNum},axis::SVector{3, mjtNum},body::Integer)
-   ccall((:mj_jacPointAxis,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum},SVector{3, mjtNum},SVector{3, mjtNum},Cint),m,d,jacPoint,jacAxis,point,axis,body)
+function jacPointAxis(m::Ptr{Model},d::Ptr{Data},jacPoint::PV{mjtNum},jacAxis::PV{mjtNum},point::SVector{3, mjtNum},axis::SVector{3, mjtNum},body::Integer)
+   ccall((:mj_jacPointAxis,libmujoco),Void,(Ptr{Model},Ptr{Data},Ptr{mjtNum},Ptr{mjtNum},SVector{3, mjtNum},SVector{3, mjtNum},Cint),m,d,jacPoint,jacAxis,point,axis,body)
 end
 
 # get id of object with specified name; -1: not found; type is mjtObj
-function name2id(m::Ptr{mjModel},_type::Integer,name::String)
-   ccall((:mj_name2id,libmujoco),Cint,(Ptr{mjModel},Cint,Cstring),m,_type,name)
+function name2id(m::Ptr{Model},_type::Integer,name::String)
+   ccall((:mj_name2id,libmujoco),Cint,(Ptr{Model},Cint,Cstring),m,_type,name)
 end
 
 # get name of object with specified id; 0: invalid type or id; type is mjtObj
-function id2name(m::Ptr{mjModel},_type::Integer,id::Integer)
-   ccall((:mj_id2name,libmujoco),Cstring,(Ptr{mjModel},Cint,Cint),m,_type,id)
+function id2name(m::Ptr{Model},_type::Integer,id::Integer)
+   ccall((:mj_id2name,libmujoco),Cstring,(Ptr{Model},Cint,Cint),m,_type,id)
 end
 
 # convert sparse inertia matrix M into full matrix
-function fullM(m::Ptr{mjModel},dst::PV{mjtNum},M::PV{mjtNum})
-   ccall((:mj_fullM,libmujoco),Void,(Ptr{mjModel},Ptr{mjtNum},Ptr{mjtNum}),m,dst,M)
+function fullM(m::Ptr{Model},dst::PV{mjtNum},M::PV{mjtNum})
+   ccall((:mj_fullM,libmujoco),Void,(Ptr{Model},Ptr{mjtNum},Ptr{mjtNum}),m,dst,M)
 end
 
 # multiply vector by inertia matrix
-function mulM(m::Ptr{mjModel},d::Ptr{mjData},res::PV{mjtNum},vec::PV{mjtNum})
-   ccall((:mj_mulM,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum}),m,d,res,vec)
+function mulM(m::Ptr{Model},d::Ptr{Data},res::PV{mjtNum},vec::PV{mjtNum})
+   ccall((:mj_mulM,libmujoco),Void,(Ptr{Model},Ptr{Data},Ptr{mjtNum},Ptr{mjtNum}),m,d,res,vec)
 end
 
 # Add inertia matrix to destination matrix.
 # Destination can be sparse uncompressed, or dense when all int* are NULL
-function addM(m::Ptr{mjModel},d::Ptr{mjData},dst::PV{mjtNum},rownnz::Vector{Integer},rowadr::Vector{Integer},colind::Vector{Integer})
-   ccall((:mj_addM,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{Cint},Ptr{Cint},Ptr{Cint}),m,d,dst,rownnz,rowadr,colind)
+function addM(m::Ptr{Model},d::Ptr{Data},dst::PV{mjtNum},rownnz::Vector{Integer},rowadr::Vector{Integer},colind::Vector{Integer})
+   ccall((:mj_addM,libmujoco),Void,(Ptr{Model},Ptr{Data},Ptr{mjtNum},Ptr{Cint},Ptr{Cint},Ptr{Cint}),m,d,dst,rownnz,rowadr,colind)
 end
 
 # apply cartesian force and torque (outside xfrc_applied mechanism)
-function applyFT(m::Ptr{mjModel},d::Ptr{mjData},force::PV{mjtNum},torque::PV{mjtNum},point::PV{mjtNum},body::Integer,qfrc_target::PV{mjtNum})
-   ccall((:mj_applyFT,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum},Cint,Ptr{mjtNum}),m,d,force,torque,point,body,qfrc_target)
+function applyFT(m::Ptr{Model},d::Ptr{Data},force::PV{mjtNum},torque::PV{mjtNum},point::PV{mjtNum},body::Integer,qfrc_target::PV{mjtNum})
+   ccall((:mj_applyFT,libmujoco),Void,(Ptr{Model},Ptr{Data},Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum},Cint,Ptr{mjtNum}),m,d,force,torque,point,body,qfrc_target)
 end
 
 # compute object 6D velocity in object-centered frame, world/local orientation
-function objectVelocity(m::Ptr{mjModel},d::Ptr{mjData},objtype::Integer,objid::Integer,res::PV{mjtNum},flg_local::Integer)
-   ccall((:mj_objectVelocity,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Cint,Cint,Ptr{mjtNum},Cint),m,d,objtype,objid,res,flg_local)
+function objectVelocity(m::Ptr{Model},d::Ptr{Data},objtype::Integer,objid::Integer,res::PV{mjtNum},flg_local::Integer)
+   ccall((:mj_objectVelocity,libmujoco),Void,(Ptr{Model},Ptr{Data},Cint,Cint,Ptr{mjtNum},Cint),m,d,objtype,objid,res,flg_local)
 end
 
 # compute object 6D acceleration in object-centered frame, world/local orientation
-function objectAcceleration(m::Ptr{mjModel},d::Ptr{mjData},objtype::Integer,objid::Integer,res::PV{mjtNum},flg_local::Integer)
-   ccall((:mj_objectAcceleration,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Cint,Cint,Ptr{mjtNum},Cint),m,d,objtype,objid,res,flg_local)
+function objectAcceleration(m::Ptr{Model},d::Ptr{Data},objtype::Integer,objid::Integer,res::PV{mjtNum},flg_local::Integer)
+   ccall((:mj_objectAcceleration,libmujoco),Void,(Ptr{Model},Ptr{Data},Cint,Cint,Ptr{mjtNum},Cint),m,d,objtype,objid,res,flg_local)
 end
 
 # compute velocity by finite-differencing two positions
-function differentiatePos(m::Ptr{mjModel},qvel::PV{mjtNum},dt::mjtNum,qpos1::PV{mjtNum},qpos2::PV{mjtNum})
-   ccall((:mj_differentiatePos,libmujoco),Void,(Ptr{mjModel},Ptr{mjtNum},mjtNum,Ptr{mjtNum},Ptr{mjtNum}),m,qvel,dt,qpos1,qpos2)
+function differentiatePos(m::Ptr{Model},qvel::PV{mjtNum},dt::mjtNum,qpos1::PV{mjtNum},qpos2::PV{mjtNum})
+   ccall((:mj_differentiatePos,libmujoco),Void,(Ptr{Model},Ptr{mjtNum},mjtNum,Ptr{mjtNum},Ptr{mjtNum}),m,qvel,dt,qpos1,qpos2)
 end
 
 # extract 6D force:torque for one contact, in contact frame
-function contactForce(m::Ptr{mjModel},d::Ptr{mjData},id::Integer,result::PV{mjtNum})
-   ccall((:mj_contactForce,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Cint,Ptr{mjtNum}),m,d,id,result)
+function contactForce(m::Ptr{Model},d::Ptr{Data},id::Integer,result::PV{mjtNum})
+   ccall((:mj_contactForce,libmujoco),Void,(Ptr{Model},Ptr{Data},Cint,Ptr{mjtNum}),m,d,id,result)
 end
 
 # integrate position with given velocity
-function integratePos(m::Ptr{mjModel},qpos::PV{mjtNum},qvel::PV{mjtNum},dt::mjtNum)
-   ccall((:mj_integratePos,libmujoco),Void,(Ptr{mjModel},Ptr{mjtNum},Ptr{mjtNum},mjtNum),m,qpos,qvel,dt)
+function integratePos(m::Ptr{Model},qpos::PV{mjtNum},qvel::PV{mjtNum},dt::mjtNum)
+   ccall((:mj_integratePos,libmujoco),Void,(Ptr{Model},Ptr{mjtNum},Ptr{mjtNum},mjtNum),m,qpos,qvel,dt)
 end
 
 # normalize all quaterions in qpos-type vector
-function normalizeQuat(m::Ptr{mjModel},qpos::PV{mjtNum})
-   ccall((:mj_normalizeQuat,libmujoco),Void,(Ptr{mjModel},Ptr{mjtNum}),m,qpos)
+function normalizeQuat(m::Ptr{Model},qpos::PV{mjtNum})
+   ccall((:mj_normalizeQuat,libmujoco),Void,(Ptr{Model},Ptr{mjtNum}),m,qpos)
 end
 
 # map from body local to global Cartesian coordinates
-function local2Global(d::Ptr{mjData},xpos::PV{mjtNum},xmat::PV{mjtNum},pos::PV{mjtNum},quat::PV{mjtNum},body::Integer)
-   ccall((:mj_local2Global,libmujoco),Void,(Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum},Cint),d,xpos,xmat,pos,quat,body)
+function local2Global(d::Ptr{Data},xpos::PV{mjtNum},xmat::PV{mjtNum},pos::PV{mjtNum},quat::PV{mjtNum},body::Integer)
+   ccall((:mj_local2Global,libmujoco),Void,(Ptr{Data},Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum},Cint),d,xpos,xmat,pos,quat,body)
 end
 
 # sum all body masses
-function getTotalmass(m::Ptr{mjModel})
-   ccall((:mj_getTotalmass,libmujoco),mjtNum,(Ptr{mjModel},),m)
+function getTotalmass(m::Ptr{Model})
+   ccall((:mj_getTotalmass,libmujoco),mjtNum,(Ptr{Model},),m)
 end
 
 # scale body masses and inertias to achieve specified total mass
-function setTotalmass(m::Ptr{mjModel},newmass::mjtNum)
-   ccall((:mj_setTotalmass,libmujoco),Void,(Ptr{mjModel},mjtNum),m,newmass)
+function setTotalmass(m::Ptr{Model},newmass::mjtNum)
+   ccall((:mj_setTotalmass,libmujoco),Void,(Ptr{Model},mjtNum),m,newmass)
 end
 
 # version number: 1.0.2 is encoded as 102 #TODO comment??
@@ -686,25 +649,25 @@ end
 # Intersect ray (pnt+x*vec, x>=0) with visible geoms, except geoms in bodyexclude.
 # Return geomid and distance (x) to nearest surface, or -1 if no intersection.
 # geomgroup, flg_static are as in mjvOption; geomgroup==NULL skips group exclusion.
-function ray(m::Ptr{mjModel},d::Ptr{mjData},pnt::PV{mjtNum},vec::PV{mjtNum},
+function ray(m::Ptr{Model},d::Ptr{Data},pnt::PV{mjtNum},vec::PV{mjtNum},
              geomgroup::Vector{mjtByte},flg_static::mjtByte,bodyexclude::Integer, 
              geomid::Vector{Integer})
    ccall((:mj_ray,libmujoco),mjtNum,
-         (Ptr{mjModel},Ptr{mjData},Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtByte},mjtByte,Cint,Ptr{Cint}),
+         (Ptr{Model},Ptr{Data},Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtByte},mjtByte,Cint,Ptr{Cint}),
          m,d,pnt,vec,
          geomgroup,flg_static,bodyexclude, 
         geomid)
 end
 
 # Interect ray with hfield, return nearest distance or -1 if no intersection.
-function rayHfield(m::Ptr{mjModel},d::Ptr{mjData},geomid::Integer,
+function rayHfield(m::Ptr{Model},d::Ptr{Data},geomid::Integer,
                    pnt::PV{mjtNum},vec::PV{mjtNum});
-   ccall((:mj_rayHfield,libmujoco),mjtNum,(Ptr{mjModel},Ptr{mjData},Cint,Ptr{mjtNum},Ptr{mjtNum}),m,d,geomid,pnt,vec)
+   ccall((:mj_rayHfield,libmujoco),mjtNum,(Ptr{Model},Ptr{Data},Cint,Ptr{mjtNum},Ptr{mjtNum}),m,d,geomid,pnt,vec)
 end
 
 # Interect ray with mesh, return nearest distance or -1 if no intersection.
-function rayMesh(m::Ptr{mjModel},d::Ptr{mjData},geomid::Integer,pnt::PV{mjtNum},vec::PV{mjtNum})
-   ccall((:mj_rayMesh,libmujoco),mjtNum,(Ptr{mjModel},Ptr{mjData},Cint,Ptr{mjtNum},Ptr{mjtNum}),m,d,geomid,pnt,vec)
+function rayMesh(m::Ptr{Model},d::Ptr{Data},geomid::Integer,pnt::PV{mjtNum},vec::PV{mjtNum})
+   ccall((:mj_rayMesh,libmujoco),mjtNum,(Ptr{Model},Ptr{Data},Cint,Ptr{mjtNum},Ptr{mjtNum}),m,d,geomid,pnt,vec)
 end
 
 # Interect ray with pure geom, return nearest distance or -1 if no intersection.
@@ -756,34 +719,34 @@ function mjv_alignToCamera(res::PV{mjtNum},vec::PV{mjtNum},forward::PV{mjtNum})
 end
 
 # move camera with mouse; action is mjtMouse
-function mjv_moveCamera(m::Ptr{mjModel},action::Integer,reldx::mjtNum,reldy::mjtNum,scn::Ptr{mjvScene},cam::Ptr{mjvCamera})
-   ccall((:mjv_moveCamera,libmujoco),Void,(Ptr{mjModel},Cint,mjtNum,mjtNum,Ptr{mjvScene},Ptr{mjvCamera}),m,action,reldx,reldy,scn,cam)
+function mjv_moveCamera(m::Ptr{Model},action::Integer,reldx::mjtNum,reldy::mjtNum,scn::Ptr{mjvScene},cam::Ptr{mjvCamera})
+   ccall((:mjv_moveCamera,libmujoco),Void,(Ptr{Model},Cint,mjtNum,mjtNum,Ptr{mjvScene},Ptr{mjvCamera}),m,action,reldx,reldy,scn,cam)
 end
 
 # move perturb object with mouse; action is mjtMouse
-function mjv_movePerturb(m::Ptr{mjModel},d::Ptr{mjData},action::Integer,reldx::mjtNum,reldy::mjtNum,scn::Ptr{mjvScene},pert::Ptr{mjvPerturb})
-   ccall((:mjv_movePerturb,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Cint,mjtNum,mjtNum,Ptr{mjvScene},Ptr{mjvPerturb}),m,d,action,reldx,reldy,scn,pert)
+function mjv_movePerturb(m::Ptr{Model},d::Ptr{Data},action::Integer,reldx::mjtNum,reldy::mjtNum,scn::Ptr{mjvScene},pert::Ptr{mjvPerturb})
+   ccall((:mjv_movePerturb,libmujoco),Void,(Ptr{Model},Ptr{Data},Cint,mjtNum,mjtNum,Ptr{mjvScene},Ptr{mjvPerturb}),m,d,action,reldx,reldy,scn,pert)
 end
 
 # move model with mouse; action is mjtMouse
-function mjv_moveModel(m::Ptr{mjModel},action::Integer,reldx::mjtNum,reldy::mjtNum,roomup::PV{mjtNum},scn::Ptr{mjvScene})
-   ccall((:mjv_moveModel,libmujoco),Void,(Ptr{mjModel},Cint,mjtNum,mjtNum,Ptr{mjtNum},Ptr{mjvScene}),m,action,reldx,reldy,roomup,scn)
+function mjv_moveModel(m::Ptr{Model},action::Integer,reldx::mjtNum,reldy::mjtNum,roomup::PV{mjtNum},scn::Ptr{mjvScene})
+   ccall((:mjv_moveModel,libmujoco),Void,(Ptr{Model},Cint,mjtNum,mjtNum,Ptr{mjtNum},Ptr{mjvScene}),m,action,reldx,reldy,roomup,scn)
 end
 
 # copy perturb pos,quat from selected body; set scale for perturbation
-function mjv_initPerturb(m::Ptr{mjModel},d::Ptr{mjData},scn::Ptr{mjvScene},pert::Ptr{mjvPerturb})
-   ccall((:mjv_initPerturb,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjvScene},Ptr{mjvPerturb}),m,d,scn,pert)
+function mjv_initPerturb(m::Ptr{Model},d::Ptr{Data},scn::Ptr{mjvScene},pert::Ptr{mjvPerturb})
+   ccall((:mjv_initPerturb,libmujoco),Void,(Ptr{Model},Ptr{Data},Ptr{mjvScene},Ptr{mjvPerturb}),m,d,scn,pert)
 end
 
 # set perturb pos,quat in d->mocap when selected body is mocap, and in d->qpos otherwise
 #  d->qpos written only if flg_paused and subtree root for selected body has free joint
-function mjv_applyPerturbPose(m::Ptr{mjModel},d::Ptr{mjData},pert::Ptr{mjvPerturb},flg_paused::Integer)
-   ccall((:mjv_applyPerturbPose,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjvPerturb},Cint),m,d,pert,flg_paused)
+function mjv_applyPerturbPose(m::Ptr{Model},d::Ptr{Data},pert::Ptr{mjvPerturb},flg_paused::Integer)
+   ccall((:mjv_applyPerturbPose,libmujoco),Void,(Ptr{Model},Ptr{Data},Ptr{mjvPerturb},Cint),m,d,pert,flg_paused)
 end
 
 # set perturb force,torque in d->xfrc_applied, if selected body is dynamic
-function mjv_applyPerturbForce(m::Ptr{mjModel},d::Ptr{mjData},pert::Ptr{mjvPerturb})
-   ccall((:mjv_applyPerturbForce,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjvPerturb}),m,d,pert)
+function mjv_applyPerturbForce(m::Ptr{Model},d::Ptr{Data},pert::Ptr{mjvPerturb})
+   ccall((:mjv_applyPerturbForce,libmujoco),Void,(Ptr{Model},Ptr{Data},Ptr{mjvPerturb}),m,d,pert)
 end
 
 # Return the average of two OpenGL cameras.
@@ -792,10 +755,10 @@ function mjv_averageCamera(cam1::Ptr{mjvGLCamera}, cam2::Ptr{mjvGLCamera})
 end
 
 # Select model geom with mouse, return -1 if none selected. selpnt is the 3D point.
-function mjv_select(m::Ptr{mjModel},d::Ptr{mjData},vopt::Ptr{mjvOption},
+function mjv_select(m::Ptr{Model},d::Ptr{Data},vopt::Ptr{mjvOption},
                     aspectratio::mjtNum, relx::mjtNum, rely::mjtNum,
                     scn::Ptr{mjvScene}, selpnt::PV{mjtNum})
-   ccall((:mjv_select,libmujoco),Cint,(Ptr{mjModel},Ptr{mjData},Ptr{mjvOption},
+   ccall((:mjv_select,libmujoco),Cint,(Ptr{Model},Ptr{Data},Ptr{mjvOption},
                                        mjtNum,mjtNum,mjtNum,
                                        Ptr{mjvScene},Ptr{Cdouble}),
          m,d,vopt,aspectratio,relx,rely,
@@ -840,18 +803,18 @@ function mjv_freeScene(scn::Ptr{mjvScene})
 end
 
 # update entire scene
-function mjv_updateScene(m::Ptr{mjModel},d::Ptr{mjData},opt::Ptr{mjvOption},pert::Ptr{mjvPerturb},cam::Ptr{mjvCamera},catmask::Integer,scn::Ptr{mjvScene})
-   ccall((:mjv_updateScene,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjvOption},Ptr{mjvPerturb},Ptr{mjvCamera},Cint,Ptr{mjvScene}),m,d,opt,pert,cam,catmask,scn)
+function mjv_updateScene(m::Ptr{Model},d::Ptr{Data},opt::Ptr{mjvOption},pert::Ptr{mjvPerturb},cam::Ptr{mjvCamera},catmask::Integer,scn::Ptr{mjvScene})
+   ccall((:mjv_updateScene,libmujoco),Void,(Ptr{Model},Ptr{Data},Ptr{mjvOption},Ptr{mjvPerturb},Ptr{mjvCamera},Cint,Ptr{mjvScene}),m,d,opt,pert,cam,catmask,scn)
 end
 
 # add geoms from selected categories to existing scene
-function mjv_addGeoms(m::Ptr{mjModel},d::Ptr{mjData},opt::Ptr{mjvOption},pert::Ptr{mjvPerturb},catmask::Integer,scn::Ptr{mjvScene})
-   ccall((:mjv_addGeoms,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjvOption},Ptr{mjvPerturb},Cint,Ptr{mjvScene}),m,d,opt,pert,catmask,scn)
+function mjv_addGeoms(m::Ptr{Model},d::Ptr{Data},opt::Ptr{mjvOption},pert::Ptr{mjvPerturb},catmask::Integer,scn::Ptr{mjvScene})
+   ccall((:mjv_addGeoms,libmujoco),Void,(Ptr{Model},Ptr{Data},Ptr{mjvOption},Ptr{mjvPerturb},Cint,Ptr{mjvScene}),m,d,opt,pert,catmask,scn)
 end
 
 # update camera only
-function mjv_updateCamera(m::Ptr{mjModel},d::Ptr{mjData},cam::Ptr{mjvCamera},scn::Ptr{mjvScene})
-   ccall((:mjv_updateCamera,libmujoco),Void,(Ptr{mjModel},Ptr{mjData},Ptr{mjvCamera},Ptr{mjvScene}),m,d,cam,scn)
+function mjv_updateCamera(m::Ptr{Model},d::Ptr{Data},cam::Ptr{mjvCamera},scn::Ptr{mjvScene})
+   ccall((:mjv_updateCamera,libmujoco),Void,(Ptr{Model},Ptr{Data},Ptr{mjvCamera},Ptr{mjvScene}),m,d,cam,scn)
 end
 
 #---------------------- OpenGL rendering -----------------------------------------------
@@ -862,8 +825,8 @@ function mjr_defaultContext(con::Ptr{mjrContext})
 end
 
 # allocate resources in custom OpenGL context; fontscale is mjtFontScale
-function mjr_makeContext(m::Ptr{mjModel},con::Ptr{mjrContext},fontscale::Integer)
-   ccall((:mjr_makeContext,libmujoco),Void,(Ptr{mjModel},Ptr{mjrContext},Cint),m,con,fontscale)
+function mjr_makeContext(m::Ptr{Model},con::Ptr{mjrContext},fontscale::Integer)
+   ccall((:mjr_makeContext,libmujoco),Void,(Ptr{Model},Ptr{mjrContext},Cint),m,con,fontscale)
 end
 
 # free resources in custom OpenGL context, set to default
@@ -872,18 +835,18 @@ function mjr_freeContext(con::Ptr{mjrContext})
 end
 
 # (re) upload texture to GPU
-function mjr_uploadTexture(m::Ptr{mjModel},con::Ptr{mjrContext},texid::Integer)
-   ccall((:mjr_uploadTexture,libmujoco),Void,(Ptr{mjModel},Ptr{mjrContext},Cint),m,con,texid)
+function mjr_uploadTexture(m::Ptr{Model},con::Ptr{mjrContext},texid::Integer)
+   ccall((:mjr_uploadTexture,libmujoco),Void,(Ptr{Model},Ptr{mjrContext},Cint),m,con,texid)
 end
 
 # (re) upload mesh to GPU
-function mjr_uploadMesh(m::Ptr{mjModel},con::Ptr{mjrContext},meshid::Integer)
-   ccall((:mjr_uploadMesh,libmujoco),Void,(Ptr{mjModel},Ptr{mjrContext},Cint),m,con,meshid)
+function mjr_uploadMesh(m::Ptr{Model},con::Ptr{mjrContext},meshid::Integer)
+   ccall((:mjr_uploadMesh,libmujoco),Void,(Ptr{Model},Ptr{mjrContext},Cint),m,con,meshid)
 end
 
 # (re) upload height field to GPU
-function mjr_uploadHField(m::Ptr{mjModel},con::Ptr{mjrContext},hfieldid::Integer)
-   ccall((:mjr_uploadHField,libmujoco),Void,(Ptr{mjModel},Ptr{mjrContext},Cint),m,con,hfieldid)
+function mjr_uploadHField(m::Ptr{Model},con::Ptr{mjrContext},hfieldid::Integer)
+   ccall((:mjr_uploadHField,libmujoco),Void,(Ptr{Model},Ptr{mjrContext},Cint),m,con,hfieldid)
 end
 
 # set OpenGL framebuffer for rendering: mjFB_WINDOW or mjFB_OFFSCREEN
@@ -997,9 +960,9 @@ function mju_free(ptr::Ptr{Void})
    ccall((:mju_free,libmujoco),Void,(Ptr{Void},),ptr)
 end
 
-# high-level warning function: count warnings in mjData, print only the first
-function warning(d::Ptr{mjData},warning::Integer,info::Integer)
-   ccall((:mj_warning,libmujoco),Void,(Ptr{mjData},Cint,Cint),d,warning,info)
+# high-level warning function: count warnings in Data, print only the first
+function warning(d::Ptr{Data},warning::Integer,info::Integer)
+   ccall((:mj_warning,libmujoco),Void,(Ptr{Data},Cint,Cint),d,warning,info)
 end
 
 # Write [datetime, type: message] to MUJOCO_LOG.TXT.
@@ -1293,75 +1256,115 @@ end
 #---------------------- Utility functions: quaternions ---------------------------------
 
 # rotate vector by quaternion
-function mju_rotVecQuat(res::SVector{3, mjtNum},vec::SVector{3, mjtNum},quat::SVector{4, mjtNum})
-   ccall((:mju_rotVecQuat,libmujoco),Void,(SVector{3, mjtNum},SVector{3, mjtNum},SVector{4, mjtNum}),res,vec,quat)
+function mju_rotVecQuat(res::Vector{mjtNum},vec::Vector{mjtNum},quat::Vector{mjtNum})
+   @assert length(res) >= 3
+   @assert length(vec) >= 3
+   @assert length(quat2) >= 4
+   ccall((:mju_rotVecQuat,libmujoco),Void,(Vector{mjtNum},Vector{mjtNum},Vector{mjtNum}),res,vec,quat)
 end
 
 # negate quaternion
-function mju_negQuat(res::SVector{4, mjtNum},quat::SVector{4, mjtNum})
-   ccall((:mju_negQuat,libmujoco),Void,(SVector{4, mjtNum},SVector{4, mjtNum}),res,quat)
+function mju_negQuat(res::Vector{mjtNum},quat::Vector{mjtNum})
+   @assert length(res) >= 4
+   @assert length(quat) >= 4
+   ccall((:mju_negQuat,libmujoco),Void,(Vector{mjtNum},Vector{mjtNum}),res,quat)
 end
 
 # muiltiply quaternions
-function mju_mulQuat(res::SVector{4, mjtNum},quat1::SVector{4, mjtNum},quat2::SVector{4, mjtNum})
-   ccall((:mju_mulQuat,libmujoco),Void,(SVector{4, mjtNum},SVector{4, mjtNum},SVector{4, mjtNum}),res,quat1,quat2)
+function mju_mulQuat(res::Vector{mjtNum},quat1::Vector{mjtNum},quat2::Vector{mjtNum})
+   @assert length(res) >= 4
+   @assert length(quat1) >= 4
+   @assert length(quat2) >= 4
+   ccall((:mju_mulQuat,libmujoco),Void,(Vector{mjtNum},Vector{mjtNum},Vector{mjtNum}),res,quat1,quat2)
 end
 
 # muiltiply quaternion and axis
-function mju_mulQuatAxis(res::SVector{4, mjtNum},quat::SVector{4, mjtNum},axis::SVector{3, mjtNum})
-   ccall((:mju_mulQuatAxis,libmujoco),Void,(SVector{4, mjtNum},SVector{4, mjtNum},SVector{3, mjtNum}),res,quat,axis)
+function mju_mulQuatAxis(res::Vector{mjtNum},quat::Vector{mjtNum},axis::Vector{mjtNum})
+   @assert length(res) >= 4
+   @assert length(quat) >= 4
+   @assert length(axis) >= 3
+   ccall((:mju_mulQuatAxis,libmujoco),Void,(Vector{mjtNum},Vector{mjtNum},Vector{mjtNum}),res,quat,axis)
 end
 
 # convert axisAngle to quaternion
-function mju_axisAngle2Quat(res::SVector{4, mjtNum},axis::SVector{3, mjtNum},angle::mjtNum)
-   ccall((:mju_axisAngle2Quat,libmujoco),Void,(SVector{4, mjtNum},SVector{3, mjtNum},mjtNum),res,axis,angle)
+function mju_axisAngle2Quat(res::Vector{mjtNum},axis::Vector{mjtNum},angle::mjtNum)
+   @assert length(res) >= 4
+   @assert length(axis) >= 3
+   ccall((:mju_axisAngle2Quat,libmujoco),Void,(Vector{mjtNum},Vector{mjtNum},mjtNum),res,axis,angle)
 end
 
 # convert quaternion (corresponding to orientation difference) to 3D velocity
-function mju_quat2Vel(res::SVector{3, mjtNum},quat::SVector{4, mjtNum},dt::mjtNum)
-   ccall((:mju_quat2Vel,libmujoco),Void,(SVector{3, mjtNum},SVector{4, mjtNum},mjtNum),res,quat,dt)
+function mju_quat2Vel(res::Vector{mjtNum},quat::Vector{mjtNum},dt::mjtNum)
+   @assert length(res) >= 3
+   @assert length(quat) >= 4
+   ccall((:mju_quat2Vel,libmujoco),Void,(Vector{mjtNum},Vector{mjtNum},mjtNum),res,quat,dt)
 end
 
 # convert quaternion to 3D rotation matrix
-function mju_quat2Mat(res::SVector{9, mjtNum},quat::SVector{4, mjtNum})
-   ccall((:mju_quat2Mat,libmujoco),Void,(SVector{9, mjtNum},SVector{4, mjtNum}),res,quat)
+function mju_quat2Mat(res::Vector{mjtNum},quat::Vector{mjtNum})
+   @assert length(res) >= 9
+   @assert length(quat) >= 4
+   ccall((:mju_quat2Mat,libmujoco),Void,(Vector{mjtNum},Vector{mjtNum}),res,quat)
 end
 
 # convert 3D rotation matrix to quaterion
-function mju_mat2Quat(quat::SVector{4, mjtNum},mat::SVector{9, mjtNum})
-   ccall((:mju_mat2Quat,libmujoco),Void,(SVector{4, mjtNum},SVector{9, mjtNum}),quat,mat)
+function mju_mat2Quat(quat::Vector{mjtNum},mat::Vector{mjtNum})
+   @assert length(quat) >= 4
+   @assert length(mat) >= 9
+   ccall((:mju_mat2Quat,libmujoco),Void,(Vector{mjtNum},Vector{mjtNum}),quat,mat)
 end
 
 # time-derivative of quaternion, given 3D rotational velocity
-function mju_derivQuat(res::SVector{4, mjtNum},quat::SVector{4, mjtNum},vel::SVector{3, mjtNum})
-   ccall((:mju_derivQuat,libmujoco),Void,(SVector{4, mjtNum},SVector{4, mjtNum},SVector{3, mjtNum}),res,quat,vel)
+function mju_derivQuat(res::Vector{mjtNum},quat::Vector{mjtNum},vel::Vector{mjtNum})
+   @assert length(res) >= 4
+   @assert length(quat) >= 4
+   @assert length(vel) >= 3
+   ccall((:mju_derivQuat,libmujoco),Void,(Vector{mjtNum},Vector{mjtNum},Vector{mjtNum}),res,quat,vel)
 end
 
 # integrate quaterion given 3D angular velocity
-function mju_quatIntegrate(quat::SVector{4, mjtNum},vel::SVector{3, mjtNum},scale::mjtNum)
-   ccall((:mju_quatIntegrate,libmujoco),Void,(SVector{4, mjtNum},SVector{3, mjtNum},mjtNum),quat,vel,scale)
+function mju_quatIntegrate(quat::Vector{mjtNum},vel::Vector{mjtNum},scale::mjtNum)
+   @assert length(quat) >= 4
+   @assert length(vel) >= 3
+   ccall((:mju_quatIntegrate,libmujoco),Void,(Ptr{mjtNum},Ptr{mjtNum},mjtNum),quat,vel,scale)
 end
 
 # compute quaternion performing rotation from z-axis to given vector
-function mju_quatZ2Vec(quat::SVector{4, mjtNum},vec::SVector{3, mjtNum})
-   ccall((:mju_quatZ2Vec,libmujoco),Void,(SVector{4, mjtNum},SVector{3, mjtNum}),quat,vec)
+function mju_quatZ2Vec(quat::Vector{mjtNum},vec::Vector{mjtNum})
+   @assert length(quat) >= 4
+   @assert length(vec) >= 3
+   ccall((:mju_quatZ2Vec,libmujoco),Void,(Ptr{mjtNum},Ptr{mjtNum}),quat,vec)
 end
 
 #---------------------- Utility functions: poses (pos, quat) ---------------------------
 
 # multiply two poses
-function mju_mulPose(posres::SVector{3, mjtNum},quatres::SVector{4, mjtNum},pos1::SVector{3, mjtNum},quat1::SVector{4, mjtNum},pos2::SVector{3, mjtNum},quat2::SVector{4, mjtNum})
-   ccall((:mju_mulPose,libmujoco),Void,(SVector{3, mjtNum},SVector{4, mjtNum},SVector{3, mjtNum},SVector{4, mjtNum},SVector{3, mjtNum},SVector{4, mjtNum}),posres,quatres,pos1,quat1,pos2,quat2)
+function mju_mulPose(posres::Vector{mjtNum},quatres::Vector{mjtNum},pos1::Vector{mjtNum},quat1::Vector{mjtNum},pos2::Vector{mjtNum},quat2::Vector{mjtNum})
+   @assert length(posres) >= 3
+   @assert length(quatres) >= 4
+   @assert length(pos1) >= 3
+   @assert length(quat1) >= 4
+   @assert length(pos2) >= 3
+   @assert length(quat2) >= 4
+   ccall((:mju_mulPose,libmujoco),Void,(Vector{mjtNum},Vector{mjtNum},Vector{mjtNum},Vector{mjtNum},Vector{mjtNum},Vector{mjtNum}),posres,quatres,pos1,quat1,pos2,quat2)
 end
 
 # negate pose
-function mju_negPose(posres::SVector{3, mjtNum},quatres::SVector{4, mjtNum},pos::SVector{3, mjtNum},quat::SVector{4, mjtNum})
-   ccall((:mju_negPose,libmujoco),Void,(SVector{3, mjtNum},SVector{4, mjtNum},SVector{3, mjtNum},SVector{4, mjtNum}),posres,quatres,pos,quat)
+function mju_negPose(posres::Vector{mjtNum},quatres::Vector{mjtNum},pos::Vector{mjtNum},quat::Vector{mjtNum})
+   @assert length(posres) >= 3
+   @assert length(quatres) >= 4
+   @assert length(pos) >= 3
+   @assert length(quat) >= 4
+   ccall((:mju_negPose,libmujoco),Void,(Vector{mjtNum},Vector{mjtNum},Vector{mjtNum},Vector{mjtNum}),posres,quatres,pos,quat)
 end
 
 # transform vector by pose
-function mju_trnVecPose(res::SVector{3, mjtNum},pos::SVector{3, mjtNum},quat::SVector{4, mjtNum},vec::SVector{3, mjtNum})
-   ccall((:mju_trnVecPose,libmujoco),Void,(SVector{3, mjtNum},SVector{3, mjtNum},SVector{4, mjtNum},SVector{3, mjtNum}),res,pos,quat,vec)
+function mju_trnVecPose(res::Vector{mjtNum},pos::Vector{mjtNum},quat::Vector{mjtNum},vec::Vector{mjtNum})
+   @assert length(res) >= 3
+   @assert length(pos) >= 3
+   @assert length(quat) >= 4
+   @assert length(vec) >= 3
+   ccall((:mju_trnVecPose,libmujoco),Void,(Vector{mjtNum},Vector{mjtNum},Vector{mjtNum},Vector{mjtNum}),res,pos,quat,vec)
 end
 
 #---------------------- Utility functions: matrix decomposition ------------------------

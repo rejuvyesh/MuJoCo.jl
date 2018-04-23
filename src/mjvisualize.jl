@@ -1,30 +1,30 @@
 
-const mjNGROUP = 5
-const mjMAXOVERLAY = 500
+const NGROUP = 5
+const MAXOVERLAY = 500
 
-const mjMAXLINE = 100
-const mjMAXLINEPNT = 500
-const mjMAXPLANEGRID = 100
+const MAXLINE = 100
+const MAXLINEPNT = 500
+const MAXPLANEGRID = 100
 
-@enum mjtCatBit mjCAT_STATIC = (UInt32)(1) mjCAT_DYNAMIC = (UInt32)(2) mjCAT_DECOR = (UInt32)(4) mjCAT_ALL = (UInt32)(7)
+@enum mjtCatBit CAT_STATIC = (UInt32)(1) CAT_DYNAMIC = (UInt32)(2) CAT_DECOR = (UInt32)(4) CAT_ALL = (UInt32)(7)
 
-@enum mjtMouse mjMOUSE_NONE = (UInt32)(0) mjMOUSE_ROTATE_V = (UInt32)(1) mjMOUSE_ROTATE_H = (UInt32)(2) mjMOUSE_MOVE_V = (UInt32)(3) mjMOUSE_MOVE_H = (UInt32)(4) mjMOUSE_ZOOM = (UInt32)(5) mjMOUSE_SELECT = (UInt32)(6)
+@enum mjtMouse MOUSE_NONE = (UInt32)(0) MOUSE_ROTATE_V = (UInt32)(1) MOUSE_ROTATE_H = (UInt32)(2) MOUSE_MOVE_V = (UInt32)(3) MOUSE_MOVE_H = (UInt32)(4) MOUSE_ZOOM = (UInt32)(5) MOUSE_SELECT = (UInt32)(6)
 
-@enum mjtPertBit mjPERT_TRANSLATE = (UInt32)(1) mjPERT_ROTATE = (UInt32)(2)
+@enum mjtPertBit PERT_TRANSLATE = (UInt32)(1) PERT_ROTATE = (UInt32)(2)
 
-@enum mjtCamera mjCAMERA_FREE = (UInt32)(0) mjCAMERA_TRACKING = (UInt32)(1) mjCAMERA_FIXED = (UInt32)(2) mjCAMERA_USER = (UInt32)(3)
+@enum mjtCamera CAMERA_FREE = (UInt32)(0) CAMERA_TRACKING = (UInt32)(1) CAMERA_FIXED = (UInt32)(2) CAMERA_USER = (UInt32)(3)
 
-@enum mjtLabel mjLABEL_NONE = (UInt32)(0) mjLABEL_BODY = (UInt32)(1) mjLABEL_JOINT = (UInt32)(2) mjLABEL_GEOM = (UInt32)(3) mjLABEL_SITE = (UInt32)(4) mjLABEL_CAMERA = (UInt32)(5) mjLABEL_LIGHT = (UInt32)(6) mjLABEL_TENDON = (UInt32)(7) mjLABEL_ACTUATOR = (UInt32)(8) mjLABEL_CONSTRAINT = (UInt32)(9) mjLABEL_SELECTION = (UInt32)(10) mjLABEL_SELPNT = (UInt32)(11) mjLABEL_CONTACTFORCE = (UInt32)(12) mjNLABEL = (UInt32)(13)
+@enum mjtLabel LABEL_NONE = (UInt32)(0) LABEL_BODY = (UInt32)(1) LABEL_JOINT = (UInt32)(2) LABEL_GEOM = (UInt32)(3) LABEL_SITE = (UInt32)(4) LABEL_CAMERA = (UInt32)(5) LABEL_LIGHT = (UInt32)(6) LABEL_TENDON = (UInt32)(7) LABEL_ACTUATOR = (UInt32)(8) LABEL_CONSTRAINT = (UInt32)(9) LABEL_SELECTION = (UInt32)(10) LABEL_SELPNT = (UInt32)(11) LABEL_CONTACTFORCE = (UInt32)(12) NLABEL = (UInt32)(13)
 
-@enum mjtFrame mjFRAME_NONE = (UInt32)(0) mjFRAME_BODY = (UInt32)(1) mjFRAME_GEOM = (UInt32)(2) mjFRAME_SITE = (UInt32)(3) mjFRAME_CAMERA = (UInt32)(4) mjFRAME_LIGHT = (UInt32)(5) mjFRAME_WORLD = (UInt32)(6) mjNFRAME = (UInt32)(7)
+@enum mjtFrame FRAME_NONE = (UInt32)(0) FRAME_BODY = (UInt32)(1) FRAME_GEOM = (UInt32)(2) FRAME_SITE = (UInt32)(3) FRAME_CAMERA = (UInt32)(4) FRAME_LIGHT = (UInt32)(5) FRAME_WORLD = (UInt32)(6) NFRAME = (UInt32)(7)
 
-@enum mjtVisFlag mjVIS_CONVEXHULL = (UInt32)(0) mjVIS_TEXTURE = (UInt32)(1) mjVIS_JOINT = (UInt32)(2) mjVIS_ACTUATOR = (UInt32)(3) mjVIS_CAMERA = (UInt32)(4) mjVIS_LIGHT = (UInt32)(5) mjVIS_CONSTRAINT = (UInt32)(6) mjVIS_INERTIA = (UInt32)(7) mjVIS_PERTFORCE = (UInt32)(8) mjVIS_PERTOBJ = (UInt32)(9) mjVIS_CONTACTPOINT = (UInt32)(10) mjVIS_CONTACTFORCE = (UInt32)(11) mjVIS_CONTACTSPLIT = (UInt32)(12) mjVIS_TRANSPARENT = (UInt32)(13) mjVIS_AUTOCONNECT = (UInt32)(14) mjVIS_COM = (UInt32)(15) mjVIS_SELECT = (UInt32)(16) mjVIS_STATIC = (UInt32)(17) mjNVISFLAG = (UInt32)(18)
+@enum mjtVisFlag VIS_CONVEXHULL = (UInt32)(0) VIS_TEXTURE = (UInt32)(1) VIS_JOINT = (UInt32)(2) VIS_ACTUATOR = (UInt32)(3) VIS_CAMERA = (UInt32)(4) VIS_LIGHT = (UInt32)(5) VIS_CONSTRAINT = (UInt32)(6) VIS_INERTIA = (UInt32)(7) VIS_PERTFORCE = (UInt32)(8) VIS_PERTOBJ = (UInt32)(9) VIS_CONTACTPOINT = (UInt32)(10) VIS_CONTACTFORCE = (UInt32)(11) VIS_CONTACTSPLIT = (UInt32)(12) VIS_TRANSPARENT = (UInt32)(13) VIS_AUTOCONNECT = (UInt32)(14) VIS_COM = (UInt32)(15) VIS_SELECT = (UInt32)(16) VIS_STATIC = (UInt32)(17) NVISFLAG = (UInt32)(18)
 
-@enum mjtRndFlag mjRND_SHADOW = (UInt32)(0) mjRND_WIREFRAME = (UInt32)(1) mjRND_REFLECTION = (UInt32)(2) mjRND_FOG = (UInt32)(3) mjRND_SKYBOX = (UInt32)(4) mjNRNDFLAG = (UInt32)(5)
+@enum mjtRndFlag RND_SHADOW = (UInt32)(0) RND_WIREFRAME = (UInt32)(1) RND_REFLECTION = (UInt32)(2) RND_FOG = (UInt32)(3) RND_SKYBOX = (UInt32)(4) NRNDFLAG = (UInt32)(5)
 
-@enum mjtStereo mjSTEREO_NONE = (UInt32)(0) mjSTEREO_QUADBUFFERED = (UInt32)(1) mjSTEREO_SIDEBYSIDE = (UInt32)(2)
+@enum mjtStereo STEREO_NONE = (UInt32)(0) STEREO_QUADBUFFERED = (UInt32)(1) STEREO_SIDEBYSIDE = (UInt32)(2)
 
-immutable _mjvPerturb
+immutable mjvPerturb
    select::Cint
    active::Cint
    refpos::SVector{3, mjtNum}
@@ -33,9 +33,7 @@ immutable _mjvPerturb
    scale::mjtNum
 end
 
-const mjvPerturb = _mjvPerturb
-
-immutable _mjvCamera
+immutable mjvCamera
    _type::Cint
    fixedcamid::Cint
    trackbodyid::Cint
@@ -45,9 +43,7 @@ immutable _mjvCamera
    elevation::mjtNum
 end
 
-const mjvCamera = _mjvCamera
-
-immutable _mjvGLCamera
+immutable mjvGLCamera
    pos::SVector{3, Cfloat}
    forward::SVector{3, Cfloat}
    up::SVector{3, Cfloat}
@@ -58,9 +54,7 @@ immutable _mjvGLCamera
    frustum_far::Cfloat
 end
 
-const mjvGLCamera = _mjvGLCamera
-
-immutable _mjvGeom
+immutable mjvGeom
    _type::Cint
    dataid::Cint
    objtype::Cint
@@ -83,9 +77,7 @@ immutable _mjvGeom
    transparent::mjtByte
 end
 
-const mjvGeom = _mjvGeom
-
-immutable _mjvLight
+immutable mjvLight
    pos::SVector{3, Cfloat}
    dir::SVector{3, Cfloat}
    attenuation::SVector{3, Cfloat}
@@ -99,9 +91,7 @@ immutable _mjvLight
    castshadow::mjtByte
 end
 
-const mjvLight = _mjvLight
-
-immutable _mjvOption
+immutable mjvOption
    label::Cint
    frame::Cint
    geomgroup::SVector{5, mjtByte}
@@ -109,9 +99,7 @@ immutable _mjvOption
    flags::SVector{18, mjtByte}
 end
 
-const mjvOption = _mjvOption
-
-immutable _mjvScene
+immutable mjvScene
    maxgeom::Cint
    ngeom::Cint
    geoms::Ptr{mjvGeom}
@@ -127,9 +115,7 @@ immutable _mjvScene
    flags::SVector{5, mjtByte}
 end
 
-const mjvScene = _mjvScene
-
-immutable _mjvFigure
+immutable mjvFigure
    flg_legend::Cint
    flg_ticklabel::SVector{2, Cint}
    flg_extend::Cint
@@ -148,10 +134,9 @@ immutable _mjvFigure
    yformat::SVector{20, UInt8}
    minwidth::SVector{20, UInt8}
 
-   linepnt::SVector{mjMAXLINE, Cint}
-	linergb::SVector{mjMAXLINE, SVector{3, Cfloat}}
-   linewidth::SVector{mjMAXLINE, Cfloat}
-	linedata::SVector{mjMAXLINE, SVector{2*mjMAXLINEPNT, Cfloat}}
-	linename::SVector{mjMAXLINE, SVector{100, UInt8}}
+   linepnt::SVector{MAXLINE, Cint}
+	linergb::SVector{MAXLINE, SVector{3, Cfloat}}
+   linewidth::SVector{MAXLINE, Cfloat}
+	linedata::SVector{MAXLINE, SVector{2*MAXLINEPNT, Cfloat}}
+	linename::SVector{MAXLINE, SVector{100, UInt8}}
 end
-const mjvFigure = _mjvFigure

@@ -5,14 +5,13 @@ using MuJoCo
 #val = mj.activate(ENV["MUJOCO_KEY_PATH"])
 @test mj.activated == true # should be activated on module load
 
-modelfile = dirname(@__FILE__)*"/humanoid.xml"
-pm = mj.loadXML(modelfile, "")
+pm = mj.loadXML(modelfile, C_NULL)
 
 @test pm != nothing
 
 pd = mj.makeData(pm)
 
-@test typeof(pd) == Ptr{mjData}
+@test typeof(pd) == Ptr{mj.Data}
 
 m = unsafe_load(pm)
 d = unsafe_load(pd)

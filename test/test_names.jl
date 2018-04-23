@@ -6,7 +6,7 @@
 # site: xpos, etc
 # textures, materials, camera
 
-pm = mj.loadXML(modelfile, "")
+pm = mj.loadXML(modelfile, C_NULL)
 pd = mj.makeData(pm)
 m, d  = mj.mapmujoco(pm, pd)
 

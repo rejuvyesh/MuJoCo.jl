@@ -1,14 +1,11 @@
 
 
-@enum mjtWarning mjWARN_INERTIA = (UInt32)(0) mjWARN_CONTACTFULL = (UInt32)(1) mjWARN_CNSTRFULL = (UInt32)(2) mjWARN_VGEOMFULL = (UInt32)(3) mjWARN_BADQPOS = (UInt32)(4) mjWARN_BADQVEL = (UInt32)(5) mjWARN_BADQACC = (UInt32)(6) mjWARN_BADCTRL = (UInt32)(7) mjNWARNING = (UInt32)(8)
-const _mjNWARNING = Integer(mjNWARNING)
+@enum mjtWarning WARN_INERTIA = (UInt32)(0) WARN_CONTACTFULL = (UInt32)(1) WARN_CNSTRFULL = (UInt32)(2) WARN_VGEOMFULL = (UInt32)(3) WARN_BADQPOS = (UInt32)(4) WARN_BADQVEL = (UInt32)(5) WARN_BADQACC = (UInt32)(6) WARN_BADCTRL = (UInt32)(7) NWARNING = (UInt32)(8)
 
-@enum mjtTimer mjTIMER_STEP = (UInt32)(0) mjTIMER_FORWARD = (UInt32)(1) mjTIMER_INVERSE = (UInt32)(2) mjTIMER_POSITION = (UInt32)(3) mjTIMER_VELOCITY = (UInt32)(4) mjTIMER_ACTUATION = (UInt32)(5) mjTIMER_ACCELERATION = (UInt32)(6) mjTIMER_CONSTRAINT = (UInt32)(7) mjTIMER_POS_KINEMATICS = (UInt32)(8) mjTIMER_POS_INERTIA = (UInt32)(9) mjTIMER_POS_COLLISION = (UInt32)(10) mjTIMER_POS_MAKE = (UInt32)(11) mjTIMER_POS_PROJECT = (UInt32)(12) mjNTIMER = (UInt32)(13)
-const _mjNTIMER = Integer(mjNTIMER)
+@enum mjtTimer mjtIMER_STEP = (UInt32)(0) mjtIMER_FORWARD = (UInt32)(1) mjtIMER_INVERSE = (UInt32)(2) mjtIMER_POSITION = (UInt32)(3) mjtIMER_VELOCITY = (UInt32)(4) mjtIMER_ACTUATION = (UInt32)(5) mjtIMER_ACCELERATION = (UInt32)(6) mjtIMER_CONSTRAINT = (UInt32)(7) mjtIMER_POS_KINEMATICS = (UInt32)(8) mjtIMER_POS_INERTIA = (UInt32)(9) mjtIMER_POS_COLLISION = (UInt32)(10) mjtIMER_POS_MAKE = (UInt32)(11) mjtIMER_POS_PROJECT = (UInt32)(12) NTIMER = (UInt32)(13)
 
 
-#struct _mjContact
-immutable _mjContact
+immutable Contact
    dist::mjtNum
    pos::SVector{3, mjtNum}
    frame::SVector{9, mjtNum}
@@ -25,23 +22,17 @@ immutable _mjContact
    efc_address::Cint
 end
 
-const mjContact = _mjContact
-
-immutable _mjWarningStat
+immutable WarningStat
    lastinfo::Cint
    number::Cint
 end
-const mjWarningStat = _mjWarningStat
 
-
-immutable _mjTimerStat
+immutable TimerStat
    duration::mjtNum
    number::Cint
 end
-const mjTimerStat = _mjTimerStat
 
-
-immutable _mjSolverStat
+immutable SolverStat
    improvement::mjtNum
    gradient::mjtNum
    lineslope::mjtNum
@@ -50,10 +41,9 @@ immutable _mjSolverStat
    neval::Cint
    nupdate::Cint
 end
-const mjSolverStat = _mjSolverStat
 
-#mutable struct _mjData
-type _mjData
+#mutable struct Data
+type Data
    nstack::Cint
    nbuffer::Cint
 
@@ -63,9 +53,9 @@ type _mjData
    maxuse_con::Cint
    maxuse_efc::Cint
 
-   warning::SVector{8, mjWarningStat}
-   timer::SVector{13, mjTimerStat}
-   solver::SVector{mjNSOLVER, mjSolverStat}
+   warning::SVector{8, WarningStat}
+   timer::SVector{13, TimerStat}
+   solver::SVector{NSOLVER, SolverStat}
    solver_iter::Cint
    solver_nnz::Cint
    solver_fwdinv::SVector{2, mjtNum}
@@ -127,7 +117,7 @@ type _mjData
    qLDiagInv::Ptr{mjtNum}
    qLDiagSqrtInv::Ptr{mjtNum}
 
-   contact::Ptr{mjContact}
+   contact::Ptr{Contact}
 
    efc_type::Ptr{Cint}
    efc_id::Ptr{Cint}
@@ -180,7 +170,6 @@ type _mjData
    cfrc_int::Ptr{mjtNum}
    cfrc_ext::Ptr{mjtNum}
 end
-const mjData = _mjData
 
 # Callback function types TODO
 

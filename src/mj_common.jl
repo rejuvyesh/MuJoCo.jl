@@ -2,7 +2,7 @@
 # TODO overload print/show/display function to not display model and data
 
 type jlModel
-   m::Ptr{mjModel}
+   m::Ptr{Model}
 
    qpos0::Array{mjtNum}
    qpos_spring::Array{mjtNum}
@@ -236,7 +236,7 @@ end
 
 #mutable struct jlData # v0.6
 type jlData
-   d::Ptr{mjData} # point to c struct
+   d::Ptr{Data} # point to c struct
 
    stack::Array{mjtNum}
 
@@ -287,7 +287,7 @@ type jlData
    qLDiagInv::Array{mjtNum}
    qLDiagSqrtInv::Array{mjtNum}
 
-   contact::Array{mjContact}
+   contact::Array{Contact}
 
    efc_type::Array{Cint}
    efc_id::Array{Cint}
@@ -344,7 +344,7 @@ end
 # added stack field manually
 # manually did second terms in the parantheses
 # TODO will be issues with the row-wise matrix fields vs the col major of julia
-function getdatasize(m::mjModel, d::mjData)
+function getdatasize(m::Model, d::Data)
    return Dict(
                :stack=>(d.nstack,1),
                :qpos=>(m.nq,1),
@@ -399,8 +399,8 @@ function getdatasize(m::mjModel, d::mjData)
                :efc_JT_rownnz=>(m.nv,1),
                :efc_JT_rowadr=>(m.nv,1),
                :efc_JT_colind=>(m.nv,m.njmax),
-               :efc_solref=>(m.njmax,mjNREF),
-               :efc_solimp=>(m.njmax,mjNIMP),
+               :efc_solref=>(m.njmax,NREF),
+               :efc_solimp=>(m.njmax,NIMP),
                :efc_margin=>(m.njmax,1),
                :efc_frictionloss=>(m.njmax,1),
                :efc_pos=>(m.njmax,1),
@@ -439,7 +439,7 @@ function getdatasize(m::mjModel, d::mjData)
               )
 end
 
-function getmodelsize(m::mjModel)
+function getmodelsize(m::Model)
    return Dict(
                :qpos0=>(m.nq,1),
                :qpos_spring=>(m.nq,1),
@@ -468,8 +468,8 @@ function getmodelsize(m::mjModel)
                :jnt_dofadr=>(m.njnt,1),
                :jnt_bodyid=>(m.njnt,1),
                :jnt_limited=>(m.njnt,1),
-               :jnt_solref=>(m.njnt,mjNREF),
-               :jnt_solimp=>(m.njnt,mjNIMP),
+               :jnt_solref=>(m.njnt,NREF),
+               :jnt_solimp=>(m.njnt,NIMP),
                :jnt_pos=>(m.njnt,3),
                :jnt_axis=>(m.njnt,3),
                :jnt_stiffness=>(m.njnt,1),
@@ -480,8 +480,8 @@ function getmodelsize(m::mjModel)
                :dof_jntid=>(m.nv,1),
                :dof_parentid=>(m.nv,1),
                :dof_Madr=>(m.nv,1),
-               :dof_solref=>(m.nv,mjNREF),
-               :dof_solimp=>(m.nv,mjNIMP),
+               :dof_solref=>(m.nv,NREF),
+               :dof_solimp=>(m.nv,NIMP),
                :dof_frictionloss=>(m.nv,1),
                :dof_armature=>(m.nv,1),
                :dof_damping=>(m.nv,1),
@@ -495,8 +495,8 @@ function getmodelsize(m::mjModel)
                :geom_matid=>(m.ngeom,1),
                :geom_group=>(m.ngeom,1),
                :geom_solmix=>(m.ngeom,1),
-               :geom_solref=>(m.ngeom,mjNREF),
-               :geom_solimp=>(m.ngeom,mjNIMP),
+               :geom_solref=>(m.ngeom,NREF),
+               :geom_solimp=>(m.ngeom,NIMP),
                :geom_size=>(m.ngeom,3),
                :geom_rbound=>(m.ngeom,1),
                :geom_pos=>(m.ngeom,3),
@@ -574,8 +574,8 @@ function getmodelsize(m::mjModel)
                :pair_geom1=>(m.npair,1),
                :pair_geom2=>(m.npair,1),
                :pair_signature=>(m.npair,1),
-               :pair_solref=>(m.npair,mjNREF),
-               :pair_solimp=>(m.npair,mjNIMP),
+               :pair_solref=>(m.npair,NREF),
+               :pair_solimp=>(m.npair,NIMP),
                :pair_margin=>(m.npair,1),
                :pair_gap=>(m.npair,1),
                :pair_friction=>(m.npair,5),
@@ -584,18 +584,18 @@ function getmodelsize(m::mjModel)
                :eq_obj1id=>(m.neq,1),
                :eq_obj2id=>(m.neq,1),
                :eq_active=>(m.neq,1),
-               :eq_solref=>(m.neq,mjNREF),
-               :eq_solimp=>(m.neq,mjNIMP),
-               :eq_data=>(m.neq,mjNEQDATA),
+               :eq_solref=>(m.neq,NREF),
+               :eq_solimp=>(m.neq,NIMP),
+               :eq_data=>(m.neq,NEQDATA),
                :tendon_adr=>(m.ntendon,1),
                :tendon_num=>(m.ntendon,1),
                :tendon_matid=>(m.ntendon,1),
                :tendon_limited=>(m.ntendon,1),
                :tendon_width=>(m.ntendon,1),
-               :tendon_solref_lim=>(m.ntendon,mjNREF),
-               :tendon_solimp_lim=>(m.ntendon,mjNIMP),
-               :tendon_solref_fri=>(m.ntendon,mjNREF),
-               :tendon_solimp_fri=>(m.ntendon,mjNIMP),
+               :tendon_solref_lim=>(m.ntendon,NREF),
+               :tendon_solimp_lim=>(m.ntendon,NIMP),
+               :tendon_solref_fri=>(m.ntendon,NREF),
+               :tendon_solimp_fri=>(m.ntendon,NIMP),
                :tendon_range=>(m.ntendon,2),
                :tendon_margin=>(m.ntendon,1),
                :tendon_stiffness=>(m.ntendon,1),
@@ -616,9 +616,9 @@ function getmodelsize(m::mjModel)
                :actuator_trnid=>(m.nu,2),
                :actuator_ctrllimited=>(m.nu,1),
                :actuator_forcelimited=>(m.nu,1),
-               :actuator_dynprm=>(m.nu,mjNDYN),
-               :actuator_gainprm=>(m.nu,mjNGAIN),
-               :actuator_biasprm=>(m.nu,mjNBIAS),
+               :actuator_dynprm=>(m.nu,NDYN),
+               :actuator_gainprm=>(m.nu,NGAIN),
+               :actuator_biasprm=>(m.nu,NBIAS),
                :actuator_ctrlrange=>(m.nu,2),
                :actuator_forcerange=>(m.nu,2),
                :actuator_gear=>(m.nu,6),

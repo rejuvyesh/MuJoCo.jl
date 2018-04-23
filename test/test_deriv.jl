@@ -1,8 +1,9 @@
 
 ## clean up
-pm = mj.loadXML(modelfile, "")
+pm = mj.loadXML(modelfile, C_NULL)
 pd = mj.makeData(pm)
 m, d = mj.mapmujoco(pm, pd)
+qpos0 = copy(d.qpos)
 
 nstep = 500
 for i=1:nstep
@@ -17,10 +18,8 @@ for i=1:ndata
 	@test qpos0 == datas[i].qpos
 end
 
-
 # alloc some space
 nv = mj.get(m, :nv)
-@test nv == 27
 daccdpos = zeros(mjtNum, nv, nv)
 daccdvel = zeros(mjtNum, nv, nv)
 daccdfrc = zeros(mjtNum, nv, nv)
@@ -36,16 +35,12 @@ mj.set(m, :opt, :tolerance, 0)
 @test mj.get(m, :opt, :iterations) == niter
 @test mj.get(m, :opt, :tolerance) == 0
 
-isforward = false 
 for id=1:ndata
-   mj.fdworker(m, d, datas[id],
-               id, isforward,
+   mj.invworker(m, d, datas[id], id,
                dinvdpos, dinvdvel, dinvdacc)
 end
-isforward = true
 for id=1:ndata
-   mj.fdworker(m, d, datas[id],
-               id, isforward,
+   mj.fwdworker(m, d, datas[id], id,
                daccdpos, daccdvel, daccdfrc)
 end
 
@@ -61,12 +56,68 @@ function printneat(arr, nr, nc)
    end
 end
 
-err = mj.checkderiv(m, d,
-                    dinvdpos, dinvdvel, dinvdacc,
-                    daccdpos, daccdvel, daccdfrc)
+function relnorm(res, base)
+   l1r = norm(res,1)
+   l1b = norm(base,1)
+   log10( max(mj.MINVAL, (l1r / max(mj.MINVAL, l1b)) ))
+end
+
+
+function checkderiv(m::jlModel, d::jlData,
+						  G0::Matrix{mjtNum}, G1::Matrix{mjtNum}, G2::Matrix{mjtNum},
+						  F0::Matrix{mjtNum}, F1::Matrix{mjtNum}, F2::Matrix{mjtNum})
+						  
+   nv = mj.get(m, :nv)
+
+	error = zeros(8)
+
+   # G2*F2 - I
+	mat = G2*F2 - eye(nv)
+   error[1] = relnorm(mat, G2)
+
+   # G2 - G2'
+	mat = G2 - G2'
+   error[2] = relnorm(mat, G2)
+
+   # G1 - G1'
+	mat = G1 - G1'
+   error[3] = relnorm(mat, G1)
+
+   # F2 - F2'
+	mat = F2 - F2'
+   error[4] = relnorm(mat, F2)
+
+   # G1 + G2*F1
+	mat = G1 + ( G2 * F1 )
+   error[5] = relnorm(mat, G1)
+
+   # G0 + G2*F0
+	mat = G0 + G2 * F0
+   error[6] = relnorm(mat, G0)
+
+   # F1 + F2*G1
+	mat = F1 + F2 * G1
+   error[7] = relnorm(mat, F1)
+
+   # F0 + F2*G0
+	mat = F0 + F2 * G0
+   error[8] = relnorm(mat, F0)
+
+	return error
+end
+
+
+err = checkderiv(m, d,
+                 dinvdpos, dinvdvel, dinvdacc,
+                 daccdpos, daccdvel, daccdfrc)
 
 println()
 println(err)
 
 mj.deleteModel(m.m)
 mj.deleteData(d.d)
+for i=1:ndata
+   mj.deleteData(datas[i].d)
+end
+
+

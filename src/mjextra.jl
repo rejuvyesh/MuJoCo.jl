@@ -1,13 +1,13 @@
 
 # returns a julia centric version of mujoco's model and data fields
 # that allows direct access to Ptr array fields as julia vectors
-function mapmodel(pm::Ptr{mjModel})
+function mapmodel(pm::Ptr{Model})
    c_model= unsafe_load(pm)
 
    margs = Array{Any}(1)
    margs[1] = pm
-   m_fields = intersect( fieldnames(jlModel), fieldnames(mjModel) )
-   m_sizes = mj.getmodelsize(c_model)
+   m_fields = intersect( fieldnames(jlModel), fieldnames(Model) )
+   m_sizes = getmodelsize(c_model)
 	jminfo = structinfo(jlModel)
 	maxmodelmemptr = convert(UInt64, getfield(c_model, :names))
    for f in m_fields
@@ -28,14 +28,14 @@ function mapmodel(pm::Ptr{mjModel})
    return jlModel(margs...)
 end
 
-function mapdata(pm::Ptr{mjModel}, pd::Ptr{mjData}) 
+function mapdata(pm::Ptr{Model}, pd::Ptr{Data}) 
    c_model= unsafe_load(pm)
    c_data = unsafe_load(pd)
    
    dargs = Array{Any}(1)
    dargs[1] = pd
-   d_fields = intersect( fieldnames(jlData), fieldnames(mjData) )
-   d_sizes = mj.getdatasize(c_model, c_data)
+   d_fields = intersect( fieldnames(jlData), fieldnames(Data) )
+   d_sizes = getdatasize(c_model, c_data)
    for f in d_fields
       len = d_sizes[f][1] * d_sizes[f][2]
       raw = unsafe_wrap(Array, getfield(c_data, f), len)
@@ -47,33 +47,33 @@ function mapdata(pm::Ptr{mjModel}, pd::Ptr{mjData})
    return jlData(dargs...)
 end
 
-function mapmujoco(pm::Ptr{mjModel}, pd::Ptr{mjData}) 
+function mapmujoco(pm::Ptr{Model}, pd::Ptr{Data}) 
    return mapmodel(pm), mapdata(pm, pd)
 end
 
 # struct manipulation and access
 structinfo(T) = Dict(fieldname(T,i)=>(fieldoffset(T,i), fieldtype(T,i)) for i = 1:nfields(T))
-const minfo = structinfo(mjModel)
-const dinfo = structinfo(mjData)
+const minfo = structinfo(Model)
+const dinfo = structinfo(Data)
 
-const mjstructs = Dict(mjContact     => structinfo(mjContact),
-                       mjWarningStat => structinfo(mjWarningStat),
-                       mjTimerStat   => structinfo(mjTimerStat),
-                       mjSolverStat  => structinfo(mjSolverStat),
+const mjstructs = Dict(Contact     => structinfo(Contact),
+                       WarningStat => structinfo(WarningStat),
+                       TimerStat   => structinfo(TimerStat),
+                       SolverStat  => structinfo(SolverStat),
                                         
                        mjrContext    => structinfo(mjrContext),
                                         
-                       mjVFS         => structinfo(mjVFS),
-                       mjOption      => structinfo(mjOption),
+                       VFS         => structinfo(VFS),
+                       Option      => structinfo(Option),
                        #_global       => structinfo(_global),
                        #quality       => structinfo(quality),
                        #headlight     => structinfo(headlight),
                        #map           => structinfo(map),
                        #scale         => structinfo(scale),
                        #rgba          => structinfo(rgba),
-                       mjVisual      => structinfo(mjVisual),
-                       mjStatistic   => structinfo(mjStatistic),
-                       mjModel       => structinfo(mjModel),
+                       Visual      => structinfo(Visual),
+                       Statistic   => structinfo(Statistic),
+                       Model       => structinfo(Model),
                                         
                        mjvPerturb    => structinfo(mjvPerturb),
                        mjvCamera     => structinfo(mjvCamera),
@@ -92,7 +92,7 @@ function get(m::jlModel, field::Symbol)
 end
 function get(m::jlModel, fstruct::Symbol, field::Symbol)
    s_off, s_type = minfo[fstruct]
-   @assert s_type in (MuJoCo._mjOption, MuJoCo._mjVisual, MuJoCo._mjStatistic)
+   @assert s_type in (MuJoCo.Option, MuJoCo.Visual, MuJoCo.Statistic)
 
    f_off, f_type = structinfo(s_type)[field]
    pntr = Ptr{f_type}(m.m)
@@ -181,10 +181,10 @@ function set{T<:Any}(p::Ptr{T}, field::Symbol, val, i::Int, j::Int) # write to e
 	unsafe_store!(convert(Ptr{ET}, idx), v)
 end
 
-# set struct within mjmodel struct 
+# set struct within model struct 
 function set(m::jlModel, fstruct::Symbol, field::Symbol, val::Union{Integer, mjtNum, SVector})
    s_off, s_type = minfo[fstruct]
-   @assert s_type in (MuJoCo._mjOption, MuJoCo._mjVisual, MuJoCo._mjStatistic)
+   @assert s_type in (MuJoCo.Option, MuJoCo.Visual, MuJoCo.Statistic)
 
    f_off, f_type = mjstructs[s_type][field]
    update_ptr(m.m, s_off+f_off, convert(f_type, val))

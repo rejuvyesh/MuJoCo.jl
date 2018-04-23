@@ -11,10 +11,13 @@ else
    error("MuJoCo was not downloaded / installed correctly.")
 end
 
-const mjVERSION_HEADER = 150
+const VERSION_HEADER = 150
 
 const mjtNum = Cdouble
 const mjtByte = Cuchar
+
+const mj = MuJoCo
+export mj #export the module for faster typing
 
 # mujoco header files in julia form
 include("./mjmodel.jl")
@@ -34,11 +37,7 @@ else
    warn("Derivatives supported in Julia v0.6")
 end
 
-const mj = MuJoCo
-export mj #export the module for faster typing
-export mjData, mjModel, mjOption # types exported
 export mjtNum, mjtByte
-
 export jlData, jlModel
 
 global activated = false
@@ -49,6 +48,10 @@ function teardown()
 end
 
 function start()
+   if activated
+      return
+   end
+
    key = ""
    try
       key = ENV["MUJOCO_KEY_PATH"]

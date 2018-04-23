@@ -1,5 +1,6 @@
 
 
+#=
 type jlDerivatives
    dinvdpos::Vector{mjtNum} #Matrix{mjtNum}
    dinvdvel::Vector{mjtNum} #Matrix{mjtNum}
@@ -26,69 +27,29 @@ type dacc
                            Vector{mjtNum}(nv*nv),
                            Vector{mjtNum}(nv*nv))
 end
-
-#=
-type jlWorkers
-   nthreads::Cint
-   d::Vector{mjData}
-end
-
-function allocderivs(m::jlModel)
-   return dinv(get(m, :nv)), dacc(get(m, :nv))
-end
-
-function dataworkers(m::jlModel, d::jlData, nthreads::Integer=Threads.nthreads())
-
-   wrkrs = jlWorkers(nthreads, [ mj.makeData(m.m) for i=1:nthreads ])
-   derivs = ccall((:derivsetup, libmujocoextra),
-                  mjDerivatives,
-                  (Ptr{mjModel}, Cint),
-                  m.m, nthread)
-
-   d_size = get(m, :nv)^2
-   myderivs = jlDerivatives(
-                            unsafe_wrap(Array, derivs.dinvdpos, d_size),
-                            unsafe_wrap(Array, derivs.dinvdvel, d_size),
-                            unsafe_wrap(Array, derivs.dinvdacc, d_size),
-                            unsafe_wrap(Array, derivs.daccdpos, d_size),
-                            unsafe_wrap(Array, derivs.daccdvel, d_size),
-                            unsafe_wrap(Array, derivs.daccdfrc, d_size)
-                           )
-
-   ccall((:workers, libmujocoextra),
-         Void,
-         (Ptr{mjModel},Ptr{mjData},Ptr{mjData},Cint,Cint,mjDerivatives),
-         m.m, d.d, wrkrs.d, isforward) #, isforward, derivs)
-
-   #Threads.@threads() for i=1:nthreads
-   #   ccall((:workers, libmujocoextra),
-   #         Void,
-   #         (Ptr{mjModel},Ptr{mjData},Ptr{mjData},Cint,Cint,mjDerivatives),
-   #         m.m, d.d, wrkrs.d, i-1, isforward, derivs)
-
-   #end
-end
 =#
 
-function fdworker(m::jlModel, dmain::jlData, d::jlData,
-                  id::Integer, isforward::Bool,
-                  block1::Matrix{mjtNum}, block2::Matrix{mjtNum}, block3::Matrix{mjtNum})
 
-   nv = get(m, :nv)
-   eps = 1e-6
-   nwarmup = 3
-   nthread = Threads.nthreads() # TODO here?
+function fwdworker(m::jlModel, dmain::jlData, d::jlData,
+                   tid::Integer,
+                   block1::Matrix{mjtNum}, block2::Matrix{mjtNum}, block3::Matrix{mjtNum})
+   const nv = length(d.qvel)
+   const eps = 1e-6
+   const nwarmup = 3
+   const nthread = Threads.nthreads() # TODO here?
 
    mark = mj.MARKSTACK(d)
 
    center = unsafe_wrap(Array, mj.stackAlloc(d.d, nv), nv)
    warmstart = unsafe_wrap(Array, mj.stackAlloc(d.d, nv), nv)
+   angvel = unsafe_wrap(Array, mj.stackAlloc(d.d, 3), 3)
+   quat = unsafe_wrap(Array, mj.stackAlloc(d.d, 4), 4)
 
    # prepare static schedule: range of derivative columns to be computed by this thread
    chunk = Integer(floor( (nv + nthread-1) / nthread ))
-   istart = (id-1) * chunk + 1
+   istart = (tid-1) * chunk + 1
    iend = min(istart + chunk - 1, nv)
-   #println(istart, " ", chunk, " ", iend)
+   println(istart, " ", chunk, " ", iend)
 
    # copy state and control from dmain to thread-specific d
    set(d, :time, get(dmain, :time)) #d.time = dmain.time
@@ -101,44 +62,29 @@ function fdworker(m::jlModel, dmain::jlData, d::jlData,
    copy!(d.ctrl, dmain.ctrl)
 
    # run full computation at center point (usually faster than copying dmain)
-   if isforward
-      mj.forward(m, d)
-      for rep=1:nwarmup
-         mj.forwardSkip(m, d, Int(mjSTAGE_VEL), 1)
-      end
-   else
-      mj.inverse(m, d)
+   mj.forward(m, d)
+   for rep=1:nwarmup
+      mj.forwardSkip(m, d, Int(mj.STAGE_VEL), 1)
    end
 
-   # select output from forward or inverse dynamics
-   output = isforward ? d.qacc : d.qfrc_inverse # should be by reference
-
    # save output for center point and warmstart (needed in forward only)
-   copy!(center, output)
+   copy!(center, d.qacc)
    copy!(warmstart, d.qacc_warmstart)
-
-   # select target vector and original vector for force or acceleration derivative
-	target = isforward ? d.qfrc_applied : d.qacc
-	original = isforward ? dmain.qfrc_applied : dmain.qacc
 
    # finite-difference over force or acceleration: skip = mjSTAGE_VEL
    for i=istart:iend
       # perturb selected target
-      target[i] += eps
+      d.qfrc_applied[i] += eps
 
       # evaluate dynamics, with center warmstart
-      if isforward
-         copy!(d.qacc_warmstart, warmstart)
-         mj.forwardSkip(m, d, Int(mjSTAGE_VEL), 1)
-      else
-         mj.inverseSkip(m, d, Int(mjSTAGE_VEL), 1)
-      end
+      copy!(d.qacc_warmstart, warmstart)
+      mj.forwardSkip(m, d, Int(mj.STAGE_VEL), 1)
 
       # undo perturbation
-      target[i] = original[i]
+      d.qfrc_applied[i] = dmain.qfrc_applied[i]
 
       # compute column i of derivative 2
-      block3[:,i] = (output - center)/eps
+      block3[:,i] = (d.qacc - center)/eps
    end
 
    # finite-difference over velocity: skip = mjSTAGE_POS
@@ -147,122 +93,163 @@ function fdworker(m::jlModel, dmain::jlData, d::jlData,
       d.qvel[i] += eps
 
       # evaluate dynamics, with center warmstart
-      if isforward
-         copy!(d.qacc_warmstart, warmstart)
-         mj.forwardSkip(m, d, Int(mjSTAGE_POS), 1)
-      else
-         mj.inverseSkip(m, d, Int(mjSTAGE_POS), 1)
-      end
+      copy!(d.qacc_warmstart, warmstart)
+      mj.forwardSkip(m, d, Int(mj.STAGE_POS), 1)
 
       # undo perturbation
       d.qvel[i] = dmain.qvel[i]
 
       # compute column i of derivative 1
-      block2[:,i] = (output - center)/eps
+      block2[:,i] = (d.qacc - center)/eps
    end
 
    # finite-difference over position: skip = mjSTAGE_NONE
-	for i=istart:iend
-		# get joint id for this dof
-		jid = m.dof_jntid[i] + 1
+   for i=istart:iend
+      # get joint id for this dof
+      jid = m.dof_jntid[i] + 1
 
-		# get quaternion address and dof position within quaternion (-1: not in quaternion)
-		quatadr = -1
-		dofpos = 0
-		if m.jnt_type[jid] == Int(mjJNT_BALL)
-			quatadr = m.jnt_qposadr[jid]
-			dofpos = (i-1) - m.jnt_dofadr[jid]
-		elseif m.jnt_type[jid] == Int(mjJNT_FREE) && i>=m.jnt_dofadr[jid]+4
-			quatadr = m.jnt_qposadr[jid] + 3
-			dofpos = (i-1) - m.jnt_dofadr[jid] - 3
-		end
+      # get quaternion address and dof position within quaternion (-1: not in quaternion)
+      quatadr = -1
+      dofpos = 0
+      if m.jnt_type[jid] == Int(mj.JNT_BALL)
+         quatadr = m.jnt_qposadr[jid]
+         dofpos = (i-1) - m.jnt_dofadr[jid]
+      elseif m.jnt_type[jid] == Int(mj.JNT_FREE) && i>=m.jnt_dofadr[jid]+4
+         quatadr = m.jnt_qposadr[jid] + 3
+         dofpos = (i-1) - m.jnt_dofadr[jid] - 3
+      end
 
-		# apply quaternion or simple perturbation
-		if quatadr>=0
-			angvel = MVector(0.0, 0.0, 0.0)
-			
-			angvel[dofpos+1] = eps # already +1 from i
-			angvel = SVector(angvel)
+      # apply quaternion or simple perturbation
+      if quatadr>=0
+         angvel .= 0.0 
+         angvel[dofpos+1] = eps # already +1 from i
+         quat .= d.qpos[(quatadr+1):(quatadr+4)]
+         mju_quatIntegrate(quat, angvel, 1.0)
+         d.qpos[(quatadr+1):(quatadr+4)] .= quat
+      else
+         d.qpos[i] += eps
+      end
 
-			quat = SVector{4, mjtNum}( d.qpos[(quatadr+1):(quatadr+4)] ) # julia 1 indexing
-			mju_quatIntegrate(quat, angvel, 1.0)
-			d.qpos[(quatadr+1):(quatadr+4)] = quat
-		else
-			d.qpos[i] += eps
-		end
+      # evaluate dynamics, with center warmstart
+      copy!(d.qacc_warmstart, warmstart)
+      mj.forwardSkip(m, d, Int(mj.STAGE_NONE), 1)
 
-		# evaluate dynamics, with center warmstart
-		if isforward
-			copy!(d.qacc_warmstart, warmstart)
-			mj.forwardSkip(m, d, Int(mjSTAGE_NONE), 1)
-		else
-			mj.inverseSkip(m, d, Int(mjSTAGE_NONE), 1)
-		end
+      # undo perturbation
+      copy!(d.qpos, dmain.qpos)
 
-		# undo perturbation
-		copy!(d.qpos, dmain.qpos)
+      # compute column i of derivative 0
+      block1[:,i] = (d.qacc - center)/eps
+   end
 
-		# compute column i of derivative 0
-		if isforward == false
-			diff = output - center
-		end
-		block1[:,i] = (output - center)/eps
-	end
-
-	mj.FREESTACK(d, mark)
+   mj.FREESTACK(d, mark)
 end
 
-function checkderiv(m::jlModel, d::jlData,
-						  dinvdpos::Matrix{mjtNum}, dinvdvel::Matrix{mjtNum}, dinvdacc::Matrix{mjtNum},
-						  daccdpos::Matrix{mjtNum}, daccdvel::Matrix{mjtNum}, daccdfrc::Matrix{mjtNum})
-						  
-   nv = get(m, :nv)
+function invworker(m::jlModel, dmain::jlData, d::jlData,
+                   tid::Integer,
+                   block1::Matrix{mjtNum}, block2::Matrix{mjtNum}, block3::Matrix{mjtNum})
 
-   # get pointers to derivative matrices
-   G0 = dinvdpos       # dinv/dpos
-   G1 = dinvdvel       # dinv/dvel
-   G2 = dinvdacc       # dinv/dacc
-   F0 = daccdpos       # dacc/dpos
-   F1 = daccdvel       # dacc/dvel
-   F2 = daccdfrc       # dacc/dfrc
+   const nv = length(d.qvel)
+   const eps = 1e-6
+   const nwarmup = 3
+   const nthread = Threads.nthreads() # TODO here?
 
-	error = zeros(8)
+   mark = mj.MARKSTACK(d)
 
-	relnorm(res, base) = log10( max( mjMINVAL, sum(abs.(res)) / max(mjMINVAL,sum(abs.(base)) ) ) )
+   center = unsafe_wrap(Array, mj.stackAlloc(d.d, nv), nv)
+   warmstart = unsafe_wrap(Array, mj.stackAlloc(d.d, nv), nv)
+   angvel = unsafe_wrap(Array, mj.stackAlloc(d.d, 3), 3)
+   quat = unsafe_wrap(Array, mj.stackAlloc(d.d, 4), 4)
 
-   # G2*F2 - I
-	mat = G2*F2 - eye(nv)
-   error[1] = relnorm(mat, G2)
+   # prepare static schedule: range of derivative columns to be computed by this thread
+   chunk = Integer(floor( (nv + nthread-1) / nthread ))
+   istart = (tid-1) * chunk + 1
+   iend = min(istart + chunk - 1, nv)
+   println(istart, " ", chunk, " ", iend)
 
-   # G2 - G2'
-	mat = G2 - G2'
-   error[2] = relnorm(mat, G2)
+   # copy state and control from dmain to thread-specific d
+   set(d, :time, get(dmain, :time)) #d.time = dmain.time
+   copy!(d.qpos, dmain.qpos)
+   copy!(d.qvel, dmain.qvel)
+   copy!(d.qacc, dmain.qacc)
+   copy!(d.qacc_warmstart, dmain.qacc_warmstart)
+   copy!(d.qfrc_applied, dmain.qfrc_applied)
+   copy!(d.xfrc_applied, dmain.xfrc_applied)
+   copy!(d.ctrl, dmain.ctrl)
 
-   # G1 - G1'
-	mat = G1 - G1'
-   error[3] = relnorm(mat, G1)
+   # run full computation at center point (usually faster than copying dmain)
+   mj.inverse(m, d)
 
-   # F2 - F2'
-	mat = F2 - F2'
-   error[4] = relnorm(mat, F2)
+   # save output for center point and warmstart (needed in forward only)
+   copy!(center, d.qfrc_inverse)
+   copy!(warmstart, d.qacc_warmstart)
 
-   # G1 + G2*F1
-	mat = G1 + ( G2 * F1 )
-   error[5] = relnorm(mat, G1)
+   # finite-difference over force or acceleration: skip = mjSTAGE_VEL
+   for i=istart:iend
+      # perturb selected target
+      d.qacc[i] += eps
 
-   # G0 + G2*F0
-	mat = G0 + G2 * F0
-   error[6] = relnorm(mat, G0)
+      # evaluate dynamics, with center warmstart
+      mj.inverseSkip(m, d, Int(mj.STAGE_VEL), 1)
 
-   # F1 + F2*G1
-	mat = F1 + F2 * G1
-   error[7] = relnorm(mat, F1)
+      # undo perturbation
+      d.qacc[i] = dmain.qacc[i]
 
-   # F0 + F2*G0
-	mat = F0 + F2 * G0
-   error[8] = relnorm(mat, F0)
+      # compute column i of derivative 2
+      block3[:,i] = (d.qfrc_inverse - center)/eps
+   end
 
-	return error
+   # finite-difference over velocity: skip = mjSTAGE_POS
+   for i=istart:iend
+      # perturb velocity
+      d.qvel[i] += eps
+
+      # evaluate dynamics, with center warmstart
+      mj.inverseSkip(m, d, Int(mj.STAGE_POS), 1)
+
+      # undo perturbation
+      d.qvel[i] = dmain.qvel[i]
+
+      # compute column i of derivative 1
+      block2[:,i] = (d.qfrc_inverse - center)/eps
+   end
+
+   # finite-difference over position: skip = mjSTAGE_NONE
+   for i=istart:iend
+      # get joint id for this dof
+      jid = m.dof_jntid[i] + 1
+
+      # get quaternion address and dof position within quaternion (-1: not in quaternion)
+      quatadr = -1
+      if m.jnt_type[jid] == Int(mj.JNT_BALL)
+         quatadr = m.jnt_qposadr[jid]
+         dofpos = (i-1) - m.jnt_dofadr[jid]
+      elseif m.jnt_type[jid] == Int(mj.JNT_FREE) && i>=m.jnt_dofadr[jid]+4
+         quatadr = m.jnt_qposadr[jid] + 3
+         dofpos = (i-1) - m.jnt_dofadr[jid] - 3
+      end
+
+      # apply quaternion or simple perturbation
+      if quatadr>=0
+         angvel .= 0.0 
+         angvel[dofpos+1] = eps # already +1 from i
+         quat .= d.qpos[(quatadr+1):(quatadr+4)]
+         mju_quatIntegrate(quat, angvel, 1.0)
+         d.qpos[(quatadr+1):(quatadr+4)] .= quat
+      else
+         d.qpos[i] += eps
+      end
+
+      # evaluate dynamics, with center warmstart
+      mj.inverseSkip(m, d, Int(mj.STAGE_NONE), 1)
+
+      # undo perturbation
+      copy!(d.qpos, dmain.qpos)
+
+      # compute column i of derivative 0
+      block1[:,i] = (d.qfrc_inverse - center)/eps
+   end
+
+   mj.FREESTACK(d, mark)
 end
 
 

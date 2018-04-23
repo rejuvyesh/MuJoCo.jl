@@ -1,22 +1,20 @@
 
-@enum mjtGridPos mjGRID_TOPLEFT = (UInt32)(0) mjGRID_TOPRIGHT = (UInt32)(1) mjGRID_BOTTOMLEFT = (UInt32)(2) mjGRID_BOTTOMRIGHT = (UInt32)(3)
+@enum mjtGridPos GRID_TOPLEFT = (UInt32)(0) GRID_TOPRIGHT = (UInt32)(1) GRID_BOTTOMLEFT = (UInt32)(2) GRID_BOTTOMRIGHT = (UInt32)(3)
 
-@enum mjtFramebuffer mjFB_WINDOW = (UInt32)(0) mjFB_OFFSCREEN = (UInt32)(1)
+@enum mjtFramebuffer FB_WINDOW = (UInt32)(0) FB_OFFSCREEN = (UInt32)(1)
 
-@enum mjtFontScale mjFONTSCALE_100 = (UInt32)(100) mjFONTSCALE_150 = (UInt32)(150) mjFONTSCALE_200 = (UInt32)(200)
+@enum mjtFontScale FONTSCALE_100 = (UInt32)(100) FONTSCALE_150 = (UInt32)(150) FONTSCALE_200 = (UInt32)(200)
 
-@enum mjtFont mjFONT_NORMAL = (UInt32)(0) mjFONT_SHADOW = (UInt32)(1) mjFONT_BIG = (UInt32)(2)
+@enum mjtFont FONT_NORMAL = (UInt32)(0) FONT_SHADOW = (UInt32)(1) FONT_BIG = (UInt32)(2)
 
-type _mjrRect
+immutable mjrRect
    left::Cint
    bottom::Cint
    width::Cint
    height::Cint
 end
 
-const mjrRect = _mjrRect
-
-immutable _mjrContext
+immutable mjrContext
    lineWidth::Cfloat
    shadowClip::Cfloat
    shadowScale::Cfloat
@@ -58,6 +56,4 @@ immutable _mjrContext
    windowDoublebuffer::Cint
    currentBuffer::Cint
 end
-
-const mjrContext = _mjrContext
 
