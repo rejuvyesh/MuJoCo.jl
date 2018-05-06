@@ -131,7 +131,7 @@ end
 # parse XML file or string in MJCF or URDF format, compile it, return low-level model
 #  if xmlstring is not NULL, it has precedence over filename
 #  error can be NULL; otherwise assumed to have size error_sz
-function loadXML(filename::String,vfs::Union{Ptr{VFS},Ptr{Void}})
+function loadXML(filename::String,vfs::Union{Ptr{VFS},Ptr{Void}}=C_NULL)
    errsz = 1000
    err = Vector{UInt8}(errsz) 
    m=ccall((:mj_loadXML,libmujoco),Ptr{Model},(Cstring,Cstring,Ptr{UInt8},Cint),filename,vfs,err,errsz)
