@@ -1,6 +1,4 @@
 
-# TODO write these as functions
-
 MARKSTACK(d::jlData) = return mj.get(d, :pstack)
 FREESTACK(d::jlData, mark::Cint) = mj.set(d, :pstack, mark)
 # Skipping MacroDefinition: mjDISABLED ( x ) ( m -> opt . disableflags & ( x ) )

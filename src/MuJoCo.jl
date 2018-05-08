@@ -8,7 +8,7 @@ const depsfile = joinpath(dirname(@__FILE__), "..", "deps", "deps.jl")
 if isfile(depsfile)
    include(depsfile)
 else
-   error("MuJoCo was not downloaded / installed correctly.")
+   error("MuJoCo was not installed correctly.")
 end
 
 const VERSION_HEADER = 150
@@ -31,25 +31,18 @@ include("./mjextra.jl")
 
 # mujoco functions
 include("./mujoco_c.jl")
-if VERSION >= v"0.6"
-   include("./mjderiv.jl")
-else
-   warn("Derivatives supported in Julia v0.6")
-end
+include("./mjderiv.jl")
 
 export mjtNum, mjtByte
 export jlData, jlModel
 
-global activated = false
-
 function teardown()
    deactivate()
-   global activated = false
 end
 
-function start()
-   if activated
-      return
+function __init__()
+   if is_linux()
+      Libdl.dlopen_e(libglew, Libdl.RTLD_LAZY | Libdl.RTLD_DEEPBIND | Libdl.RTLD_GLOBAL)
    end
 
    key = ""
@@ -58,24 +51,10 @@ function start()
    catch e
       println("Set MUJOCO_KEY_PATH environment variable, please.")
    end
-   val = activate(key)
-
-   if val == 1
-      global activated = true
-   else
-      warn("MuJoCo not activated. Could not find license file in MUJOCO_KEY_PATH environment variable or through system search.")
-   end
-end
-
-function __init__()
-   if is_linux()
-      Libdl.dlopen_e(libglew, Libdl.RTLD_LAZY | Libdl.RTLD_DEEPBIND | Libdl.RTLD_GLOBAL)
-   end
-
-   start()
+   cmd = "ccall((:mj_activate,libmujoco),Cint,(Cstring,),\"$(key)\")"
+   eval(parse(cmd))
 
    atexit(teardown)
 end
-
 
 end
