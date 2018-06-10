@@ -57,7 +57,7 @@ global const RNDSTRING     = ["Shadow"      "1"  "S";
 
 
 
-const PV{T} = Union{Ptr{T},AbstractVector{T}}
+const PV{T} = Union{Ptr{T},AbstractVector{T},Ptr{Void}}
 
 #---------------------- License activation and certificate (mutex-protected) -----------
 
