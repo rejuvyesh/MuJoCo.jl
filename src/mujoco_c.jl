@@ -856,13 +856,13 @@ end
 
 # read pixels from current OpenGL framebuffer to client buffer
 #  viewport is in OpenGL framebuffer; client buffer starts at (0,0)
-function mjr_readPixels(rgb::Ptr{Cuchar},depth::Ptr{Cfloat},viewport::mjrRect,con::Ptr{mjrContext})
+function mjr_readPixels(rgb::PV{Cuchar},depth::PV{Cfloat},viewport::mjrRect,con::Ptr{mjrContext})
    ccall((:mjr_readPixels,libmujoco),Void,(Ptr{Cuchar},Ptr{Cfloat},mjrRect,Ptr{mjrContext}),rgb,depth,viewport,con)
 end
 
 # draw pixels from client buffer to current OpenGL framebuffer
 #  viewport is in OpenGL framebuffer; client buffer starts at (0,0)
-function mjr_drawPixels(rgb::Ptr{Cuchar},depth::Ptr{Cfloat},viewport::mjrRect,con::Ptr{mjrContext})
+function mjr_drawPixels(rgb::PV{Cuchar},depth::PV{Cfloat},viewport::mjrRect,con::Ptr{mjrContext})
    ccall((:mjr_drawPixels,libmujoco),Void,(Ptr{Cuchar},Ptr{Cfloat},mjrRect,Ptr{mjrContext}),rgb,depth,viewport,con)
 end
 
