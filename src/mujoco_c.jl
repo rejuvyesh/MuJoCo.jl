@@ -563,12 +563,13 @@ end
 
 # get id of object with specified name; -1: not found; type is mjtObj
 function name2id(m::Ptr{Model},_type::Integer,name::String)
-   ccall((:mj_name2id,libmujoco),Cint,(Ptr{Model},Cint,Cstring),m,_type,name)
+   ccall((:mj_name2id,libmujoco),Cint,(Ptr{Model},Cint,Cstring),m,_type,pointer(name))
 end
 
 # get name of object with specified id; 0: invalid type or id; type is mjtObj
 function id2name(m::Ptr{Model},_type::Integer,id::Integer)
-   ccall((:mj_id2name,libmujoco),Cstring,(Ptr{Model},Cint,Cint),m,_type,id)
+   name=ccall((:mj_id2name,libmujoco),Cstring,(Ptr{Model},Cint,Cint),m,_type,id-1) # julia to c indexing
+   return unsafe_string(name)
 end
 
 # convert sparse inertia matrix M into full matrix
