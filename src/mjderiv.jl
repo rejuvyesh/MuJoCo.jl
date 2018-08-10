@@ -53,13 +53,13 @@ function fwdworker(m::jlModel, dmain::jlData, d::jlData,
 
    # copy state and control from dmain to thread-specific d
    set(d, :time, get(dmain, :time)) #d.time = dmain.time
-   copy!(d.qpos, dmain.qpos)
-   copy!(d.qvel, dmain.qvel)
-   copy!(d.qacc, dmain.qacc)
-   copy!(d.qacc_warmstart, dmain.qacc_warmstart)
-   copy!(d.qfrc_applied, dmain.qfrc_applied)
-   copy!(d.xfrc_applied, dmain.xfrc_applied)
-   copy!(d.ctrl, dmain.ctrl)
+   copyto!(d.qpos, dmain.qpos)
+   copyto!(d.qvel, dmain.qvel)
+   copyto!(d.qacc, dmain.qacc)
+   copyto!(d.qacc_warmstart, dmain.qacc_warmstart)
+   copyto!(d.qfrc_applied, dmain.qfrc_applied)
+   copyto!(d.xfrc_applied, dmain.xfrc_applied)
+   copyto!(d.ctrl, dmain.ctrl)
 
    # run full computation at center point (usually faster than copying dmain)
    mj.forward(m, d)
@@ -68,8 +68,8 @@ function fwdworker(m::jlModel, dmain::jlData, d::jlData,
    end
 
    # save output for center point and warmstart (needed in forward only)
-   copy!(center, d.qacc)
-   copy!(warmstart, d.qacc_warmstart)
+   copyto!(center, d.qacc)
+   copyto!(warmstart, d.qacc_warmstart)
 
    # finite-difference over force or acceleration: skip = mjSTAGE_VEL
    for i=istart:iend
@@ -77,7 +77,7 @@ function fwdworker(m::jlModel, dmain::jlData, d::jlData,
       d.qfrc_applied[i] += eps
 
       # evaluate dynamics, with center warmstart
-      copy!(d.qacc_warmstart, warmstart)
+      copyto!(d.qacc_warmstart, warmstart)
       mj.forwardSkip(m, d, Int(mj.STAGE_VEL), 1)
 
       # undo perturbation
@@ -93,7 +93,7 @@ function fwdworker(m::jlModel, dmain::jlData, d::jlData,
       d.qvel[i] += eps
 
       # evaluate dynamics, with center warmstart
-      copy!(d.qacc_warmstart, warmstart)
+      copyto!(d.qacc_warmstart, warmstart)
       mj.forwardSkip(m, d, Int(mj.STAGE_POS), 1)
 
       # undo perturbation
@@ -131,11 +131,11 @@ function fwdworker(m::jlModel, dmain::jlData, d::jlData,
       end
 
       # evaluate dynamics, with center warmstart
-      copy!(d.qacc_warmstart, warmstart)
+      copyto!(d.qacc_warmstart, warmstart)
       mj.forwardSkip(m, d, Int(mj.STAGE_NONE), 1)
 
       # undo perturbation
-      copy!(d.qpos, dmain.qpos)
+      copyto!(d.qpos, dmain.qpos)
 
       # compute column i of derivative 0
       block1[:,i] = (d.qacc - center)/eps
@@ -168,20 +168,20 @@ function invworker(m::jlModel, dmain::jlData, d::jlData,
 
    # copy state and control from dmain to thread-specific d
    set(d, :time, get(dmain, :time)) #d.time = dmain.time
-   copy!(d.qpos, dmain.qpos)
-   copy!(d.qvel, dmain.qvel)
-   copy!(d.qacc, dmain.qacc)
-   copy!(d.qacc_warmstart, dmain.qacc_warmstart)
-   copy!(d.qfrc_applied, dmain.qfrc_applied)
-   copy!(d.xfrc_applied, dmain.xfrc_applied)
-   copy!(d.ctrl, dmain.ctrl)
+   copyto!(d.qpos, dmain.qpos)
+   copyto!(d.qvel, dmain.qvel)
+   copyto!(d.qacc, dmain.qacc)
+   copyto!(d.qacc_warmstart, dmain.qacc_warmstart)
+   copyto!(d.qfrc_applied, dmain.qfrc_applied)
+   copyto!(d.xfrc_applied, dmain.xfrc_applied)
+   copyto!(d.ctrl, dmain.ctrl)
 
    # run full computation at center point (usually faster than copying dmain)
    mj.inverse(m, d)
 
    # save output for center point and warmstart (needed in forward only)
-   copy!(center, d.qfrc_inverse)
-   copy!(warmstart, d.qacc_warmstart)
+   copyto!(center, d.qfrc_inverse)
+   copyto!(warmstart, d.qacc_warmstart)
 
    # finite-difference over force or acceleration: skip = mjSTAGE_VEL
    for i=istart:iend
@@ -243,7 +243,7 @@ function invworker(m::jlModel, dmain::jlData, d::jlData,
       mj.inverseSkip(m, d, Int(mj.STAGE_NONE), 1)
 
       # undo perturbation
-      copy!(d.qpos, dmain.qpos)
+      copyto!(d.qpos, dmain.qpos)
 
       # compute column i of derivative 0
       block1[:,i] = (d.qfrc_inverse - center)/eps

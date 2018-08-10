@@ -50,7 +50,7 @@ function __init__()
    try
       key = ENV["MUJOCO_KEY_PATH"]
       cmd = "ccall((:mj_activate,libmujoco),Cint,(Cstring,),\"$(key)\")"
-      eval(parse(cmd))
+      eval(Meta.parse(cmd))
    catch e
       println("Set MUJOCO_KEY_PATH environment variable, please.")
    end

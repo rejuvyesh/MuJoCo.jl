@@ -131,7 +131,7 @@ end
 #  error can be NULL; otherwise assumed to have size error_sz
 function loadXML(filename::String,vfs::Union{Ptr{VFS},Ptr{Cvoid}}=C_NULL)
    errsz = 1000
-   err = Vector{UInt8}(errsz) 
+   err = Vector{UInt8}(undef, errsz) 
    m=ccall((:mj_loadXML,libmujoco),Ptr{Model},(Cstring,Cstring,Ptr{UInt8},Cint),filename,vfs,err,errsz)
    if m == C_NULL
       err[end] = 0;

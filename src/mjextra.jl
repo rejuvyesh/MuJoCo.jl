@@ -4,7 +4,7 @@
 function mapmodel(pm::Ptr{Model})
     c_model= unsafe_load(pm)
 
-    margs = Array{Any}(1)
+    margs = Array{Any}(undef, 1)
     margs[1] = pm
     m_fields = intersect( fieldnames(jlModel), fieldnames(Model) )
     m_sizes = getmodelsize(c_model)
@@ -32,7 +32,7 @@ function mapdata(pm::Ptr{Model}, pd::Ptr{Data})
    c_model= unsafe_load(pm)
    c_data = unsafe_load(pd)
    
-   dargs = Array{Any}(1)
+   dargs = Array{Any}(undef, 1)
    dargs[1] = pd
    d_fields = intersect( fieldnames(jlData), fieldnames(Data) )
    d_sizes = getdatasize(c_model, c_data)
@@ -227,7 +227,7 @@ function name2range(m::jlModel, num::Integer,
     sname = String(m.names)
     idx = names[1] + 1
     split_names = split(sname[idx:end], '\0', limit=(num+1))[1:num]
-    d = Dict{Symbol, Range}(Symbol(split_names[i]) => (addresses[i]+1):(addresses[i]+dims[i]) for i=1:num)
+    d = Dict{Symbol, AbstractRange}(Symbol(split_names[i]) => (addresses[i]+1):(addresses[i]+dims[i]) for i=1:num)
     return d
 end
 
