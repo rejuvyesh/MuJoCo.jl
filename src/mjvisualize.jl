@@ -24,7 +24,7 @@ const MAXPLANEGRID = 100
 
 @enum mjtStereo STEREO_NONE = (UInt32)(0) STEREO_QUADBUFFERED = (UInt32)(1) STEREO_SIDEBYSIDE = (UInt32)(2)
 
-immutable mjvPerturb
+struct mjvPerturb
    select::Cint
    active::Cint
    refpos::SVector{3, mjtNum}
@@ -33,7 +33,7 @@ immutable mjvPerturb
    scale::mjtNum
 end
 
-immutable mjvCamera
+struct mjvCamera
    _type::Cint
    fixedcamid::Cint
    trackbodyid::Cint
@@ -43,7 +43,7 @@ immutable mjvCamera
    elevation::mjtNum
 end
 
-immutable mjvGLCamera
+struct mjvGLCamera
    pos::SVector{3, Cfloat}
    forward::SVector{3, Cfloat}
    up::SVector{3, Cfloat}
@@ -54,7 +54,7 @@ immutable mjvGLCamera
    frustum_far::Cfloat
 end
 
-immutable mjvGeom
+struct mjvGeom
    _type::Cint
    dataid::Cint
    objtype::Cint
@@ -77,7 +77,7 @@ immutable mjvGeom
    transparent::mjtByte
 end
 
-immutable mjvLight
+struct mjvLight
    pos::SVector{3, Cfloat}
    dir::SVector{3, Cfloat}
    attenuation::SVector{3, Cfloat}
@@ -91,7 +91,7 @@ immutable mjvLight
    castshadow::mjtByte
 end
 
-immutable mjvOption
+struct mjvOption
    label::Cint
    frame::Cint
    geomgroup::SVector{5, mjtByte}
@@ -99,7 +99,7 @@ immutable mjvOption
    flags::SVector{18, mjtByte}
 end
 
-immutable mjvScene
+struct mjvScene
    maxgeom::Cint
    ngeom::Cint
    geoms::Ptr{mjvGeom}
@@ -115,7 +115,7 @@ immutable mjvScene
    flags::SVector{5, mjtByte}
 end
 
-immutable mjvFigure
+struct mjvFigure
    flg_legend::Cint
    flg_ticklabel::SVector{2, Cint}
    flg_extend::Cint

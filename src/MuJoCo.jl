@@ -2,6 +2,7 @@ __precompile__()
 
 module MuJoCo
 
+using Libdl
 using StaticArrays
 
 const depsfile = joinpath(dirname(@__FILE__), "..", "deps", "deps.jl")
@@ -41,7 +42,7 @@ function teardown()
 end
 
 function __init__()
-   if is_linux()
+   if Sys.islinux()
       Libdl.dlopen_e(libglew, Libdl.RTLD_LAZY | Libdl.RTLD_DEEPBIND | Libdl.RTLD_GLOBAL)
    end
 

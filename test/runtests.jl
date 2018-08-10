@@ -1,5 +1,5 @@
 using MuJoCo
-using Base.Test
+using Test
 
 #modelfile = dirname(@__FILE__)*"/humanoid.xml"
 modelfile = dirname(@__FILE__)*"/swimmer.xml"

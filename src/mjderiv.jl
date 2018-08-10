@@ -33,10 +33,10 @@ end
 function fwdworker(m::jlModel, dmain::jlData, d::jlData,
                    tid::Integer,
                    block1::Matrix{mjtNum}, block2::Matrix{mjtNum}, block3::Matrix{mjtNum})
-   const nv = length(d.qvel)
-   const eps = 1e-6
-   const nwarmup = 3
-   const nthread = Threads.nthreads() # TODO here?
+   nv = length(d.qvel)
+   eps = 1e-6
+   nwarmup = 3
+   nthread = Threads.nthreads() # TODO here?
 
    mark = mj.MARKSTACK(d)
 
@@ -148,10 +148,10 @@ function invworker(m::jlModel, dmain::jlData, d::jlData,
                    tid::Integer,
                    block1::Matrix{mjtNum}, block2::Matrix{mjtNum}, block3::Matrix{mjtNum})
 
-   const nv = length(d.qvel)
-   const eps = 1e-6
-   const nwarmup = 3
-   const nthread = Threads.nthreads() # TODO here?
+   nv = length(d.qvel)
+   eps = 1e-6
+   nwarmup = 3
+   nthread = Threads.nthreads() # TODO here?
 
    mark = mj.MARKSTACK(d)
 

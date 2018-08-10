@@ -5,7 +5,7 @@
 @enum mjtTimer mjtIMER_STEP = (UInt32)(0) mjtIMER_FORWARD = (UInt32)(1) mjtIMER_INVERSE = (UInt32)(2) mjtIMER_POSITION = (UInt32)(3) mjtIMER_VELOCITY = (UInt32)(4) mjtIMER_ACTUATION = (UInt32)(5) mjtIMER_ACCELERATION = (UInt32)(6) mjtIMER_CONSTRAINT = (UInt32)(7) mjtIMER_POS_KINEMATICS = (UInt32)(8) mjtIMER_POS_INERTIA = (UInt32)(9) mjtIMER_POS_COLLISION = (UInt32)(10) mjtIMER_POS_MAKE = (UInt32)(11) mjtIMER_POS_PROJECT = (UInt32)(12) NTIMER = (UInt32)(13)
 
 
-immutable Contact
+struct Contact
    dist::mjtNum
    pos::SVector{3, mjtNum}
    frame::SVector{9, mjtNum}
@@ -22,17 +22,17 @@ immutable Contact
    efc_address::Cint
 end
 
-immutable WarningStat
+struct WarningStat
    lastinfo::Cint
    number::Cint
 end
 
-immutable TimerStat
+struct TimerStat
    duration::mjtNum
    number::Cint
 end
 
-immutable SolverStat
+struct SolverStat
    improvement::mjtNum
    gradient::mjtNum
    lineslope::mjtNum
@@ -43,7 +43,7 @@ immutable SolverStat
 end
 
 #mutable struct Data
-type Data
+mutable struct Data
    nstack::Cint
    nbuffer::Cint
 
@@ -67,7 +67,7 @@ type Data
    time::mjtNum
    energy::SVector{2, mjtNum}
 
-   buffer::Ptr{Void}
+   buffer::Ptr{Cvoid}
    stack::Ptr{mjtNum}
 
    qpos::Ptr{mjtNum}
@@ -173,13 +173,13 @@ end
 
 # Callback function types TODO
 
-const mjfGeneric = Ptr{Void}
-const mjfConFilt = Ptr{Void}
-const mjfSensor = Ptr{Void}
-const mjfTime = Ptr{Void}
-const mjfAct = Ptr{Void}
-const mjfSolImp = Ptr{Void}
-const mjfSolRef = Ptr{Void}
-const mjfCollision = Ptr{Void}
+const mjfGeneric = Ptr{Cvoid}
+const mjfConFilt = Ptr{Cvoid}
+const mjfSensor = Ptr{Cvoid}
+const mjfTime = Ptr{Cvoid}
+const mjfAct = Ptr{Cvoid}
+const mjfSolImp = Ptr{Cvoid}
+const mjfSolRef = Ptr{Cvoid}
+const mjfCollision = Ptr{Cvoid}
 
 
