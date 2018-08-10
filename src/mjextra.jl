@@ -211,7 +211,7 @@ resetData(m::jlModel, d::jlData) = resetData(m.m, d.d)
 #################################### Name Wrappers
 
 function name2idx(m::jlModel, num::Integer, names::Vector{Cint})
-    sname = String(m.names)
+    sname = String(copy(m.names))
     idx = names[1] + 1
     split_names = split(sname[idx:end], '\0', limit=(num+1))[1:num]
     d = Dict{Symbol, Integer}(Symbol(split_names[i]) => i for i=1:num)
@@ -224,7 +224,7 @@ end
 
 function name2range(m::jlModel, num::Integer,
                     names::Vector{Cint}, addresses::Vector{Cint}, dims::Vector{Cint})
-    sname = String(m.names)
+    sname = String(copy(m.names))
     idx = names[1] + 1
     split_names = split(sname[idx:end], '\0', limit=(num+1))[1:num]
     d = Dict{Symbol, AbstractRange}(Symbol(split_names[i]) => (addresses[i]+1):(addresses[i]+dims[i]) for i=1:num)
