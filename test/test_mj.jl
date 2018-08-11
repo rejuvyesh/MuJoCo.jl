@@ -8,7 +8,7 @@ using MuJoCo
 val = mj.activate("/home/klowrey/.mujoco/mjkey.txt")
 println("Acivation: $val")
 
-modelfile = "/home/klowrey/Dropbox/robotics/mjulia/models/humanoid.xml"
+modelfile = joinpath(dirname(@__FILE__), "humanoid.xml")
 pm = mj.loadXML(modelfile, C_NULL)
 
 if pm == nothing 

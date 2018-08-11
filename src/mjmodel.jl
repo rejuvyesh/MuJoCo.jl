@@ -68,14 +68,14 @@ const NSOLVER = 1000
 
 @enum mjtDataType DATATYPE_REAL = (UInt32)(0) DATATYPE_POSITIVE = (UInt32)(1) DATATYPE_AXIS = (UInt32)(2) DATATYPE_QUAT = (UInt32)(3)
 
-immutable VFS
+struct VFS
    nfile::Cint
 	filename::SVector{MAXVFS, SVector{MAXVFSNAME, UInt8}}
    filesize::SVector{MAXVFS, Cint}
-   filedata::SVector{MAXVFS, Ptr{Void}}
+   filedata::SVector{MAXVFS, Ptr{Cvoid}}
 end
 
-immutable Option
+struct Option
    timestep::mjtNum
    apirate::mjtNum
 
@@ -108,7 +108,7 @@ immutable Option
    enableflags::Cint
 end
 
-immutable _global
+struct _global
 	fovy::Float32
 	ipd::Float32
 	linewidth::Float32
@@ -117,7 +117,7 @@ immutable _global
 	offheight::Int32
 end
 
-immutable quality
+struct quality
 	shadowsize::Int32
 	offsamples::Int32
 	numslices::Int32
@@ -126,14 +126,14 @@ immutable quality
 	numquads::Int32
 end
 
-immutable headlight
+struct headlight
 	ambient::SVector{3, Float32}
 	diffuse::SVector{3, Float32}
 	specular::SVector{3, Float32}
 	active::Int32
 end
 
-immutable map
+struct map
 	stiffness::Float32
 	stiffnessrot::Float32
 	force::Float32
@@ -147,7 +147,7 @@ immutable map
 	shadowscale::Float32
 end
 
-immutable scale
+struct scale
 	forcewidth::Float32
 	contactwidth::Float32
 	contactheight::Float32
@@ -166,7 +166,7 @@ immutable scale
 	slidercrank::Float32
 end
 
-immutable rgba
+struct rgba
 	fog::SVector{4, Float32}
 	force::SVector{4, Float32}
 	inertia::SVector{4, Float32}
@@ -186,7 +186,7 @@ immutable rgba
 	crankbroken::SVector{4, Float32}
 end
 
-immutable Visual
+struct Visual
 	_global::_global
 	quality::quality
 	headlight::headlight
@@ -196,7 +196,7 @@ immutable Visual
 end
 
 #struct _Statistic
-immutable Statistic
+struct Statistic
 	meaninertia::mjtNum
 	meanmass::mjtNum
 	meansize::mjtNum
@@ -204,7 +204,7 @@ immutable Statistic
 	center::SVector{3, mjtNum}
 end
 
-immutable Model
+struct Model
 	nq::Cint
 	nv::Cint
 	nu::Cint
@@ -262,7 +262,7 @@ immutable Model
 	vis::Visual
 	stat::Statistic
 
-	buffer::Ptr{Void}
+	buffer::Ptr{Cvoid}
 
 	qpos0::Ptr{mjtNum}
 	qpos_spring::Ptr{mjtNum}

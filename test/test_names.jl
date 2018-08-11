@@ -16,7 +16,7 @@ m, d  = mj.mapmujoco(pm, pd)
 sensors = mj.name2range(m, mj.get(m, :nsensor),
                         m.name_sensoradr, m.sensor_adr, m.sensor_dim)
 
-sname = String(m.names)
+sname = String(copy(m.names))   # See https://github.com/JuliaLang/julia/pull/26093
 nsnsr = length(m.name_sensoradr)
 idx = m.name_sensoradr[1] + 1
 snsr_names = split(sname[idx:end], '\0', limit=(nsnsr+1))[1:nsnsr]
@@ -27,12 +27,14 @@ snsrs   = Dict{Symbol, SubArray{Float64}}(Symbol(snsr_names[i]) =>
 bodies = mj.name2idx(m, mj.get(m, :nbody), m.name_bodyadr) # maps body name to it's index
 
 steps = 1000
-tic()
-for i=1:steps
-    mj.step(m,d)
+
+t = @elapsed begin
+    for i=1:steps
+        mj.step(m,d)
+    end
 end
-t = toc()
-info("Time for $steps mj.steps: ", t)
+
+@info "Time for $steps mj.steps: $t"
 
 @test d.xquat[:, bodies[:world] ] == [1.0, 0.0, 0.0, 0.0]
 @test isapprox( d.sensordata[sensors[:accel]][1], 8.524, rtol=1e-3)
