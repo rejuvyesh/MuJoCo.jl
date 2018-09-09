@@ -973,102 +973,102 @@ end
 
 # set vector to zero
 function mju_zero3(res::SVector{3, mjtNum})
-   ccall((:mju_zero3,libmujoco),Void,(SVector{3, mjtNum},),res)
+   ccall((:mju_zero3,libmujoco),Void,(Ptr{mjtNum},),pointer_from_objref(res.data))
 end
 
 # copy vector
 function mju_copy3(res::SVector{3, mjtNum},data::SVector{3, mjtNum})
-   ccall((:mju_copy3,libmujoco),Void,(SVector{3, mjtNum},SVector{3, mjtNum}),res,data)
+   ccall((:mju_copy3,libmujoco),Void,(Ptr{mjtNum},Ptr{mjtNum}),pointer_from_objref(res),pointer_from_objref(data))
 end
 
 # scale vector
 function mju_scl3(res::SVector{3, mjtNum},vec::SVector{3, mjtNum},scl::mjtNum)
-   ccall((:mju_scl3,libmujoco),Void,(SVector{3, mjtNum},SVector{3, mjtNum},mjtNum),res,vec,scl)
+   ccall((:mju_scl3,libmujoco),Void,(Ptr{mjtNum},Ptr{mjtNum},mjtNum),res,vec,scl)
 end
 
 # add vectors
 function mju_add3(res::SVector{3, mjtNum},vec1::SVector{3, mjtNum},vec2::SVector{3, mjtNum})
-   ccall((:mju_add3,libmujoco),Void,(SVector{3, mjtNum},SVector{3, mjtNum},SVector{3, mjtNum}),res,vec1,vec2)
+   ccall((:mju_add3,libmujoco),Void,(Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum}),res,vec1,vec2)
 end
 
 # subtract vectors
 function mju_sub3(res::SVector{3, mjtNum},vec1::SVector{3, mjtNum},vec2::SVector{3, mjtNum})
-   ccall((:mju_sub3,libmujoco),Void,(SVector{3, mjtNum},SVector{3, mjtNum},SVector{3, mjtNum}),res,vec1,vec2)
+   ccall((:mju_sub3,libmujoco),Void,(Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum}),res,vec1,vec2)
 end
 
 # add to vector
 function mju_addTo3(res::SVector{3, mjtNum},vec::SVector{3, mjtNum})
-   ccall((:mju_addTo3,libmujoco),Void,(SVector{3, mjtNum},SVector{3, mjtNum}),res,vec)
+   ccall((:mju_addTo3,libmujoco),Void,(Ptr{mjtNum},Ptr{mjtNum}),res,vec)
 end
 
 # Set res = res - vec.
 function mju_subFrom3(res::SVector{3, mjtNum},vec::SVector{3, mjtNum})
-   ccall((:mju_subFrom3,libmujoco),Void,(SVector{3, mjtNum},SVector{3, mjtNum}),res,vec)
+   ccall((:mju_subFrom3,libmujoco),Void,(Ptr{mjtNum},Ptr{mjtNum}),res,vec)
 end
 
 # add scaled to vector
 function mju_addToScl3(res::SVector{3, mjtNum},vec::SVector{3, mjtNum},scl::mjtNum)
-   ccall((:mju_addToScl3,libmujoco),Void,(SVector{3, mjtNum},SVector{3, mjtNum},mjtNum),res,vec,scl)
+   ccall((:mju_addToScl3,libmujoco),Void,(Ptr{mjtNum},Ptr{mjtNum},mjtNum),res,vec,scl)
 end
 
 # res = vec1 + scl*vec2
 function mju_addScl3(res::SVector{3, mjtNum},vec1::SVector{3, mjtNum},vec2::SVector{3, mjtNum},scl::mjtNum)
-   ccall((:mju_addScl3,libmujoco),Void,(SVector{3, mjtNum},SVector{3, mjtNum},SVector{3, mjtNum},mjtNum),res,vec1,vec2,scl)
+   ccall((:mju_addScl3,libmujoco),Void,(Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum},mjtNum),res,vec1,vec2,scl)
 end
 
 # normalize vector, return length before normalization
 function mju_normalize3(res::SVector{3, mjtNum})
-   ccall((:mju_normalize3,libmujoco),mjtNum,(SVector{3, mjtNum},),res)
+   ccall((:mju_normalize3,libmujoco),mjtNum,(Ptr{mjtNum},),res)
 end
 
 # compute vector length (without normalizing)
 function mju_norm3(vec::SVector{3, mjtNum})
-   ccall((:mju_norm3,libmujoco),mjtNum,(SVector{3, mjtNum},),vec)
+   ccall((:mju_norm3,libmujoco),mjtNum,(Ptr{mjtNum},),vec)
 end
 
 # vector dot-product
 function mju_dot3(vec1::SVector{3, mjtNum},vec2::SVector{3, mjtNum})
-   ccall((:mju_dot3,libmujoco),mjtNum,(SVector{3, mjtNum},SVector{3, mjtNum}),vec1,vec2)
+   ccall((:mju_dot3,libmujoco),mjtNum,(Ptr{mjtNum},Ptr{mjtNum}),vec1,vec2)
 end
 
 # Cartesian distance between 3D vectors
 function mju_dist3(pos1::SVector{3, mjtNum},pos2::SVector{3, mjtNum})
-   ccall((:mju_dist3,libmujoco),mjtNum,(SVector{3, mjtNum},SVector{3, mjtNum}),pos1,pos2)
+   ccall((:mju_dist3,libmujoco),mjtNum,(Ptr{mjtNum},Ptr{mjtNum}),pos1,pos2)
 end
 
 # multiply vector by 3D rotation matrix
 function mju_rotVecMat(res::SVector{3, mjtNum},vec::SVector{3, mjtNum},mat::SVector{9, mjtNum})
-   ccall((:mju_rotVecMat,libmujoco),Void,(SVector{3, mjtNum},SVector{3, mjtNum},SVector{9, mjtNum}),res,vec,mat)
+   ccall((:mju_rotVecMat,libmujoco),Void,(Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum}),res,vec,mat)
 end
 
 # multiply vector by transposed 3D rotation matrix
 function mju_rotVecMatT(res::SVector{3, mjtNum},vec::SVector{3, mjtNum},mat::SVector{9, mjtNum})
-   ccall((:mju_rotVecMatT,libmujoco),Void,(SVector{3, mjtNum},SVector{3, mjtNum},SVector{9, mjtNum}),res,vec,mat)
+   ccall((:mju_rotVecMatT,libmujoco),Void,(Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum}),res,vec,mat)
 end
 
 # vector cross-product, 3D
 function mju_cross(res::SVector{3, mjtNum},a::SVector{3, mjtNum},b::SVector{3, mjtNum})
-   ccall((:mju_cross,libmujoco),Void,(SVector{3, mjtNum},SVector{3, mjtNum},SVector{3, mjtNum}),res,a,b)
+   ccall((:mju_cross,libmujoco),Void,(Ptr{mjtNum},Ptr{mjtNum},Ptr{mjtNum}),res,a,b)
 end
 
 # set vector to zero
 function mju_zero4(res::SVector{4, mjtNum})
-   ccall((:mju_zero4,libmujoco),Void,(SVector{4, mjtNum},),res)
+   ccall((:mju_zero4,libmujoco),Void,(Ptr{mjtNum},),res)
 end
 
 # set unit quaterion
 function mju_unit4(res::SVector{4, mjtNum})
-   ccall((:mju_unit4,libmujoco),Void,(SVector{4, mjtNum},),res)
+   ccall((:mju_unit4,libmujoco),Void,(Ptr{mjtNum},),res)
 end
 
 # copy vector
 function mju_copy4(res::SVector{4, mjtNum},data::SVector{4, mjtNum})
-   ccall((:mju_copy4,libmujoco),Void,(SVector{4, mjtNum},SVector{4, mjtNum}),res,data)
+   ccall((:mju_copy4,libmujoco),Void,(Ptr{mjtNum},Ptr{mjtNum}),res,data)
 end
 
 # normalize vector, return length before normalization
 function mju_normalize4(res::SVector{4, mjtNum})
-   ccall((:mju_normalize4,libmujoco),mjtNum,(SVector{4, mjtNum},),res)
+   ccall((:mju_normalize4,libmujoco),mjtNum,(Ptr{mjtNum},),res)
 end
 
 # set vector to zero
