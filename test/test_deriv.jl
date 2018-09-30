@@ -7,15 +7,15 @@ qpos0 = copy(d.qpos)
 
 nstep = 500
 for i=1:nstep
-	mj.step(m, d)
+  mj.step(m, d)
 end
 
 ndata = Threads.nthreads()
-info("Testing Derivatives for ", ndata, " threads.")
-datas = Array{jlData}(ndata)
+@info "Testing Derivatives for $(ndata), threads."
+datas = Array{jlData}(undef, ndata)
 for i=1:ndata
-	datas[i] = mj.mapdata(pm, mj.makeData(pm))
-	@test qpos0 == datas[i].qpos
+  datas[i] = mj.mapdata(pm, mj.makeData(pm))
+  @test qpos0 == datas[i].qpos
 end
 
 # alloc some space
@@ -64,46 +64,46 @@ end
 
 
 function checkderiv(m::jlModel, d::jlData,
-						  G0::Matrix{mjtNum}, G1::Matrix{mjtNum}, G2::Matrix{mjtNum},
-						  F0::Matrix{mjtNum}, F1::Matrix{mjtNum}, F2::Matrix{mjtNum})
-						  
-   nv = mj.get(m, :nv)
+              G0::Matrix{mjtNum}, G1::Matrix{mjtNum}, G2::Matrix{mjtNum},
+              F0::Matrix{mjtNum}, F1::Matrix{mjtNum}, F2::Matrix{mjtNum})
+              
+    nv = mj.get(m, :nv)
 
-	error = zeros(8)
+    error = zeros(8)
 
-   # G2*F2 - I
-	mat = G2*F2 - eye(nv)
-   error[1] = relnorm(mat, G2)
+    # G2*F2 - I
+    mat = G2*F2 - Matrix(I, nv, nv)
+    error[1] = relnorm(mat, G2)
 
-   # G2 - G2'
-	mat = G2 - G2'
-   error[2] = relnorm(mat, G2)
+    # G2 - G2'
+    mat = G2 - G2'
+    error[2] = relnorm(mat, G2)
 
-   # G1 - G1'
-	mat = G1 - G1'
-   error[3] = relnorm(mat, G1)
+    # G1 - G1'
+    mat = G1 - G1'
+    error[3] = relnorm(mat, G1)
 
-   # F2 - F2'
-	mat = F2 - F2'
-   error[4] = relnorm(mat, F2)
+    # F2 - F2'
+    mat = F2 - F2'
+    error[4] = relnorm(mat, F2)
 
-   # G1 + G2*F1
-	mat = G1 + ( G2 * F1 )
-   error[5] = relnorm(mat, G1)
+    # G1 + G2*F1
+    mat = G1 + ( G2 * F1 )
+    error[5] = relnorm(mat, G1)
 
-   # G0 + G2*F0
-	mat = G0 + G2 * F0
-   error[6] = relnorm(mat, G0)
+    # G0 + G2*F0
+    mat = G0 + G2 * F0
+    error[6] = relnorm(mat, G0)
 
-   # F1 + F2*G1
-	mat = F1 + F2 * G1
-   error[7] = relnorm(mat, F1)
+    # F1 + F2*G1
+    mat = F1 + F2 * G1
+    error[7] = relnorm(mat, F1)
 
-   # F0 + F2*G0
-	mat = F0 + F2 * G0
-   error[8] = relnorm(mat, F0)
+    # F0 + F2*G0
+    mat = F0 + F2 * G0
+    error[8] = relnorm(mat, F0)
 
-	return error
+    return error
 end
 
 

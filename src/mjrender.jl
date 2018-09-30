@@ -7,14 +7,14 @@
 
 @enum mjtFont FONT_NORMAL = (UInt32)(0) FONT_SHADOW = (UInt32)(1) FONT_BIG = (UInt32)(2)
 
-immutable mjrRect
+struct mjrRect
    left::Cint
    bottom::Cint
    width::Cint
    height::Cint
 end
 
-immutable mjrContext
+struct mjrContext
    lineWidth::Cfloat
    shadowClip::Cfloat
    shadowScale::Cfloat

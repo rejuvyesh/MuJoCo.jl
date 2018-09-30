@@ -1,7 +1,7 @@
 
 # TODO overload print/show/display function to not display model and data
 
-type jlModel
+mutable struct jlModel
    m::Ptr{Model}
 
    qpos0::Array{mjtNum}
@@ -235,7 +235,7 @@ type jlModel
 end
 
 #mutable struct jlData # v0.6
-type jlData
+mutable struct jlData
    d::Ptr{Data} # point to c struct
 
    stack::Array{mjtNum}
