@@ -1,0 +1,9 @@
+name = "MuJoCo"
+uuid = "7528ae0c-c4f8-11e8-159b-614449536536"
+authors = ["klowrey <kendall.lowrey@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+BinDeps = "9e28174c-4ba2-5203-b857-d8d62c4213ee"
+Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
