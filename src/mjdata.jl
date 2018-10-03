@@ -104,8 +104,11 @@ mutable struct Data
    cinert::Ptr{mjtNum}
    ten_wrapadr::Ptr{Cint}
    ten_wrapnum::Ptr{Cint}
+   ten_J_rownnz::Ptr{Cint}
+   ten_J_rowadr::Ptr{Cint}
+   ten_J_colind::Ptr{Cint}
    ten_length::Ptr{mjtNum}
-   ten_moment::Ptr{mjtNum}
+   ten_J::Ptr{mjtNum}
    wrap_obj::Ptr{Cint}
    wrap_xpos::Ptr{mjtNum}
    actuator_length::Ptr{mjtNum}
@@ -123,18 +126,19 @@ mutable struct Data
    efc_id::Ptr{Cint}
    efc_J_rownnz::Ptr{Cint}
    efc_J_rowadr::Ptr{Cint}
+   efc_J_rowsuper::Ptr{Cint}
    efc_J_colind::Ptr{Cint}
    efc_JT_rownnz::Ptr{Cint}
    efc_JT_rowadr::Ptr{Cint}
+   efc_JT_rowsuper::Ptr{Cint}
    efc_JT_colind::Ptr{Cint}
-   efc_solref::Ptr{mjtNum}
-   efc_solimp::Ptr{mjtNum}
-   efc_margin::Ptr{mjtNum}
-   efc_frictionloss::Ptr{mjtNum}
-   efc_pos::Ptr{mjtNum}
    efc_J::Ptr{mjtNum}
    efc_JT::Ptr{mjtNum}
+   efc_pos::Ptr{mjtNum}
+   efc_margin::Ptr{mjtNum}
+   efc_frictionloss::Ptr{mjtNum}
    efc_diagApprox::Ptr{mjtNum}
+   efc_KBIP::Ptr{mjtNum}
    efc_D::Ptr{mjtNum}
    efc_R::Ptr{mjtNum}
 
@@ -162,7 +166,6 @@ mutable struct Data
    efc_force::Ptr{mjtNum}
    efc_state::Ptr{Cint}
    qfrc_constraint::Ptr{mjtNum}
-   qacc_warmstart::Ptr{mjtNum}
 
    qfrc_inverse::Ptr{mjtNum}
 
@@ -178,8 +181,6 @@ const mjfConFilt = Ptr{Cvoid}
 const mjfSensor = Ptr{Cvoid}
 const mjfTime = Ptr{Cvoid}
 const mjfAct = Ptr{Cvoid}
-const mjfSolImp = Ptr{Cvoid}
-const mjfSolRef = Ptr{Cvoid}
 const mjfCollision = Ptr{Cvoid}
 
 

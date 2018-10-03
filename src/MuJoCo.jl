@@ -12,7 +12,7 @@ else
    error("MuJoCo was not installed correctly.")
 end
 
-const VERSION_HEADER = 150
+const VERSION_HEADER = 200
 
 const mjtNum = Cdouble
 const mjtByte = Cuchar
@@ -34,6 +34,7 @@ include("./mjextra.jl")
 include("./mujoco_c.jl")
 include("./mjderiv.jl")
 
+export mjv, mjr, mju
 export mjtNum, mjtByte
 export jlData, jlModel
 

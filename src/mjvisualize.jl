@@ -1,31 +1,130 @@
 
-const NGROUP = 5
-const MAXOVERLAY = 500
+const NGROUP       = 6
+const MAXOVERLAY   = 500
 
-const MAXLINE = 100
-const MAXLINEPNT = 500
-const MAXPLANEGRID = 100
+const MAXLINE      = 100
+const MAXLINEPNT   = 1000
+const MAXPLANEGRID = 200
 
-@enum mjtCatBit CAT_STATIC = (UInt32)(1) CAT_DYNAMIC = (UInt32)(2) CAT_DECOR = (UInt32)(4) CAT_ALL = (UInt32)(7)
+@enum mjtCatBit            # bitflags for vGeom category
+begin
+    CAT_STATIC        = 1  # model elements in body 0
+    CAT_DYNAMIC       = 2  # model elements in all other bodies
+    CAT_DECOR         = 4  # decorative geoms
+    CAT_ALL           = 7  # select all categories
+end
 
-@enum mjtMouse MOUSE_NONE = (UInt32)(0) MOUSE_ROTATE_V = (UInt32)(1) MOUSE_ROTATE_H = (UInt32)(2) MOUSE_MOVE_V = (UInt32)(3) MOUSE_MOVE_H = (UInt32)(4) MOUSE_ZOOM = (UInt32)(5) MOUSE_SELECT = (UInt32)(6)
+@enum mjtMouse             # mouse interaction mode
+begin
+    MOUSE_NONE         = 0 # no action
+    MOUSE_ROTATE_V         # rotate, vertical plane
+    MOUSE_ROTATE_H         # rotate, horizontal plane
+    MOUSE_MOVE_V           # move, vertical plane
+    MOUSE_MOVE_H           # move, horizontal plane
+    MOUSE_ZOOM             # zoom
+    MOUSE_SELECT           # selection
+end
 
-@enum mjtPertBit PERT_TRANSLATE = (UInt32)(1) PERT_ROTATE = (UInt32)(2)
+@enum mjtPertBit           # mouse perturbations
+begin
+    PERT_TRANSLATE    = 1  # translation
+    PERT_ROTATE       = 2  # rotation
+end
 
-@enum mjtCamera CAMERA_FREE = (UInt32)(0) CAMERA_TRACKING = (UInt32)(1) CAMERA_FIXED = (UInt32)(2) CAMERA_USER = (UInt32)(3)
+@enum mjtCamera            # abstract camera type
+begin
+    CAMERA_FREE        = 0 # free camera
+    CAMERA_TRACKING        # tracking camera; uses trackbodyid
+    CAMERA_FIXED           # fixed camera; uses fixedcamid
+    CAMERA_USER            # user is responsible for setting OpenGL camera
+end
 
-@enum mjtLabel LABEL_NONE = (UInt32)(0) LABEL_BODY = (UInt32)(1) LABEL_JOINT = (UInt32)(2) LABEL_GEOM = (UInt32)(3) LABEL_SITE = (UInt32)(4) LABEL_CAMERA = (UInt32)(5) LABEL_LIGHT = (UInt32)(6) LABEL_TENDON = (UInt32)(7) LABEL_ACTUATOR = (UInt32)(8) LABEL_CONSTRAINT = (UInt32)(9) LABEL_SELECTION = (UInt32)(10) LABEL_SELPNT = (UInt32)(11) LABEL_CONTACTFORCE = (UInt32)(12) NLABEL = (UInt32)(13)
+@enum mjtLabel             # object labeling
+begin
+    LABEL_NONE        = 0  # nothing
+    LABEL_BODY             # body labels
+    LABEL_JOINT            # joint labels
+    LABEL_GEOM             # geom labels
+    LABEL_SITE             # site labels
+    LABEL_CAMERA           # camera labels
+    LABEL_LIGHT            # light labels
+    LABEL_TENDON           # tendon labels
+    LABEL_ACTUATOR         # actuator labels
+    LABEL_CONSTRAINT       # constraint labels
+    LABEL_SKIN             # skin labels
+    LABEL_SELECTION        # selected object
+    LABEL_SELPNT           # coordinates of selection point
+    LABEL_CONTACTFORCE     # magnitude of contact force
 
-@enum mjtFrame FRAME_NONE = (UInt32)(0) FRAME_BODY = (UInt32)(1) FRAME_GEOM = (UInt32)(2) FRAME_SITE = (UInt32)(3) FRAME_CAMERA = (UInt32)(4) FRAME_LIGHT = (UInt32)(5) FRAME_WORLD = (UInt32)(6) NFRAME = (UInt32)(7)
+    NLABEL                 # number of label types
+end
 
-@enum mjtVisFlag VIS_CONVEXHULL = (UInt32)(0) VIS_TEXTURE = (UInt32)(1) VIS_JOINT = (UInt32)(2) VIS_ACTUATOR = (UInt32)(3) VIS_CAMERA = (UInt32)(4) VIS_LIGHT = (UInt32)(5) VIS_CONSTRAINT = (UInt32)(6) VIS_INERTIA = (UInt32)(7) VIS_PERTFORCE = (UInt32)(8) VIS_PERTOBJ = (UInt32)(9) VIS_CONTACTPOINT = (UInt32)(10) VIS_CONTACTFORCE = (UInt32)(11) VIS_CONTACTSPLIT = (UInt32)(12) VIS_TRANSPARENT = (UInt32)(13) VIS_AUTOCONNECT = (UInt32)(14) VIS_COM = (UInt32)(15) VIS_SELECT = (UInt32)(16) VIS_STATIC = (UInt32)(17) NVISFLAG = (UInt32)(18)
+@enum mjtFrame             # frame visualization
+begin
+    FRAME_NONE        = 0  # no frames
+    FRAME_BODY             # body frames
+    FRAME_GEOM             # geom frames
+    FRAME_SITE             # site frames
+    FRAME_CAMERA           # camera frames
+    FRAME_LIGHT            # light frames
+    FRAME_WORLD            # world frame
 
-@enum mjtRndFlag RND_SHADOW = (UInt32)(0) RND_WIREFRAME = (UInt32)(1) RND_REFLECTION = (UInt32)(2) RND_FOG = (UInt32)(3) RND_SKYBOX = (UInt32)(4) NRNDFLAG = (UInt32)(5)
+    NFRAME                 # number of visualization frames
+end
 
-@enum mjtStereo STEREO_NONE = (UInt32)(0) STEREO_QUADBUFFERED = (UInt32)(1) STEREO_SIDEBYSIDE = (UInt32)(2)
+@enum mjtVisFlag           # flags enabling model element visualization
+begin
+    VIS_CONVEXHULL    = 0  # mesh convex hull
+    VIS_TEXTURE            # textures
+    VIS_JOINT              # joints
+    VIS_ACTUATOR           # actuators
+    VIS_CAMERA             # cameras
+    VIS_LIGHT              # lights
+    VIS_TENDON             # tendons
+    VIS_RANGEFINDER        # rangefinder sensors
+    VIS_CONSTRAINT         # point constraints
+    VIS_INERTIA            # equivalent inertia boxes
+    VIS_SCLINERTIA         # scale equivalent inertia boxes with mass
+    VIS_PERTFORCE          # perturbation force
+    VIS_PERTOBJ            # perturbation object
+    VIS_CONTACTPOINT       # contact points
+    VIS_CONTACTFORCE       # contact force
+    VIS_CONTACTSPLIT       # split contact force into normal and tanget
+    VIS_TRANSPARENT        # make dynamic geoms more transparent
+    VIS_AUTOCONNECT        # auto connect joints and body coms
+    VIS_COM                # center of mass
+    VIS_SELECT             # selection point
+    VIS_STATIC             # static bodies
+    VIS_SKIN               # skin
+
+    NVISFLAG               # number of visualization flags
+end
+
+@enum mjtRndFlag           # flags enabling rendering effects
+begin
+    RND_SHADOW        = 0  # shadows
+    RND_WIREFRAME          # wireframe
+    RND_REFLECTION         # reflections
+    RND_ADDITIVE           # additive transparency
+    RND_SKYBOX             # skybox
+    RND_FOG                # fog
+    RND_HAZE               # haze
+    RND_SEGMENT            # segmentation with random color
+    RND_IDCOLOR            # segmentation with segid color
+
+    NRNDFLAG               # number of rendering flags
+end
+
+@enum mjtStereo            # type of stereo rendering
+begin
+    STEREO_NONE       = 0  # no stereo; use left eye only
+    STEREO_QUADBUFFERED    # quad buffered; revert to side-by-side if no hardware support
+    STEREO_SIDEBYSIDE      # side-by-side
+end
 
 struct mjvPerturb
    select::Cint
+   skinselect::Cint
    active::Cint
    refpos::SVector{3, mjtNum}
    refquat::SVector{4, mjtNum}
@@ -62,6 +161,8 @@ struct mjvGeom
    category::Cint
    texid::Cint
    texuniform::Cint
+   texcoord::Cint
+   segid::Cint
    texrepeat::SVector{2, Cfloat}
    size::SVector{3, Cfloat}
    pos::SVector{3, Cfloat}
@@ -94,9 +195,12 @@ end
 struct mjvOption
    label::Cint
    frame::Cint
-   geomgroup::SVector{5, mjtByte}
-   sitegroup::SVector{5, mjtByte}
-   flags::SVector{18, mjtByte}
+   geomgroup::SVector{NGROUP, mjtByte}
+   sitegroup::SVector{NGROUP, mjtByte}
+   jointgroup::SVector{NGROUP, mjtByte}
+   tendongroup::SVector{NGROUP, mjtByte}
+   actuatorgroup::SVector{NGROUP, mjtByte}
+   flags::SVector{NVISFLAG, mjtByte}
 end
 
 struct mjvScene
@@ -104,6 +208,14 @@ struct mjvScene
    ngeom::Cint
    geoms::Ptr{mjvGeom}
    geomorder::Ptr{Cint}
+   
+   nskin::Cint
+   skinfacenum::Ptr{Cint}
+   skinvertadr::Ptr{Cint}
+   skinvertnum::Ptr{Cint}
+   skinvert::Ptr{Cfloat}
+   skinnormal::Ptr{Cfloat}
+
    nlight::Cint
    lights::SVector{8, mjvLight}
    camera::SVector{2, mjvGLCamera}
@@ -120,11 +232,17 @@ struct mjvFigure
    flg_ticklabel::SVector{2, Cint}
    flg_extend::Cint
    flg_barplot::Cint
+   flg_selection::Cint
+   flg_symmetric::Cint
 
+   legendoff::Cint
    gridsize::SVector{2, Cint}
+   selection::Cint
+   highlight::SVector{2, Cint}
    gridrgb::SVector{3, Cfloat}
    gridwidth::Cfloat
    figurergba::SVector{4, Cfloat}
+   panergba::SVector{4, Cfloat}
    legendrgba::SVector{4, Cfloat}
    textrgb::SVector{3, Cfloat}
 	range::SVector{2, SVector{2, Cfloat}}
@@ -139,4 +257,9 @@ struct mjvFigure
    linewidth::SVector{MAXLINE, Cfloat}
 	linedata::SVector{MAXLINE, SVector{2*MAXLINEPNT, Cfloat}}
 	linename::SVector{MAXLINE, SVector{100, UInt8}}
+
+   xaxispixel::SVector{2, Cint}
+   yaxispixel::SVector{2, Cint}
+   xaxisdata::SVector{2, Cint}
+   yaxisdata::SVector{2, Cint}
 end
