@@ -46,14 +46,13 @@ mj.step(m, d)
 mj.set(d, :time, -100.0)
 @test mj.get(d, :time) == -100.0
 
-mj.resetData(m, d)
+mj_resetData(m, d)
 
 @test qpos0 == d.qpos
 @test mj.get(d, :time) == 0.00
 
-
-mj.deleteModel(m.m)
-mj.deleteData(d.d)
+mj_deleteModel(m)
+mj_deleteData(d)
 
 
 

@@ -11,12 +11,8 @@ modelfile = joinpath(dirname(@__FILE__), "humanoid.xml")
 include("test_env.jl")
 @info "Testing Simple mjModel / mjData Access"
 include("test_modeldata.jl")
-if VERSION >= v"0.6"
-   @info "Testing Finite Differencing Derivatives"
-   include("test_deriv.jl")
-else
-   warn("Derivatives supported in Julia v0.6")
-end
+#@info "Testing Finite Differencing Derivatives"
+#include("test_deriv.jl")
 
-@info "Testing Name Access Method"
-include("test_names.jl")
+#@info "Testing Name Access Method"
+#include("test_names.jl")

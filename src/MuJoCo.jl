@@ -24,14 +24,10 @@ else
    error("MuJoCo was not installed correctly.")
 end
 
-
 const VERSION_HEADER = 200
 
 const mjtNum = Cdouble
 const mjtByte = Cuchar
-
-#const mj = MuJoCo
-#export mj #export the module for faster typing
 
 # mujoco header files in julia form
 include("./mjmodel.jl")
@@ -49,15 +45,14 @@ include("./mujoco_c.jl")
 #include("./mjderiv.jl")
 
 include("./export_all.jl") # a list of all function and struct names
-#export mjv, mjr, mju
-#export mjtNum, mjtByte
-#export jlData, jlModel
+export mjtNum, mjtByte
+export jlData, jlModel
 end
 
 include("./export_all.jl") # a list of all function and struct names
 
 function teardown()
-   deactivate()
+   mj_deactivate()
 end
 
 function __init__()

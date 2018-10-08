@@ -2,16 +2,13 @@ using MuJoCo
 
 ############################################################# mujoco startup
 
-#val = mj.activate(ENV["MUJOCO_KEY_PATH"])
-@test mj.activated == true # should be activated on module load
-
-pm = mj.loadXML(modelfile, C_NULL)
+pm = mj_loadXML(modelfile, C_NULL)
 
 @test pm != nothing
 
-pd = mj.makeData(pm)
+pd = mj_makeData(pm)
 
-@test typeof(pd) == Ptr{mj.Data}
+@test typeof(pd) == Ptr{mjData}
 
 m = unsafe_load(pm)
 d = unsafe_load(pd)

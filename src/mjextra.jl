@@ -4,8 +4,8 @@
 function mapmodel(pm::Ptr{mjModel})
     c_model= unsafe_load(pm)
 
-    margs = Array{Any}(undef, 1)
-    margs[1] = pm
+    margs = Vector{Any}()
+    push!(margs, pm)
     m_fields = intersect( fieldnames(jlModel), fieldnames(mjModel) )
     m_sizes = getmodelsize(c_model)
     jminfo = structinfo(jlModel)
@@ -32,8 +32,8 @@ function mapdata(pm::Ptr{mjModel}, pd::Ptr{mjData})
    c_model= unsafe_load(pm)
    c_data = unsafe_load(pd)
    
-   dargs = Array{Any}(undef, 1)
-   dargs[1] = pd
+   dargs = Vector{Any}()
+   push!(dargs, pd)
    d_fields = intersect( fieldnames(jlData), fieldnames(mjData) )
    d_sizes = getdatasize(c_model, c_data)
    for f in d_fields
@@ -88,13 +88,14 @@ const mjstructs = Dict(mjContact     => structinfo(mjContact),
 function get(m::jlModel, field::Symbol)
    f_off, f_type = minfo[field]
    pntr = Ptr{f_type}(m.m)
-   return unsafe_load(pntr+f_off, 1)
+   return unsafe_load(pntr+f_off)
 end
 function get(m::jlModel, fstruct::Symbol, field::Symbol)
    s_off, s_type = minfo[fstruct]
-   @assert s_type in (MuJoCo.Option, MuJoCo.Visual, MuJoCo.Statistic)
+   @assert s_type in (mjOption, mjVisual, mjStatistic)
 
-   f_off, f_type = structinfo(s_type)[field]
+   #f_off, f_type = structinfo(s_type)[field]
+   f_off, f_type = mjstructs[s_type][field]
    pntr = Ptr{f_type}(m.m)
    return unsafe_load(pntr+s_off+f_off, 1)
 end
@@ -184,7 +185,7 @@ end
 # set struct within model struct 
 function set(m::jlModel, fstruct::Symbol, field::Symbol, val::Union{Integer, mjtNum, SVector})
    s_off, s_type = minfo[fstruct]
-   @assert s_type in (MuJoCo.Option, MuJoCo.Visual, MuJoCo.Statistic)
+   @assert s_type in (mjOption, mjVisual, mjStatistic)
 
    f_off, f_type = mjstructs[s_type][field]
    update_ptr(m.m, s_off+f_off, convert(f_type, val))
@@ -194,19 +195,6 @@ function set(p::Ptr{T}, fstruct::Symbol, field::Symbol, val::Union{Integer, mjtN
    f_off, f_type = mjstructs[s_type][field]
    update_ptr(p, f_off, convert(f_type, val)) 
 end
-
-
-
-#################################### easier wrappers
-
-step(m::jlModel, d::jlData) = step(m.m, d.d)
-forward(m::jlModel, d::jlData) = forward(m.m, d.d)
-forwardSkip(m::jlModel, d::jlData,skipstage::Integer,skipsensorenergy::Integer) = forwardSkip(m.m,d.d,skipstage,skipsensorenergy)
-
-inverse(m::jlModel, d::jlData) = inverse(m.m, d.d)
-inverseSkip(m::jlModel, d::jlData,skipstage::Integer,skipsensorenergy::Integer) = inverseSkip(m.m,d.d,skipstage,skipsensorenergy)
-resetData(m::jlModel, d::jlData) = resetData(m.m, d.d)
-
 
 #################################### Name Wrappers
 

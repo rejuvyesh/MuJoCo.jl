@@ -6,9 +6,9 @@
 # site: xpos, etc
 # textures, materials, camera
 
-pm = mj.loadXML(modelfile, C_NULL)
-pd = mj.makeData(pm)
-m, d  = mj.mapmujoco(pm, pd)
+pm = mj_loadXML(modelfile, C_NULL)
+pd = mj_makeData(pm)
+m, d = mj.mapmujoco(pm, pd)
 
 #sensors = Dict{Symbol, Range}(Symbol(snsr_names[i]) =>
 #                              (m.sensor_adr[i]+1):(m.sensor_adr[i]+m.sensor_dim[i])
@@ -30,7 +30,7 @@ steps = 1000
 
 t = @elapsed begin
     for i=1:steps
-        mj.step(m,d)
+        mj_step(m,d)
     end
 end
 
