@@ -2,22 +2,19 @@
 const NAUX = 10
 const MAXTEXTURE = 1000
 
-@enum mjtGridPos
-begin
+@enum mjtGridPos begin
    GRID_TOPLEFT
    GRID_TOPRIGHT
    GRID_BOTTOMLEFT
    GRID_BOTTOMRIGHT
 end
 
-@enum mjtFramebuffer
-begin
+@enum mjtFramebuffer begin
    FB_WINDOW
    FB_OFFSCREEN
 end
 
-@enum mjtFontScale
-begin
+@enum mjtFontScale begin
    FONTSCALE_50  = 50
    FONTSCALE_100 = 100
    FONTSCALE_150 = 150
@@ -26,8 +23,7 @@ begin
    FONTSCALE_300 = 300
 end
 
-@enum mjtFont
-begin
+@enum mjtFont begin
    FONT_NORMAL
    FONT_SHADOW
    FONT_BIG
@@ -52,9 +48,9 @@ struct mjrContext
    offHeight::Cint
    offSamples::Cint
    fontScale::Cint
-   auxWidth::SVector{mjNAUX, Cint}
-   auxHeight::SVector{mjNAUX, Cint}
-   auxSamples::SVector{mjNAUX, Cint}
+   auxWidth::SVector{NAUX, Cint}
+   auxHeight::SVector{NAUX, Cint}
+   auxSamples::SVector{NAUX, Cint}
 
    offFBO::UInt32
    offFBO_r::UInt32
@@ -65,10 +61,10 @@ struct mjrContext
    shadowFBO::UInt32
    shadowTex::UInt32
 
-   auxFBO::SVector{mjNAUX, UInt32}
-   auxFBO_r::SVector{mjNAUX, UInt32}
-   auxColor::SVector{mjNAUX, UInt32}
-   auxColor_r::SVector{mjNAUX, UInt32}
+   auxFBO::SVector{NAUX, UInt32}
+   auxFBO_r::SVector{NAUX, UInt32}
+   auxColor::SVector{NAUX, UInt32}
+   auxColor_r::SVector{NAUX, UInt32}
 
    ntexture::Cint
    textureType::SVector{100, Cint}

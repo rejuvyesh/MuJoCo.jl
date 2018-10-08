@@ -1,12 +1,12 @@
 
 # returns a julia centric version of mujoco's model and data fields
 # that allows direct access to Ptr array fields as julia vectors
-function mapmodel(pm::Ptr{Model})
+function mapmodel(pm::Ptr{mjModel})
     c_model= unsafe_load(pm)
 
     margs = Array{Any}(undef, 1)
     margs[1] = pm
-    m_fields = intersect( fieldnames(jlModel), fieldnames(Model) )
+    m_fields = intersect( fieldnames(jlModel), fieldnames(mjModel) )
     m_sizes = getmodelsize(c_model)
     jminfo = structinfo(jlModel)
     maxmodelmemptr = convert(UInt64, getfield(c_model, :names))
@@ -28,13 +28,13 @@ function mapmodel(pm::Ptr{Model})
     return jlModel(margs...)
 end
 
-function mapdata(pm::Ptr{Model}, pd::Ptr{Data}) 
+function mapdata(pm::Ptr{mjModel}, pd::Ptr{mjData}) 
    c_model= unsafe_load(pm)
    c_data = unsafe_load(pd)
    
    dargs = Array{Any}(undef, 1)
    dargs[1] = pd
-   d_fields = intersect( fieldnames(jlData), fieldnames(Data) )
+   d_fields = intersect( fieldnames(jlData), fieldnames(mjData) )
    d_sizes = getdatasize(c_model, c_data)
    for f in d_fields
       len = d_sizes[f][1] * d_sizes[f][2]
@@ -47,33 +47,33 @@ function mapdata(pm::Ptr{Model}, pd::Ptr{Data})
    return jlData(dargs...)
 end
 
-function mapmujoco(pm::Ptr{Model}, pd::Ptr{Data}) 
+function mapmujoco(pm::Ptr{mjModel}, pd::Ptr{mjData}) 
    return mapmodel(pm), mapdata(pm, pd)
 end
 
 # struct manipulation and access
 structinfo(T) = Dict(fieldname(T,i)=>(fieldoffset(T,i), fieldtype(T,i)) for i = 1:fieldcount(T))
-const minfo = structinfo(Model)
-const dinfo = structinfo(Data)
+const minfo = structinfo(mjModel)
+const dinfo = structinfo(mjData)
 
-const mjstructs = Dict(Contact     => structinfo(Contact),
-                       WarningStat => structinfo(WarningStat),
-                       TimerStat   => structinfo(TimerStat),
-                       SolverStat  => structinfo(SolverStat),
+const mjstructs = Dict(mjContact     => structinfo(mjContact),
+                       mjWarningStat => structinfo(mjWarningStat),
+                       mjTimerStat   => structinfo(mjTimerStat),
+                       mjSolverStat  => structinfo(mjSolverStat),
                                         
                        mjrContext    => structinfo(mjrContext),
                                         
-                       VFS         => structinfo(VFS),
-                       Option      => structinfo(Option),
+                       mjVFS         => structinfo(mjVFS),
+                       mjOption      => structinfo(mjOption),
                        #_global       => structinfo(_global),
                        #quality       => structinfo(quality),
                        #headlight     => structinfo(headlight),
                        #map           => structinfo(map),
                        #scale         => structinfo(scale),
                        #rgba          => structinfo(rgba),
-                       Visual      => structinfo(Visual),
-                       Statistic   => structinfo(Statistic),
-                       Model       => structinfo(Model),
+                       mjVisual      => structinfo(mjVisual),
+                       mjStatistic   => structinfo(mjStatistic),
+                       mjModel       => structinfo(mjModel),
                                         
                        mjvPerturb    => structinfo(mjvPerturb),
                        mjvCamera     => structinfo(mjvCamera),

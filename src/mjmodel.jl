@@ -17,61 +17,7 @@ const NREF = 2
 const NIMP = 5
 const NSOLVER = 1000
 
-
-#=
-@enum mjtDisableBit DSBL_CONSTRAINT = (UInt32)(1) DSBL_EQUALITY = (UInt32)(2) DSBL_FRICTIONLOSS = (UInt32)(4) DSBL_LIMIT = (UInt32)(8) DSBL_CONTACT = (UInt32)(16) DSBL_MOCAP = (UInt32)(32) DSBL_SENSOR = (UInt32)(64) DSBL_PASSIVE = (UInt32)(128) DSBL_GRAVITY = (UInt32)(256) DSBL_CLAMPCTRL = (UInt32)(512) DSBL_WARMSTART = (UInt32)(1024) DSBL_FILTERPARENT = (UInt32)(2048) DSBL_ACTUATION = (UInt32)(4096) DSBL_BROADPHASE = (UInt32)(8192) DSBL_REFSAFE = (UInt32)(16384) NDISABLE = (UInt32)(15)
-
-@enum mjtEnableBit ENBL_OVERRIDE = (UInt32)(1) ENBL_BOXCONVEX = (UInt32)(2) ENBL_ENERGY = (UInt32)(4) ENBL_FWDINV = (UInt32)(8) ENBL_SENSORNOISE = (UInt32)(16) NENABLE = (UInt32)(5) 
-
-@enum mjtJoint JNT_FREE = (UInt32)(0) JNT_BALL = (UInt32)(1) JNT_SLIDE = (UInt32)(2) JNT_HINGE = (UInt32)(3) 
-
-@enum mjtGeom GEOM_PLANE = (UInt32)(0) GEOM_HFIELD = (UInt32)(1) GEOM_SPHERE = (UInt32)(2) GEOM_CAPSULE = (UInt32)(3) GEOM_ELLIPSOID = (UInt32)(4) GEOM_CYLINDER = (UInt32)(5) GEOM_BOX = (UInt32)(6) GEOM_MESH = (UInt32)(7) NGEOMTYPES = (UInt32)(8) GEOM_ARROW = (UInt32)(100) GEOM_ARROW1 = (UInt32)(101) GEOM_ARROW2 = (UInt32)(102) GEOM_LINE = (UInt32)(103) GEOM_SKIN = (UInt32)(104) GEOM_LABEL = (UInt32)(105) GEOM_NONE = (UInt32)(1001)  
-
-@enum mjtCamLight CAMLIGHT_FIXED = (UInt32)(0) CAMLIGHT_TRACK = (UInt32)(1) CAMLIGHT_TRACKCOM = (UInt32)(2) CAMLIGHT_TARGETBODY = (UInt32)(3) CAMLIGHT_TARGETBODYCOM = (UInt32)(4) 
-
-@enum mjtTexture mjtEXTURE_2D = (UInt32)(0) mjtEXTURE_CUBE = (UInt32)(1) mjtEXTURE_SKYBOX = (UInt32)(2) 
-
-@enum mjtIntegrator INT_EULER = (UInt32)(0) INT_RK4 = (UInt32)(1) 
-
-@enum mjtCollision COL_ALL = (UInt32)(0) COL_PAIR = (UInt32)(1) COL_DYNAMIC = (UInt32)(2) 
-
-@enum mjtCone CONE_PYRAMIDAL = (UInt32)(0) CONE_ELLIPTIC = (UInt32)(1)
-
-@enum mjtJacobian JAC_DENSE = (UInt32)(0) JAC_SPARSE = (UInt32)(1) JAC_AUTO = (UInt32)(2)
-
-@enum mjtSolver SOL_PGS = (UInt32)(0) SOL_CG = (UInt32)(1) SOL_NEWTON = (UInt32)(2)
-
-@enum mjtImp IMP_CONSTANT = (UInt32)(0) IMP_SIGMOID = (UInt32)(1) IMP_LINEAR = (UInt32)(2) IMP_USER = (UInt32)(3) 
-
-@enum mjtRef REF_SPRING = (UInt32)(0) REF_USER = (UInt32)(1) 
-
-@enum mjtEq EQ_CONNECT = (UInt32)(0) EQ_WELD = (UInt32)(1) EQ_JOINT = (UInt32)(2) EQ_TENDON = (UInt32)(3) EQ_DISTANCE = (UInt32)(4) 
-
-@enum mjtWrap WRAP_NONE = (UInt32)(0) WRAP_JOINT = (UInt32)(1) WRAP_PULLEY = (UInt32)(2) WRAP_SITE = (UInt32)(3) WRAP_SPHERE = (UInt32)(4) WRAP_CYLINDER = (UInt32)(5) 
-
-@enum mjtTrn mjtRN_JOINT = (UInt32)(0) mjtRN_JOINTINPARENT = (UInt32)(1) mjtRN_SLIDERCRANK = (UInt32)(2) mjtRN_TENDON = (UInt32)(3) mjtRN_SITE = (UInt32)(4) mjtRN_UNDEFINED = (UInt32)(1000) 
-
-@enum mjtDyn DYN_NONE = (UInt32)(0) DYN_INTEGRATOR = (UInt32)(1) DYN_FILTER = (UInt32)(2) DYN_USER = (UInt32)(3) 
-
-@enum mjtGain GAIN_FIXED = (UInt32)(0) GAIN_USER = (UInt32)(1) 
-
-@enum mjtBias BIAS_NONE = (UInt32)(0) BIAS_AFFINE = (UInt32)(1) BIAS_USER = (UInt32)(2) 
-
-@enum mjtObj OBJ_UNKNOWN = (UInt32)(0) OBJ_BODY = (UInt32)(1) OBJ_XBODY = (UInt32)(2) OBJ_JOINT = (UInt32)(3) OBJ_DOF = (UInt32)(4) OBJ_GEOM = (UInt32)(5) OBJ_SITE = (UInt32)(6) OBJ_CAMERA = (UInt32)(7) OBJ_LIGHT = (UInt32)(8) OBJ_MESH = (UInt32)(9) OBJ_HFIELD = (UInt32)(10) OBJ_TEXTURE = (UInt32)(11) OBJ_MATERIAL = (UInt32)(12) OBJ_PAIR = (UInt32)(13) OBJ_EXCLUDE = (UInt32)(14) OBJ_EQUALITY = (UInt32)(15) OBJ_TENDON = (UInt32)(16) OBJ_ACTUATOR = (UInt32)(17) OBJ_SENSOR = (UInt32)(18) OBJ_NUMERIC = (UInt32)(19) OBJ_TEXT = (UInt32)(20) OBJ_TUPLE = (UInt32)(21) OBJ_KEY = (UInt32)(22) 
-
-@enum mjtConstraint CNSTR_EQUALITY = (UInt32)(0) CNSTR_FRICTION_DOF = (UInt32)(1) CNSTR_FRICTION_TENDON = (UInt32)(2) CNSTR_LIMIT_JOINT = (UInt32)(3) CNSTR_LIMIT_TENDON = (UInt32)(4) CNSTR_CONTACT_FRICTIONLESS = (UInt32)(5) CNSTR_CONTACT_PYRAMIDAL = (UInt32)(6) CNSTR_CONTACT_ELLIPTIC = (UInt32)(7) 
-
-@enum mjtConstraintState CNSTRSTATE_SATISFIED = (UInt32)(0) CNSTRSTATE_QUADRATIC = (UInt32)(1) CNSTRSTATE_LINEARNEG = (UInt32)(2) CNSTRSTATE_LINEARPOS = (UInt32)(3) CNSTRSTATE_CONE = (UInt32)(4)
-
-@enum mjtSensor SENS_TOUCH = (UInt32)(0) SENS_ACCELEROMETER = (UInt32)(1) SENS_VELOCIMETER = (UInt32)(2) SENS_GYRO = (UInt32)(3) SENS_FORCE = (UInt32)(4) SENS_TORQUE = (UInt32)(5) SENS_MAGNETOMETER = (UInt32)(6) SENS_RANGEFINDER = (UInt32)(7) SENS_JOINTPOS = (UInt32)(8) SENS_JOINTVEL = (UInt32)(9) SENS_TENDONPOS = (UInt32)(10) SENS_TENDONVEL = (UInt32)(11) SENS_ACTUATORPOS = (UInt32)(12) SENS_ACTUATORVEL = (UInt32)(13) SENS_ACTUATORFRC = (UInt32)(14) SENS_BALLQUAT = (UInt32)(15) SENS_BALLANGVEL = (UInt32)(16) SENS_FRAMEPOS = (UInt32)(17) SENS_FRAMEQUAT = (UInt32)(18) SENS_FRAMEXAXIS = (UInt32)(19) SENS_FRAMEYAXIS = (UInt32)(20) SENS_FRAMEZAXIS = (UInt32)(21) SENS_FRAMELINVEL = (UInt32)(22) SENS_FRAMEANGVEL = (UInt32)(23) SENS_FRAMELINACC = (UInt32)(24) SENS_FRAMEANGACC = (UInt32)(25) SENS_SUBTREECOM = (UInt32)(26) SENS_SUBTREELINVEL = (UInt32)(27) SENS_SUBTREEANGMOM = (UInt32)(28) SENS_USER = (UInt32)(29) 
-
-@enum mjtStage STAGE_NONE = (UInt32)(0) STAGE_POS = (UInt32)(1) STAGE_VEL = (UInt32)(2) STAGE_ACC = (UInt32)(3) 
-
-@enum mjtDataType DATATYPE_REAL = (UInt32)(0) DATATYPE_POSITIVE = (UInt32)(1) DATATYPE_AXIS = (UInt32)(2) DATATYPE_QUAT = (UInt32)(3)
-=#
-
-@enum mjtDisableBit              # disable default feature bitflags
-begin
+@enum mjtDisableBit begin             # disable default feature bitflags
     DSBL_CONSTRAINT   = 1<<0   # entire constraint solver
     DSBL_EQUALITY     = 1<<1   # equality constraints
     DSBL_FRICTIONLOSS = 1<<2   # joint and tendon frictionloss constraints
@@ -88,26 +34,24 @@ begin
     NDISABLE          = 12     # number of disable flags
 end
 
-@enum mjtEnableBit               # enable optional feature bitflags
-begin
+@enum mjtEnableBit begin              # enable optional feature bitflags
     ENBL_OVERRIDE     = 1<<0   # override contact parameters
     ENBL_ENERGY       = 1<<1   # energy computation
     ENBL_FWDINV       = 1<<2   # record solver statistics
     ENBL_SENSORNOISE  = 1<<3   # add noise to sensor data
 
-    NENABLE           = 4      # number of enable flags
+    #NENABLE           = 4      # number of enable flags
 end
+const NENABLE = 4
 
-@enum mjtJoint                   # type of degree of freedom
-begin
+@enum mjtJoint begin                  # type of degree of freedom
     JNT_FREE          = 0      # global position and orientation (quat)       (7)
     JNT_BALL                   # orientation (quat) relative to parent        (4)
     JNT_SLIDE                  # sliding distance along body-fixed axis       (1)
     JNT_HINGE                  # rotation angle (rad) around body-fixed axis  (1)
 end
 
-@enum mjtGeom                    # type of geometric shape
-begin
+@enum mjtGeom begin                   # type of geometric shape
                                  # regular geom types
     GEOM_PLANE        = 0      # plane
     GEOM_HFIELD                # height field
@@ -131,8 +75,7 @@ begin
     GEOM_NONE         = 1001   # missing geom type
 end
 
-@enum mjtCamLight                # tracking mode for camera and light
-begin
+@enum mjtCamLight begin               # tracking mode for camera and light
     CAMLIGHT_FIXED    = 0      # pos and rot fixed in body
     CAMLIGHT_TRACK             # pos tracks body, rot fixed in global
     CAMLIGHT_TRACKCOM          # pos tracks subtree com, rot fixed in body
@@ -140,48 +83,41 @@ begin
     CAMLIGHT_TARGETBODYCOM     # pos fixed in body rot tracks target subtree com
 end
 
-@enum mjtTexture                 # type of texture
-begin
+@enum mjtTexture begin                # type of texture
     TEXTURE_2D        = 0      # 2d texture, suitable for planes and hfields
     TEXTURE_CUBE               # cube texture, suitable for all other geom types
     TEXTURE_SKYBOX             # cube texture used as skybox
 end
 
-@enum mjtIntegrator              # integrator mode
-begin
+@enum mjtIntegrator begin             # integrator mode
     INT_EULER         = 0      # semi-implicit Euler
     INT_RK4                    # 4th-order Runge Kutta
 end
 
-@enum mjtCollision               # collision mode for selecting geom pairs
-begin
+@enum mjtCollision begin              # collision mode for selecting geom pairs
     COL_ALL           = 0      # test precomputed and dynamic pairs
     COL_PAIR                   # test predefined pairs only
     COL_DYNAMIC                # test dynamic pairs only
 end
 
-@enum mjtCone                    # type of friction cone
-begin
+@enum mjtCone begin                   # type of friction cone
     CONE_PYRAMIDAL     = 0     # pyramidal
     CONE_ELLIPTIC              # elliptic
 end
 
-@enum mjtJacobian                # type of constraint Jacobian
-begin
+@enum mjtJacobian begin               # type of constraint Jacobian
     JAC_DENSE          = 0     # dense
     JAC_SPARSE                 # sparse
     JAC_AUTO                   # dense if nv<60 sparse otherwise
 end
 
-@enum mjtSolver                  # constraint solver algorithm
-begin
+@enum mjtSolver begin                 # constraint solver algorithm
     SOL_PGS            = 0     # PGS    (dual)
     SOL_CG                     # CG     (primal)
     SOL_NEWTON                 # Newton (primal)
 end
 
-@enum mjtEq                      # type of equality constraint
-begin
+@enum mjtEq begin                     # type of equality constraint
     EQ_CONNECT        = 0      # connect two bodies at a point (ball joint)
     EQ_WELD                    # fix relative position and orientation of two bodies
     EQ_JOINT                   # couple the values of two scalar joints with cubic
@@ -189,8 +125,7 @@ begin
     EQ_DISTANCE                # fix the contact distance betweent two geoms
 end
 
-@enum mjtWrap                    # type of tendon wrap object
-begin
+@enum mjtWrap begin                   # type of tendon wrap object
     WRAP_NONE         = 0      # null object
     WRAP_JOINT                 # constant moment arm
     WRAP_PULLEY                # pulley used to split tendon
@@ -199,8 +134,7 @@ begin
     WRAP_CYLINDER              # wrap around (infinite) cylinder
 end
 
-@enum mjtTrn                     # type of actuator transmission
-begin
+@enum mjtTrn begin                    # type of actuator transmission
     TRN_JOINT         = 0      # force on joint
     TRN_JOINTINPARENT          # force on joint, expressed in parent frame
     TRN_SLIDERCRANK            # force via slider-crank linkage
@@ -210,8 +144,7 @@ begin
     TRN_UNDEFINED     = 1000   # undefined transmission type
 end
 
-@enum mjtDyn                     # type of actuator dynamics
-begin
+@enum mjtDyn begin                    # type of actuator dynamics
     DYN_NONE          = 0      # no internal dynamics; ctrl specifies force
     DYN_INTEGRATOR             # integrator: da/dt = u
     DYN_FILTER                 # linear filter: da/dt = (u-a) / tau
@@ -219,23 +152,20 @@ begin
     DYN_USER                   # user-defined dynamics type
 end
 
-@enum mjtGain                    # type of actuator gain
-begin
+@enum mjtGain begin                   # type of actuator gain
     GAIN_FIXED        = 0      # fixed gain
     GAIN_MUSCLE                # muscle FLV curve computed by mju_muscleGain()
     GAIN_USER                  # user-defined gain type
 end
 
-@enum mjtBias                    # type of actuator bias
-begin
+@enum mjtBias begin                   # type of actuator bias
     BIAS_NONE         = 0      # no bias
     BIAS_AFFINE                # const + kp*length + kv*velocity
     BIAS_MUSCLE                # muscle passive force computed by mju_muscleBias()
     BIAS_USER                  # user-defined bias type
 end
 
-@enum mjtObj                     # type of MujoCo object
-begin
+@enum mjtObj begin                    # type of MujoCo object
     OBJ_UNKNOWN       = 0      # unknown object type
     OBJ_BODY                   # body
     OBJ_XBODY                  # body, used to access regular frame instead of i-frame
@@ -262,8 +192,7 @@ begin
     OBJ_KEY                    # keyframe
 end
 
-@enum mjtConstraint              # type of constraint
-begin
+@enum mjtConstraint begin             # type of constraint
     CNSTR_EQUALITY    = 0      # equality constraint
     CNSTR_FRICTION_DOF         # dof friction
     CNSTR_FRICTION_TENDON      # tendon friction
@@ -274,8 +203,7 @@ begin
     CNSTR_CONTACT_ELLIPTIC     # frictional contact elliptic friction cone
 end
 
-@enum mjtConstraintState         # constraint state
-begin
+@enum mjtConstraintState begin        # constraint state
     CNSTRSTATE_SATISFIED = 0   # constraint satisfied, zero cost (limit, contact)
     CNSTRSTATE_QUADRATIC       # quadratic cost (equality, friction, limit, contact)
     CNSTRSTATE_LINEARNEG       # linear cost, negative side (friction)
@@ -283,8 +211,7 @@ begin
     CNSTRSTATE_CONE            # squared distance to cone cost (elliptic contact)
 end
 
-@enum mjtSensor                  # type of sensor
-begin
+@enum mjtSensor begin                 # type of sensor
                                  # common robotic sensors attached to a site
     SENS_TOUCH        = 0      # scalar contact normal forces summed over sensor zone
     SENS_ACCELEROMETER         # 3D linear acceleration, in local frame
@@ -336,24 +263,21 @@ begin
     SENS_USER                  # sensor data provided by mjcb_sensor callback
 end
 
-@enum mjtStage                   # computation stage
-begin
+@enum mjtStage begin                  # computation stage
     STAGE_NONE        = 0      # no computations
     STAGE_POS                  # position-dependent computations
     STAGE_VEL                  # velocity-dependent computations
     STAGE_ACC                  # acceleration/force-dependent computations
 end
 
-@enum mjtDataType                # data type for sensors
-begin
+@enum mjtDataType begin               # data type for sensors
     DATATYPE_REAL     = 0      # real values, no constraints
     DATATYPE_POSITIVE          # positive values; 0 or negative: inactive
     DATATYPE_AXIS              # 3D unit vector
     DATATYPE_QUATERNION        # unit quaternion
 end
 
-@enum mjtLRMode                  # mode for actuator length range computation
-begin
+@enum mjtLRMode begin                 # mode for actuator length range computation
     LRMODE_NONE   = 0          # do not process any actuators
     LRMODE_MUSCLE              # process muscle actuators
     LRMODE_MUSCLEUSER          # process muscle and user actuators
@@ -362,7 +286,7 @@ end
 
 #------------------------------ mjLROpt ------------------------------------------------
 
-struct LROpt         # options for mj_setLengthRange()
+struct mjLROpt         # options for mj_setLengthRange()
                      # flags
    mode              # which actuators to process (mjtLRMode)
    useexisting::Cint # use existing length range if available
@@ -379,14 +303,14 @@ struct LROpt         # options for mj_setLengthRange()
 end
 
 
-struct VFS
+struct mjVFS
    nfile::Cint
    filename::SVector{MAXVFS, SVector{MAXVFSNAME, UInt8}}
    filesize::SVector{MAXVFS, Cint}
    filedata::SVector{MAXVFS, Ptr{Cvoid}}
 end
 
-struct Option
+struct mjOption
    timestep::mjtNum
    apirate::mjtNum
 
@@ -501,7 +425,7 @@ struct rgba
 	crankbroken::SVector{4, Float32}
 end
 
-struct Visual
+struct mjVisual
 	_global::_global
 	quality::quality
 	headlight::headlight
@@ -510,8 +434,7 @@ struct Visual
 	rgba::rgba
 end
 
-#struct _Statistic
-struct Statistic
+struct mjStatistic
 	meaninertia::mjtNum
 	meanmass::mjtNum
 	meansize::mjtNum
@@ -519,7 +442,7 @@ struct Statistic
 	center::SVector{3, mjtNum}
 end
 
-struct Model
+struct mjModel
 	nq::Cint
 	nv::Cint
 	nu::Cint
@@ -580,9 +503,9 @@ struct Model
 
 	nbuffer::Cint
 
-	opt::Option
-	vis::Visual
-	stat::Statistic
+	opt::mjOption
+	vis::mjVisual
+	stat::mjStatistic
 
 	buffer::Ptr{Cvoid}
 

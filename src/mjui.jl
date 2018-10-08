@@ -1,6 +1,4 @@
 
-module mjui
-
 const MAXUISECT  = 10      # maximum number of sections
 const MAXUIITEM  = 80      # maximum number of items per section
 const MAXUITEXT  = 500     # maximum number of chars in edittext and other
@@ -38,17 +36,14 @@ const KEY_F11       = 300
 const KEY_F12       = 301
 
 
-@enum mjtButton         # mouse button
-begin
+@enum mjtButton begin        # mouse button
    BUTTON_NONE = 0          # no button
    BUTTON_LEFT              # left button
    BUTTON_RIGHT             # right button
    BUTTON_MIDDLE             # middle button
 end
 
-
-@enum mjtEvent          # mouse and keyboard event type
-begin
+@enum mjtEvent begin         # mouse and keyboard event type
    EVENT_NONE = 0           # no event
    EVENT_MOVE               # mouse move
    EVENT_PRESS              # mouse button press
@@ -58,9 +53,7 @@ begin
    EVENT_RESIZE              # resize
 end
 
-
-@enum mjtItem           # UI item type
-begin
+@enum mjtItem begin          # UI item type
    ITEM_END = -2            # end of definition list (not an item)
    ITEM_SECTION = -1        # section (not an item)
    ITEM_SEPARATOR = 0       # separator
@@ -85,11 +78,10 @@ end
 # predicate function: set enable/disable based on item category
 #typedef int (*mjfItemEnable)(int category, void* data)
 
-
 struct mjuiState               # mouse and keyboard state
    # constants set by user
    nrect::Cint                  # number of rectangles used
-   mjrRect rect[mjMAXUIRECT]  # rectangles (index 0: entire window)
+   rect::SVector{MAXUIRECT, mjrRect}  # rectangles (index 0: entire window)
    userdata::Ptr{Cvoid}             # pointer to user data (for callbacks)
 
    # event type
@@ -165,7 +157,7 @@ end
 struct mjuiItem                # UI item
    # common properties
    _type::Cint                   # type (XXXItem)
-   name::SVector{mjMAXUINAME, Cchar}     # name
+   name::SVector{MAXUINAME, Cchar}     # name
    state::Cint                  # 0: disable, 1: enable, 2+: use predicate
    pdata::Ptr{Cvoid}                # data pointer (type-specific)
    sectionid::Cint              # id of section containing item
@@ -173,7 +165,7 @@ struct mjuiItem                # UI item
 
    # JULIA cannot do union declaration as follows, so using largest size
    nelem::Cint
-   name::SVector{MAXUIMULTI, SVector{MAXUINAME, Cchar}}
+   _name::SVector{MAXUIMULTI, SVector{MAXUINAME, Cchar}}
    # type-specific properties
    #union
    #begin
@@ -212,7 +204,7 @@ end
 
 struct mjuiSection             # UI section
    # properties
-   name::SVector{mjMAXUINAME, Cchar}     # name
+   name::SVector{MAXUINAME, Cchar}     # name
    state::Cint                  # 0: closed, 1: open
    modifier::Cint               # 0: none, 1: control, 2: shift; 4: alt
    shortcut::Cint               # shortcut key; 0: undefined
@@ -228,7 +220,7 @@ struct mjUI                    # entire UI
    # constants set by user
    spacing::mjuiThemeSpacing    # UI theme spacing
    color::mjuiThemeColor        # UI theme color
-   predicate::mjfItemEnable     # callback to set item state programmatically
+   predicate::Function #mjfItemEnable     # callback to set item state programmatically
    userdata::Ptr{Cvoid}             # pointer to user data (passed to predicate)
    rectid::Cint                 # index of this ui rectangle in mjuiState
    auxid::Cint                  # aux buffer index of this ui
@@ -266,43 +258,4 @@ struct mjuiDef
    other::SVector{MAXUITEXT, Cchar}     # string with type-specific properties
 end
 
-#---------------------- UI framework ---------------------------------------------------
 
-"""Get builtin UI theme spacing (ind: 0-1)."""
-function themeSpacing(ind::Integer)
-   ccall((:mjui_themeSpacing,libmujoco),mjuiThemeSpacing,(Cint,),ind)
-end
-
-"""Get builtin UI theme color (ind: 0-3)."""
-function themeColor(ind::Integer)
-   ccall((:mjui_themeColor,libmujoco),mjuiThemeColor,(Cint,),ind)
-end
-
-"""Add definitions to UI."""
-function add(ui::PV{mjUI},def::PV{mjuiDef})
-   ccall((:mjui_add,libmujoco),Cvoid,(Ptr{mjUI},Ptr{mjuiDef}),ui,def)
-end
-
-"""Compute UI sizes."""
-function resize(ui::PV{mjUI},con::PV{mjrContext})
-   ccall((:mjui_resize,libmujoco),Cvoid,(Ptr{mjUI},Ptr{mjrContext}),ui,con)
-end
-
-"""Update specific section/item; -1: update all."""
-function update(section::Integer,item::Integer,ui::PV{mjUI},state::PV{mjuiState},con::PV{mjrContext})
-   ccall((:mjui_update,libmujoco),Cvoid,(Cint,Cint,Ptr{mjUI},Ptr{mjuiState},Ptr{mjrContext}),section,item,ui,state,con)
-end
-
-"""Handle UI event, return pointer to changed item, NULL if no change."""
-MJAPI mjuiItem* mjui_event(mjUI* ui, mjuiState* state, const mjrContext* con);
-function event(ui::PV{mjUI},state::PV{mjuiState},con::PV{mjrContext})
-   ccall((:mjui_event,libmujoco),Ptr{mjuiItem},(Ptr{mjUI},Ptr{mjuiState},Ptr{mjrContext}),ui,state,con)
-end
-
-"""Copy UI image to current buffer."""
-function render(ui::PV{mjUI},state::PV{mjuiState},con::PV{mjrContext})
-   ccall((:mjui_render,libmujoco),Cvoid,(Ptr{mjUI},Ptr{mjuiState},Ptr{mjrContext}),ui,state,con)
-end
-
-
-end

@@ -5,7 +5,7 @@
 @enum mjtTimer mjtIMER_STEP = (UInt32)(0) mjtIMER_FORWARD = (UInt32)(1) mjtIMER_INVERSE = (UInt32)(2) mjtIMER_POSITION = (UInt32)(3) mjtIMER_VELOCITY = (UInt32)(4) mjtIMER_ACTUATION = (UInt32)(5) mjtIMER_ACCELERATION = (UInt32)(6) mjtIMER_CONSTRAINT = (UInt32)(7) mjtIMER_POS_KINEMATICS = (UInt32)(8) mjtIMER_POS_INERTIA = (UInt32)(9) mjtIMER_POS_COLLISION = (UInt32)(10) mjtIMER_POS_MAKE = (UInt32)(11) mjtIMER_POS_PROJECT = (UInt32)(12) NTIMER = (UInt32)(13)
 
 
-struct Contact
+struct mjContact
    dist::mjtNum
    pos::SVector{3, mjtNum}
    frame::SVector{9, mjtNum}
@@ -22,17 +22,17 @@ struct Contact
    efc_address::Cint
 end
 
-struct WarningStat
+struct mjWarningStat
    lastinfo::Cint
    number::Cint
 end
 
-struct TimerStat
+struct mjTimerStat
    duration::mjtNum
    number::Cint
 end
 
-struct SolverStat
+struct mjSolverStat
    improvement::mjtNum
    gradient::mjtNum
    lineslope::mjtNum
@@ -42,8 +42,7 @@ struct SolverStat
    nupdate::Cint
 end
 
-#mutable struct Data
-mutable struct Data
+struct mjData # might need to be mutable for setting stack pointer
    nstack::Cint
    nbuffer::Cint
 
@@ -53,9 +52,9 @@ mutable struct Data
    maxuse_con::Cint
    maxuse_efc::Cint
 
-   warning::SVector{8, WarningStat}
-   timer::SVector{13, TimerStat}
-   solver::SVector{NSOLVER, SolverStat}
+   warning::SVector{8, mjWarningStat}
+   timer::SVector{13, mjTimerStat}
+   solver::SVector{NSOLVER, mjSolverStat}
    solver_iter::Cint
    solver_nnz::Cint
    solver_fwdinv::SVector{2, mjtNum}
@@ -73,6 +72,7 @@ mutable struct Data
    qpos::Ptr{mjtNum}
    qvel::Ptr{mjtNum}
    act::Ptr{mjtNum}
+   qacc_warmstart::Ptr{mjtNum}
    ctrl::Ptr{mjtNum}
    qfrc_applied::Ptr{mjtNum}
    xfrc_applied::Ptr{mjtNum}
@@ -120,7 +120,7 @@ mutable struct Data
    qLDiagInv::Ptr{mjtNum}
    qLDiagSqrtInv::Ptr{mjtNum}
 
-   contact::Ptr{Contact}
+   contact::Ptr{mjContact}
 
    efc_type::Ptr{Cint}
    efc_id::Ptr{Cint}

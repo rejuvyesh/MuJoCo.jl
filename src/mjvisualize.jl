@@ -6,16 +6,14 @@ const MAXLINE      = 100
 const MAXLINEPNT   = 1000
 const MAXPLANEGRID = 200
 
-@enum mjtCatBit            # bitflags for vGeom category
-begin
+@enum mjtCatBit begin           # bitflags for vGeom category
     CAT_STATIC        = 1  # model elements in body 0
     CAT_DYNAMIC       = 2  # model elements in all other bodies
     CAT_DECOR         = 4  # decorative geoms
     CAT_ALL           = 7  # select all categories
 end
 
-@enum mjtMouse             # mouse interaction mode
-begin
+@enum mjtMouse begin            # mouse interaction mode
     MOUSE_NONE         = 0 # no action
     MOUSE_ROTATE_V         # rotate, vertical plane
     MOUSE_ROTATE_H         # rotate, horizontal plane
@@ -25,22 +23,19 @@ begin
     MOUSE_SELECT           # selection
 end
 
-@enum mjtPertBit           # mouse perturbations
-begin
+@enum mjtPertBit begin          # mouse perturbations
     PERT_TRANSLATE    = 1  # translation
     PERT_ROTATE       = 2  # rotation
 end
 
-@enum mjtCamera            # abstract camera type
-begin
+@enum mjtCamera begin           # abstract camera type
     CAMERA_FREE        = 0 # free camera
     CAMERA_TRACKING        # tracking camera; uses trackbodyid
     CAMERA_FIXED           # fixed camera; uses fixedcamid
     CAMERA_USER            # user is responsible for setting OpenGL camera
 end
 
-@enum mjtLabel             # object labeling
-begin
+@enum mjtLabel begin            # object labeling
     LABEL_NONE        = 0  # nothing
     LABEL_BODY             # body labels
     LABEL_JOINT            # joint labels
@@ -59,8 +54,7 @@ begin
     NLABEL                 # number of label types
 end
 
-@enum mjtFrame             # frame visualization
-begin
+@enum mjtFrame begin            # frame visualization
     FRAME_NONE        = 0  # no frames
     FRAME_BODY             # body frames
     FRAME_GEOM             # geom frames
@@ -72,8 +66,7 @@ begin
     NFRAME                 # number of visualization frames
 end
 
-@enum mjtVisFlag           # flags enabling model element visualization
-begin
+@enum mjtVisFlag begin          # flags enabling model element visualization
     VIS_CONVEXHULL    = 0  # mesh convex hull
     VIS_TEXTURE            # textures
     VIS_JOINT              # joints
@@ -100,8 +93,7 @@ begin
     NVISFLAG               # number of visualization flags
 end
 
-@enum mjtRndFlag           # flags enabling rendering effects
-begin
+@enum mjtRndFlag begin          # flags enabling rendering effects
     RND_SHADOW        = 0  # shadows
     RND_WIREFRAME          # wireframe
     RND_REFLECTION         # reflections
@@ -115,8 +107,7 @@ begin
     NRNDFLAG               # number of rendering flags
 end
 
-@enum mjtStereo            # type of stereo rendering
-begin
+@enum mjtStereo begin           # type of stereo rendering
     STEREO_NONE       = 0  # no stereo; use left eye only
     STEREO_QUADBUFFERED    # quad buffered; revert to side-by-side if no hardware support
     STEREO_SIDEBYSIDE      # side-by-side
@@ -200,7 +191,7 @@ struct mjvOption
    jointgroup::SVector{NGROUP, mjtByte}
    tendongroup::SVector{NGROUP, mjtByte}
    actuatorgroup::SVector{NGROUP, mjtByte}
-   flags::SVector{NVISFLAG, mjtByte}
+   flags::SVector{Int(NVISFLAG), mjtByte}
 end
 
 struct mjvScene
