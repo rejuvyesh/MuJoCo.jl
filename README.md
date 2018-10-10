@@ -9,10 +9,10 @@ using MuJoCo
 act = mj_activate(ENV["MUJOCO_KEY_PATH"])
 
 modelfile = "humanoid.xml"
-pm = mj_loadXML(modelfile, "")  # Raw C pointer to mjModel
+pm = mj_loadXML(modelfile)  # Raw C pointer to mjModel
 pd = mj_makeData(pm)            # Raw C pointer to mjData
 
-mj.step(pm, pd) # At this point you can pass the pointers to mujoco functions
+mj_step(pm, pd) # At this point you can pass the pointers to mujoco functions
 
 # Access static Model and Data fields
 m = unsafe_load(pm)
@@ -37,10 +37,10 @@ mj.set(m, :opt, :timestep, -0.002) # we can traverse structs-within-structs
 d.qpos[:] = rand(nq) # d.qpos is a jlData Vector; free to access and maps to raw pointer
 
 # some functions work on the jlModel and jlData types
-mj.step(m, d)
-mj.resetData(m, d)
+mj_step(m, d)
+mj_resetData(m, d)
 
-mj.step(m.m, d.d) # our wrapped types track the raw pointers
+mj_step(m.m, d.d) # our wrapped functions can take in the convenience struct or the raw pointers
 ```
 
 # Installation
