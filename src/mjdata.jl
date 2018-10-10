@@ -1,18 +1,52 @@
 
 
-@enum mjtWarning WARN_INERTIA = (UInt32)(0) WARN_CONTACTFULL = (UInt32)(1) WARN_CNSTRFULL = (UInt32)(2) WARN_VGEOMFULL = (UInt32)(3) WARN_BADQPOS = (UInt32)(4) WARN_BADQVEL = (UInt32)(5) WARN_BADQACC = (UInt32)(6) WARN_BADCTRL = (UInt32)(7) NWARNING = (UInt32)(8)
+@enum mjtWarning begin             # warning types
+   WARN_INERTIA      = 0         # (near) singular inertia matrix
+   WARN_CONTACTFULL              # too many contacts in contact list
+   WARN_CNSTRFULL                # too many constraints
+   WARN_VGEOMFULL                # too many visual geoms
+   WARN_BADQPOS                  # bad number in qpos
+   WARN_BADQVEL                  # bad number in qvel
+   WARN_BADQACC                  # bad number in qacc
+   WARN_BADCTRL                  # bad number in ctrl
 
-@enum mjtTimer mjtIMER_STEP = (UInt32)(0) mjtIMER_FORWARD = (UInt32)(1) mjtIMER_INVERSE = (UInt32)(2) mjtIMER_POSITION = (UInt32)(3) mjtIMER_VELOCITY = (UInt32)(4) mjtIMER_ACTUATION = (UInt32)(5) mjtIMER_ACCELERATION = (UInt32)(6) mjtIMER_CONSTRAINT = (UInt32)(7) mjtIMER_POS_KINEMATICS = (UInt32)(8) mjtIMER_POS_INERTIA = (UInt32)(9) mjtIMER_POS_COLLISION = (UInt32)(10) mjtIMER_POS_MAKE = (UInt32)(11) mjtIMER_POS_PROJECT = (UInt32)(12) NTIMER = (UInt32)(13)
+   NWARNING                      # number of warnings
+end
 
 
-struct Contact
+@enum mjtTimer begin
+   # main api
+   TIMER_STEP        = 0         # step
+   TIMER_FORWARD                 # forward
+   TIMER_INVERSE                 # inverse
+
+   # breakdown of step/forward
+   TIMER_POSITION                # fwdPosition
+   TIMER_VELOCITY                # fwdVelocity
+   TIMER_ACTUATION               # fwdActuation
+   TIMER_ACCELERATION            # fwdAcceleration
+   TIMER_CONSTRAINT              # fwdConstraint
+
+   # breakdown of fwdPosition
+   TIMER_POS_KINEMATICS          # kinematics, com, tendon, transmission
+   TIMER_POS_INERTIA             # inertia computations
+   TIMER_POS_COLLISION           # collision detection
+   TIMER_POS_MAKE                # make constraints
+   TIMER_POS_PROJECT             # project constraints
+
+   NTIMER                        # number of timers
+end
+
+
+#------------------------------ mjContact ----------------------------------------------
+struct mjContact
    dist::mjtNum
    pos::SVector{3, mjtNum}
    frame::SVector{9, mjtNum}
    includemargin::mjtNum
    friction::SVector{5, mjtNum}
-   solref::SVector{2, mjtNum}
-   solimp::SVector{3, mjtNum}
+   solref::SVector{NREF, mjtNum}
+   solimp::SVector{NIMP, mjtNum}
    mu::mjtNum
    H::SVector{36, mjtNum}
    dim::Cint
@@ -22,17 +56,19 @@ struct Contact
    efc_address::Cint
 end
 
-struct WarningStat
+#------------------------------ diagnostics --------------------------------------------
+
+struct mjWarningStat
    lastinfo::Cint
    number::Cint
 end
 
-struct TimerStat
+struct mjTimerStat
    duration::mjtNum
    number::Cint
 end
 
-struct SolverStat
+struct mjSolverStat
    improvement::mjtNum
    gradient::mjtNum
    lineslope::mjtNum
@@ -42,8 +78,9 @@ struct SolverStat
    nupdate::Cint
 end
 
-#mutable struct Data
-mutable struct Data
+#---------------------------------- mjData ---------------------------------------------
+
+mutable struct mjData
    nstack::Cint
    nbuffer::Cint
 
@@ -53,9 +90,9 @@ mutable struct Data
    maxuse_con::Cint
    maxuse_efc::Cint
 
-   warning::SVector{8, WarningStat}
-   timer::SVector{13, TimerStat}
-   solver::SVector{NSOLVER, SolverStat}
+   warning::SVector{Int(NWARNING), mjWarningStat}
+   timer::SVector{Int(NTIMER), mjTimerStat}
+   solver::SVector{NSOLVER, mjSolverStat}
    solver_iter::Cint
    solver_nnz::Cint
    solver_fwdinv::SVector{2, mjtNum}
@@ -73,14 +110,20 @@ mutable struct Data
    qpos::Ptr{mjtNum}
    qvel::Ptr{mjtNum}
    act::Ptr{mjtNum}
+   qacc_warmstart::Ptr{mjtNum}
+
    ctrl::Ptr{mjtNum}
    qfrc_applied::Ptr{mjtNum}
    xfrc_applied::Ptr{mjtNum}
+
    qacc::Ptr{mjtNum}
    act_dot::Ptr{mjtNum}
+
    mocap_pos::Ptr{mjtNum}
    mocap_quat::Ptr{mjtNum}
+
    userdata::Ptr{mjtNum}
+
    sensordata::Ptr{mjtNum}
 
    xpos::Ptr{mjtNum}
@@ -102,12 +145,17 @@ mutable struct Data
    subtree_com::Ptr{mjtNum}
    cdof::Ptr{mjtNum}
    cinert::Ptr{mjtNum}
+
    ten_wrapadr::Ptr{Cint}
    ten_wrapnum::Ptr{Cint}
+   ten_J_rownnz::Ptr{Cint}
+   ten_J_rowadr::Ptr{Cint}
+   ten_J_colind::Ptr{Cint}
    ten_length::Ptr{mjtNum}
-   ten_moment::Ptr{mjtNum}
+   ten_J::Ptr{mjtNum}
    wrap_obj::Ptr{Cint}
    wrap_xpos::Ptr{mjtNum}
+
    actuator_length::Ptr{mjtNum}
    actuator_moment::Ptr{mjtNum}
 
@@ -117,24 +165,25 @@ mutable struct Data
    qLDiagInv::Ptr{mjtNum}
    qLDiagSqrtInv::Ptr{mjtNum}
 
-   contact::Ptr{Contact}
+   contact::Ptr{mjContact}
 
    efc_type::Ptr{Cint}
    efc_id::Ptr{Cint}
    efc_J_rownnz::Ptr{Cint}
    efc_J_rowadr::Ptr{Cint}
+   efc_J_rowsuper::Ptr{Cint}
    efc_J_colind::Ptr{Cint}
    efc_JT_rownnz::Ptr{Cint}
    efc_JT_rowadr::Ptr{Cint}
+   efc_JT_rowsuper::Ptr{Cint}
    efc_JT_colind::Ptr{Cint}
-   efc_solref::Ptr{mjtNum}
-   efc_solimp::Ptr{mjtNum}
-   efc_margin::Ptr{mjtNum}
-   efc_frictionloss::Ptr{mjtNum}
-   efc_pos::Ptr{mjtNum}
    efc_J::Ptr{mjtNum}
    efc_JT::Ptr{mjtNum}
+   efc_pos::Ptr{mjtNum}
+   efc_margin::Ptr{mjtNum}
+   efc_frictionloss::Ptr{mjtNum}
    efc_diagApprox::Ptr{mjtNum}
+   efc_KBIP::Ptr{mjtNum}
    efc_D::Ptr{mjtNum}
    efc_R::Ptr{mjtNum}
 
@@ -162,7 +211,6 @@ mutable struct Data
    efc_force::Ptr{mjtNum}
    efc_state::Ptr{Cint}
    qfrc_constraint::Ptr{mjtNum}
-   qacc_warmstart::Ptr{mjtNum}
 
    qfrc_inverse::Ptr{mjtNum}
 
@@ -178,8 +226,6 @@ const mjfConFilt = Ptr{Cvoid}
 const mjfSensor = Ptr{Cvoid}
 const mjfTime = Ptr{Cvoid}
 const mjfAct = Ptr{Cvoid}
-const mjfSolImp = Ptr{Cvoid}
-const mjfSolRef = Ptr{Cvoid}
 const mjfCollision = Ptr{Cvoid}
 
 

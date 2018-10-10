@@ -29,9 +29,12 @@ if Sys.is_linux()
 
    url = baseurl*"linux.zip"
    if isdir(unpack) == false
-      info("Downloading: ", url, " to ", unpack)
+      @info("Downloading: ", url, " to ", unpack)
       file = Base.download(url) # to /tmp
       run(`unzip -o $file -d $basedir`)
+      if isdir(unpack*"_linux/")
+         run(`mv $(unpack*"_linux/") $(unpack)`)
+      end
    end
 
    preloads = string("Libdl.dlopen(\"$(libpath)/libglew.so\", Libdl.RTLD_LAZY | Libdl.RTLD_DEEPBIND | Libdl.RTLD_GLOBAL)")
@@ -48,13 +51,13 @@ if Sys.is_linux()
 elseif Sys.is_apple()
    mujoco_osx = library_dependency("libmujoco", aliases=["libmujoco200"], validate=compatible_version)
    url = baseurl*"osx.zip"
-   info("Downloading: ", url, " to ", unpack)
+   @info("Downloading: ", url, " to ", unpack)
    provides(Binaries, URI(url), mujoco_osx, unpacked_dir=unpack, installed_libpath=libpath)
    @BinDeps.install Dict(:libmujoco=>:libmujoco)
 elseif Sys.is_windows()
    mujoco_win = library_dependency("libmujoco", aliases=["mujoco200"], validate=compatible_version)
    url = baseurl*"win$(Sys.WORD_SIZE).zip"
-   info("Downloading: ", url, " to ", unpack)
+   @info("Downloading: ", url, " to ", unpack)
    provides(Binaries, URI(url), mujoco_win, unpacked_dir=unpack, installed_libpath=libpath)
    @BinDeps.install Dict(:libmujoco=>:libmujoco)
 end

@@ -32,13 +32,13 @@ mj.set(m, :opt, :timestep, 0.002)
 
 qpos0 = copy(d.qpos)
 
-mj.step(m, d)
+mj_step(m, d)
 
 @test d.qpos != qpos0
 @test mj.get(d, :time) == 0.002
 
 mj.set(m, :opt, :timestep, -0.002) # backwards step
-mj.step(m, d)
+mj_step(m, d)
 
 @test isapprox(qpos0, d.qpos; atol = 1e-3)
 @test mj.get(d, :time) == 0.0
@@ -46,14 +46,13 @@ mj.step(m, d)
 mj.set(d, :time, -100.0)
 @test mj.get(d, :time) == -100.0
 
-mj.resetData(m, d)
+mj_resetData(m, d)
 
 @test qpos0 == d.qpos
 @test mj.get(d, :time) == 0.00
 
-
-mj.deleteModel(m.m)
-mj.deleteData(d.d)
+mj_deleteModel(m)
+mj_deleteData(d)
 
 
 

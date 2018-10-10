@@ -1,11 +1,33 @@
 
-@enum mjtGridPos GRID_TOPLEFT = (UInt32)(0) GRID_TOPRIGHT = (UInt32)(1) GRID_BOTTOMLEFT = (UInt32)(2) GRID_BOTTOMRIGHT = (UInt32)(3)
+const NAUX = 10
+const MAXTEXTURE = 1000
 
-@enum mjtFramebuffer FB_WINDOW = (UInt32)(0) FB_OFFSCREEN = (UInt32)(1)
+@enum mjtGridPos begin
+   GRID_TOPLEFT
+   GRID_TOPRIGHT
+   GRID_BOTTOMLEFT
+   GRID_BOTTOMRIGHT
+end
 
-@enum mjtFontScale FONTSCALE_100 = (UInt32)(100) FONTSCALE_150 = (UInt32)(150) FONTSCALE_200 = (UInt32)(200)
+@enum mjtFramebuffer begin
+   FB_WINDOW
+   FB_OFFSCREEN
+end
 
-@enum mjtFont FONT_NORMAL = (UInt32)(0) FONT_SHADOW = (UInt32)(1) FONT_BIG = (UInt32)(2)
+@enum mjtFontScale begin
+   FONTSCALE_50  = 50
+   FONTSCALE_100 = 100
+   FONTSCALE_150 = 150
+   FONTSCALE_200 = 200
+   FONTSCALE_250 = 250
+   FONTSCALE_300 = 300
+end
+
+@enum mjtFont begin
+   FONT_NORMAL
+   FONT_SHADOW
+   FONT_BIG
+end
 
 struct mjrRect
    left::Cint
@@ -18,10 +40,18 @@ struct mjrContext
    lineWidth::Cfloat
    shadowClip::Cfloat
    shadowScale::Cfloat
+   fogStart::Cfloat
+   fogEnd::Cfloat
+   fogRGBA::SVector{4, Cfloat}
    shadowSize::Cint
    offWidth::Cint
    offHeight::Cint
    offSamples::Cint
+   fontScale::Cint
+   auxWidth::SVector{NAUX, Cint}
+   auxHeight::SVector{NAUX, Cint}
+   auxSamples::SVector{NAUX, Cint}
+
    offFBO::UInt32
    offFBO_r::UInt32
    offColor::UInt32
@@ -30,6 +60,12 @@ struct mjrContext
    offDepthStencil_r::UInt32
    shadowFBO::UInt32
    shadowTex::UInt32
+
+   auxFBO::SVector{NAUX, UInt32}
+   auxFBO_r::SVector{NAUX, UInt32}
+   auxColor::SVector{NAUX, UInt32}
+   auxColor_r::SVector{NAUX, UInt32}
+
    ntexture::Cint
    textureType::SVector{100, Cint}
    texture::SVector{100, UInt32}
@@ -45,10 +81,18 @@ struct mjrContext
    rangeHField::Cint
    rangeBuiltin::Cint
    rangeFont::Cint
+
+   nskin::Cint
+   skinvertVBO::Ptr{UInt32}
+   skinnormalVBO::Ptr{UInt32}
+   skintexcoordVBO::Ptr{UInt32}
+   skinfaceVBO::Ptr{UInt32}
+
    charWidth::SVector{127, Cint}
    charWidthBig::SVector{127, Cint}
    charHeight::Cint
    charHeightBig::Cint
+
    glewInitialized::Cint
    windowAvailable::Cint
    windowSamples::Cint
