@@ -2,53 +2,58 @@
 # returns a julia centric version of mujoco's model and data fields
 # that allows direct access to Ptr array fields as julia vectors
 function mapmodel(pm::Ptr{mjModel})
-    c_model= unsafe_load(pm)
-
-    margs = Vector{Any}()
-    push!(margs, pm)
-    m_fields = intersect( fieldnames(jlModel), fieldnames(mjModel) )
-    m_sizes = getmodelsize(c_model)
-    jminfo = structinfo(jlModel)
-    maxmodelmemptr = convert(UInt64, getfield(c_model, :names))
-    for f in m_fields
-        adr = convert(UInt64, getfield(c_model, f))
-        if adr == 0x0  || adr > maxmodelmemptr # bad pointer
-            m_off, m_type = jminfo[f]
-            push!(margs, m_type(0) )
-        else
-            len = m_sizes[f][1] * m_sizes[f][2]
-            raw = unsafe_wrap(Array, getfield(c_model, f), len)
-
-            if m_sizes[f][2] > 1
-                raw = reshape(raw, reverse(m_sizes[f]) )
-            end
-            push!(margs, raw)
-        end
-    end
-    return jlModel(margs...)
-end
-
-function mapdata(pm::Ptr{mjModel}, pd::Ptr{mjData}) 
    c_model= unsafe_load(pm)
+   mapmodel(c_model, pm)
+end
+function mapmodel(c_model::mjModel, pm::Ptr{mjModel})
+   margs = Vector{Any}()
+
+   m_fields = fieldnames(jlModel)[2:end] # drop :m pointer
+   m_sizes = getmodelsize(c_model)
+   jminfo = structinfo(jlModel)
+   maxmodelmemptr = convert(UInt64, getfield(c_model, :names))
+   for f in m_fields
+      adr = convert(UInt64, getfield(c_model, f))
+      if adr == 0x0 || adr > maxmodelmemptr # bad pointer
+         m_off, m_type = jminfo[f]
+         push!(margs, m_type(0) )
+      else
+         raw = wrap_array(getfield(c_model, f), Int(m_sizes[f][1]), Int(m_sizes[f][2]))
+         push!(margs, raw)
+      end
+   end
+   return jlModel(pm, margs...)
+end
+function wrap_array(p, s1::Int, s2::Int)
+   len = s1 * s2 
+   raw = unsafe_wrap(Array, p, len)
+
+   if s2 > 1
+      raw = reshape(raw, s2, s1)
+   end
+   return raw
+end
+function mapdata(pm::Ptr{mjModel}, pd::Ptr{mjData}) 
+   c_model = unsafe_load(pm)
+   mapdata(c_model, pd)
+end
+function mapdata(c_model::mjModel, pd::Ptr{mjData}) 
    c_data = unsafe_load(pd)
-   
+
    dargs = Vector{Any}()
-   push!(dargs, pd)
-   d_fields = intersect( fieldnames(jlData), fieldnames(mjData) )
+
+   d_fields = fieldnames(jlData)[2:end] # drop :d pointer
    d_sizes = getdatasize(c_model, c_data)
    for f in d_fields
-      len = d_sizes[f][1] * d_sizes[f][2]
-      raw = unsafe_wrap(Array, getfield(c_data, f), len)
-      if d_sizes[f][2] > 1
-         raw = reshape(raw, reverse(d_sizes[f]) )
-      end
+      raw = wrap_array(getfield(c_data, f), Int(d_sizes[f][1]), Int(d_sizes[f][2]))
       push!(dargs, raw)
    end
-   return jlData(dargs...)
+   return jlData(pd, dargs...)
 end
 
 function mapmujoco(pm::Ptr{mjModel}, pd::Ptr{mjData}) 
-   return mapmodel(pm), mapdata(pm, pd)
+   c_model = unsafe_load(pm)
+   return mapmodel(c_model, pm), mapdata(c_model, pd)
 end
 
 # struct manipulation and access
@@ -60,9 +65,9 @@ const mjstructs = Dict(mjContact     => structinfo(mjContact),
                        mjWarningStat => structinfo(mjWarningStat),
                        mjTimerStat   => structinfo(mjTimerStat),
                        mjSolverStat  => structinfo(mjSolverStat),
-                                        
+
                        mjrContext    => structinfo(mjrContext),
-                                        
+
                        mjVFS         => structinfo(mjVFS),
                        mjOption      => structinfo(mjOption),
                        #_global       => structinfo(_global),
@@ -74,7 +79,7 @@ const mjstructs = Dict(mjContact     => structinfo(mjContact),
                        mjVisual      => structinfo(mjVisual),
                        mjStatistic   => structinfo(mjStatistic),
                        mjModel       => structinfo(mjModel),
-                                        
+
                        mjvPerturb    => structinfo(mjvPerturb),
                        mjvCamera     => structinfo(mjvCamera),
                        mjvGLCamera   => structinfo(mjvGLCamera),
@@ -118,16 +123,16 @@ function get(p::Ptr{T}, field::Symbol, i::Int) where T
 end
 function get(p::Ptr{T}, field::Symbol, i::Int, j::Int) where T # does row-col conversion
    f_off, f_type = mjstructs[T][field]
-  ET = eltype(eltype(f_type))
-  @assert f_type <: SVector && eltype(f_type) <: SVector
+   ET = eltype(eltype(f_type))
+   @assert f_type <: SVector && eltype(f_type) <: SVector
    #r, c = size(f_type)
-  c = sizeof(eltype(f_type))[1]
+   c = sizeof(eltype(f_type))[1]
    #@assert i <= r && i >= 1
    #@assert j <= c && i >= 1
-  #idx = (i-1)*c + (j-1)*sizeof(ET)
-  idx = (j-1)*sizeof(ET)
-  pntr = Ptr{ET}(p)
-  unsafe_load(pntr+f_off + (i-1)*c + (j-1)*sizeof(ET), 1)
+   #idx = (i-1)*c + (j-1)*sizeof(ET)
+   idx = (j-1)*sizeof(ET)
+   pntr = Ptr{ET}(p)
+   unsafe_load(pntr+f_off + (i-1)*c + (j-1)*sizeof(ET), 1)
 end
 
 
@@ -170,16 +175,16 @@ function set(p::Ptr{T}, field::Symbol, val, i::Int) where T # write to element i
 end
 function set(p::Ptr{T}, field::Symbol, val, i::Int, j::Int) where T # write to element in SVector
    f_off, f_type = mjstructs[T][field]
-  @assert f_type <: SVector && eltype(f_type) <: SVector
-  ET = eltype(eltype(f_type))
+   @assert f_type <: SVector && eltype(f_type) <: SVector
+   ET = eltype(eltype(f_type))
    v = convert(ET, val) # use this as a check
-  #r = size(f_type)[1]
-  c = sizeof(eltype(f_type))[1]
+   #r = size(f_type)[1]
+   c = sizeof(eltype(f_type))[1]
    #@assert i <= r && i >= 1
    #@assert j <= c && i >= 1
    #idx = (i-1) + (j-1)*r
-  idx = p+f_off + (i-1)*c + (j-1)*sizeof(ET)
-  unsafe_store!(convert(Ptr{ET}, idx), v)
+   idx = p+f_off + (i-1)*c + (j-1)*sizeof(ET)
+   unsafe_store!(convert(Ptr{ET}, idx), v)
 end
 
 # set struct within model struct 
@@ -199,24 +204,24 @@ end
 #################################### Name Wrappers
 
 function name2idx(m::jlModel, num::Integer, names::Vector{Cint})
-    sname = String(copy(m.names))
-    idx = names[1] + 1
-    split_names = split(sname[idx:end], '\0', limit=(num+1))[1:num]
-    d = Dict{Symbol, Integer}(Symbol(split_names[i]) => i for i=1:num)
-    return d
+   sname = String(copy(m.names))
+   idx = names[1] + 1
+   split_names = split(sname[idx:end], '\0', limit=(num+1))[1:num]
+   d = Dict{Symbol, Integer}(Symbol(split_names[i]) => i for i=1:num)
+   return d
 end
 
 function name2range(m::jlModel, names::Vector{Cint}, addresses::Vector{Cint})
-    return name2range(m, names, addresses, ones(Cint, length(addresses)))
+   return name2range(m, names, addresses, ones(Cint, length(addresses)))
 end
 
 function name2range(m::jlModel, num::Integer,
                     names::Vector{Cint}, addresses::Vector{Cint}, dims::Vector{Cint})
-    sname = String(copy(m.names))
-    idx = names[1] + 1
-    split_names = split(sname[idx:end], '\0', limit=(num+1))[1:num]
-    d = Dict{Symbol, AbstractRange}(Symbol(split_names[i]) => (addresses[i]+1):(addresses[i]+dims[i]) for i=1:num)
-    return d
+   sname = String(copy(m.names))
+   idx = names[1] + 1
+   split_names = split(sname[idx:end], '\0', limit=(num+1))[1:num]
+   d = Dict{Symbol, AbstractRange}(Symbol(split_names[i]) => (addresses[i]+1):(addresses[i]+dims[i]) for i=1:num)
+   return d
 end
 
 

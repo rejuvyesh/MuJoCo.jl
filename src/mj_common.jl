@@ -1,7 +1,7 @@
 
 # TODO overload print/show/display function to not display model and data
 
-mutable struct jlModel
+struct jlModel
    m::Ptr{mjModel}
 
    qpos0::Array{mjtNum}
@@ -16,8 +16,8 @@ mutable struct jlModel
    body_dofadr::Array{Cint}
    body_geomnum::Array{Cint}
    body_geomadr::Array{Cint}
-	body_simple::Array{mjtByte}
-	body_sameframe::Array{mjtByte}
+   body_simple::Array{mjtByte}
+   body_sameframe::Array{mjtByte}
    body_pos::Array{mjtNum}
    body_quat::Array{mjtNum}
    body_ipos::Array{mjtNum}
@@ -31,7 +31,7 @@ mutable struct jlModel
    jnt_qposadr::Array{Cint}
    jnt_dofadr::Array{Cint}
    jnt_bodyid::Array{Cint}
-	jnt_group::Array{Cint}
+   jnt_group::Array{Cint}
    jnt_limited::Array{mjtByte}
    jnt_solref::Array{mjtNum}
    jnt_solimp::Array{mjtNum}
@@ -46,14 +46,14 @@ mutable struct jlModel
    dof_jntid::Array{Cint}
    dof_parentid::Array{Cint}
    dof_Madr::Array{Cint}
-	dof_simplenum::Array{Cint}
+   dof_simplenum::Array{Cint}
    dof_solref::Array{mjtNum}
    dof_solimp::Array{mjtNum}
    dof_frictionloss::Array{mjtNum}
    dof_armature::Array{mjtNum}
    dof_damping::Array{mjtNum}
    dof_invweight0::Array{mjtNum}
-	dof_M0::Array{mjtNum}
+   dof_M0::Array{mjtNum}
 
    geom_type::Array{Cint}
    geom_contype::Array{Cint}
@@ -63,8 +63,8 @@ mutable struct jlModel
    geom_dataid::Array{Cint}
    geom_matid::Array{Cint}
    geom_group::Array{Cint}
-	geom_priority::Array{Cint}
-	geom_sameframe::Array{mjtByte}
+   geom_priority::Array{Cint}
+   geom_sameframe::Array{mjtByte}
    geom_solmix::Array{mjtNum}
    geom_solref::Array{mjtNum}
    geom_solimp::Array{mjtNum}
@@ -82,7 +82,7 @@ mutable struct jlModel
    site_bodyid::Array{Cint}
    site_matid::Array{Cint}
    site_group::Array{Cint}
-	site_sameframe::Array{mjtByte}
+   site_sameframe::Array{mjtByte}
    site_size::Array{mjtNum}
    site_pos::Array{mjtNum}
    site_quat::Array{mjtNum}
@@ -121,13 +121,13 @@ mutable struct jlModel
 
    mesh_vertadr::Array{Cint}
    mesh_vertnum::Array{Cint}
-	mesh_texcoordadr::Array{Cint}
-	mesh_faceadr::Array{Cint}
-	mesh_facenum::Array{Cint}
+   mesh_texcoordadr::Array{Cint}
+   mesh_faceadr::Array{Cint}
+   mesh_facenum::Array{Cint}
    mesh_graphadr::Array{Cint}
    mesh_vert::Array{Cfloat}
    mesh_normal::Array{Cfloat}
-	mesh_texcoord::Array{Cfloat}
+   mesh_texcoord::Array{Cfloat}
    mesh_face::Array{Cint}
    mesh_graph::Array{Cint}
 
@@ -196,7 +196,7 @@ mutable struct jlModel
    tendon_adr::Array{Cint}
    tendon_num::Array{Cint}
    tendon_matid::Array{Cint}
-	tendon_group::Array{Cint}
+   tendon_group::Array{Cint}
    tendon_limited::Array{mjtByte}
    tendon_width::Array{mjtNum}
    tendon_solref_lim::Array{mjtNum}
@@ -223,7 +223,7 @@ mutable struct jlModel
    actuator_gaintype::Array{Cint}
    actuator_biastype::Array{Cint}
    actuator_trnid::Array{Cint}
-	actuator_group::Array{Cint}
+   actuator_group::Array{Cint}
    actuator_ctrllimited::Array{mjtByte}
    actuator_forcelimited::Array{mjtByte}
    actuator_dynprm::Array{mjtNum}
@@ -233,7 +233,7 @@ mutable struct jlModel
    actuator_forcerange::Array{mjtNum}
    actuator_gear::Array{mjtNum}
    actuator_cranklength::Array{mjtNum}
-	actuator_acc0::Array{mjtNum}
+   actuator_acc0::Array{mjtNum}
    actuator_length0::Array{mjtNum}
    actuator_lengthrange::Array{mjtNum}
    actuator_user::Array{mjtNum}
@@ -275,12 +275,12 @@ mutable struct jlModel
    name_camadr::Array{Cint}
    name_lightadr::Array{Cint}
    name_meshadr::Array{Cint}
-	name_skinadr::Array{Cint}
+   name_skinadr::Array{Cint}
    name_hfieldadr::Array{Cint}
    name_texadr::Array{Cint}
    name_matadr::Array{Cint}
-	name_pairadr::Array{Cint}
-	name_excludeadr::Array{Cint}
+   name_pairadr::Array{Cint}
+   name_excludeadr::Array{Cint}
    name_eqadr::Array{Cint}
    name_tendonadr::Array{Cint}
    name_actuatoradr::Array{Cint}
@@ -288,12 +288,11 @@ mutable struct jlModel
    name_numericadr::Array{Cint}
    name_textadr::Array{Cint}
    name_tupleadr::Array{Cint}
-	name_keyadr::Array{Cint}
+   name_keyadr::Array{Cint}
    names::Array{UInt8}
 end
 
-#mutable struct jlData # v0.6
-mutable struct jlData
+struct jlData
    d::Ptr{mjData} # point to c struct
 
    stack::Array{mjtNum}
@@ -405,7 +404,6 @@ end
 
 # added stack field manually
 # manually did second terms in the parantheses
-# TODO will be issues with the row-wise matrix fields vs the col major of julia
 function getdatasize(m::mjModel, d::mjData)
    return Dict(
                :stack=>(d.nstack,1),
@@ -640,160 +638,160 @@ function getmodelsize(m::mjModel)
                :skin_inflate=>(m.nskin,1),
                :skin_vertadr=>(m.nskin,1),
                :skin_vertnum=>(m.nskin,1),
-   :skin_texcoordadr=>(m.nskin,1),
-   :skin_faceadr=>(m.nskin,1),
-   :skin_facenum=>(m.nskin,1),
-   :skin_boneadr=>(m.nskin,1),
-   :skin_bonenum=>(m.nskin,1),
-   :skin_vert=>(m.nskinvert,3),
-   :skin_texcoord=>(m.nskintexvert,2),
-   :skin_face=>(m.nskinface,3),
-   :skin_bonevertadr=>(m.nskinbone,1),
-   :skin_bonevertnum=>(m.nskinbone,1),
-   :skin_bonebindpos=>(m.nskinbone,3),
-   :skin_bonebindquat=>(m.nskinbone,4),
-   :skin_bonebodyid=>(m.nskinbone,1),
-   :skin_bonevertid=>(m.nskinbonevert,1),
-   :skin_bonevertweight=>(m.nskinbonevert,1),
+               :skin_texcoordadr=>(m.nskin,1),
+               :skin_faceadr=>(m.nskin,1),
+               :skin_facenum=>(m.nskin,1),
+               :skin_boneadr=>(m.nskin,1),
+               :skin_bonenum=>(m.nskin,1),
+               :skin_vert=>(m.nskinvert,3),
+               :skin_texcoord=>(m.nskintexvert,2),
+               :skin_face=>(m.nskinface,3),
+               :skin_bonevertadr=>(m.nskinbone,1),
+               :skin_bonevertnum=>(m.nskinbone,1),
+               :skin_bonebindpos=>(m.nskinbone,3),
+               :skin_bonebindquat=>(m.nskinbone,4),
+               :skin_bonebodyid=>(m.nskinbone,1),
+               :skin_bonevertid=>(m.nskinbonevert,1),
+               :skin_bonevertweight=>(m.nskinbonevert,1),
 
-   :hfield_size=>(m.nhfield,4),
-   :hfield_nrow=>(m.nhfield,1),
-   :hfield_ncol=>(m.nhfield,1),
-   :hfield_adr=>(m.nhfield,1),
-   :hfield_data=>(m.nhfielddata,1),
+               :hfield_size=>(m.nhfield,4),
+               :hfield_nrow=>(m.nhfield,1),
+               :hfield_ncol=>(m.nhfield,1),
+               :hfield_adr=>(m.nhfield,1),
+               :hfield_data=>(m.nhfielddata,1),
 
-   :tex_type=>(m.ntex,1),
-   :tex_height=>(m.ntex,1),
-   :tex_width=>(m.ntex,1),
-   :tex_adr=>(m.ntex,1),
-   :tex_rgb=>(m.ntexdata,1),
+               :tex_type=>(m.ntex,1),
+               :tex_height=>(m.ntex,1),
+               :tex_width=>(m.ntex,1),
+               :tex_adr=>(m.ntex,1),
+               :tex_rgb=>(m.ntexdata,1),
 
-   :mat_texid=>(m.nmat,1),
-   :mat_texuniform=>(m.nmat,1),
-   :mat_texrepeat=>(m.nmat,2),
-   :mat_emission=>(m.nmat,1),
-   :mat_specular=>(m.nmat,1),
-   :mat_shininess=>(m.nmat,1),
-   :mat_reflectance=>(m.nmat,1),
-   :mat_rgba=>(m.nmat,4),
+               :mat_texid=>(m.nmat,1),
+               :mat_texuniform=>(m.nmat,1),
+               :mat_texrepeat=>(m.nmat,2),
+               :mat_emission=>(m.nmat,1),
+               :mat_specular=>(m.nmat,1),
+               :mat_shininess=>(m.nmat,1),
+               :mat_reflectance=>(m.nmat,1),
+               :mat_rgba=>(m.nmat,4),
 
-   :pair_dim=>(m.npair,1),
-   :pair_geom1=>(m.npair,1),
-   :pair_geom2=>(m.npair,1),
-   :pair_signature=>(m.npair,1),
-   :pair_solref=>(m.npair,NREF),
-   :pair_solimp=>(m.npair,NIMP),
-   :pair_margin=>(m.npair,1),
-   :pair_gap=>(m.npair,1),
-   :pair_friction=>(m.npair,5),
+               :pair_dim=>(m.npair,1),
+               :pair_geom1=>(m.npair,1),
+               :pair_geom2=>(m.npair,1),
+               :pair_signature=>(m.npair,1),
+               :pair_solref=>(m.npair,NREF),
+               :pair_solimp=>(m.npair,NIMP),
+               :pair_margin=>(m.npair,1),
+               :pair_gap=>(m.npair,1),
+               :pair_friction=>(m.npair,5),
 
-   :exclude_signature=>(m.nexclude,1),
+               :exclude_signature=>(m.nexclude,1),
 
-   :eq_type=>(m.neq,1),
-   :eq_obj1id=>(m.neq,1),
-   :eq_obj2id=>(m.neq,1),
-   :eq_active=>(m.neq,1),
-   :eq_solref=>(m.neq,NREF),
-   :eq_solimp=>(m.neq,NIMP),
-   :eq_data=>(m.neq,NEQDATA),
+               :eq_type=>(m.neq,1),
+               :eq_obj1id=>(m.neq,1),
+               :eq_obj2id=>(m.neq,1),
+               :eq_active=>(m.neq,1),
+               :eq_solref=>(m.neq,NREF),
+               :eq_solimp=>(m.neq,NIMP),
+               :eq_data=>(m.neq,NEQDATA),
 
-   :tendon_adr=>(m.ntendon,1),
-   :tendon_num=>(m.ntendon,1),
-   :tendon_matid=>(m.ntendon,1),
-   :tendon_group=>(m.ntendon,1),
-   :tendon_limited=>(m.ntendon,1),
-   :tendon_width=>(m.ntendon,1),
-   :tendon_solref_lim=>(m.ntendon,NREF),
-   :tendon_solimp_lim=>(m.ntendon,NIMP),
-   :tendon_solref_fri=>(m.ntendon,NREF),
-   :tendon_solimp_fri=>(m.ntendon,NIMP),
-   :tendon_range=>(m.ntendon,2),
-   :tendon_margin=>(m.ntendon,1),
-   :tendon_stiffness=>(m.ntendon,1),
-   :tendon_damping=>(m.ntendon,1),
-   :tendon_frictionloss=>(m.ntendon,1),
-   :tendon_lengthspring=>(m.ntendon,1),
-   :tendon_length0=>(m.ntendon,1),
-   :tendon_invweight0=>(m.ntendon,1),
-   :tendon_user=>(m.ntendon,m.nuser_tendon),
-   :tendon_rgba=>(m.ntendon,4),
+               :tendon_adr=>(m.ntendon,1),
+               :tendon_num=>(m.ntendon,1),
+               :tendon_matid=>(m.ntendon,1),
+               :tendon_group=>(m.ntendon,1),
+               :tendon_limited=>(m.ntendon,1),
+               :tendon_width=>(m.ntendon,1),
+               :tendon_solref_lim=>(m.ntendon,NREF),
+               :tendon_solimp_lim=>(m.ntendon,NIMP),
+               :tendon_solref_fri=>(m.ntendon,NREF),
+               :tendon_solimp_fri=>(m.ntendon,NIMP),
+               :tendon_range=>(m.ntendon,2),
+               :tendon_margin=>(m.ntendon,1),
+               :tendon_stiffness=>(m.ntendon,1),
+               :tendon_damping=>(m.ntendon,1),
+               :tendon_frictionloss=>(m.ntendon,1),
+               :tendon_lengthspring=>(m.ntendon,1),
+               :tendon_length0=>(m.ntendon,1),
+               :tendon_invweight0=>(m.ntendon,1),
+               :tendon_user=>(m.ntendon,m.nuser_tendon),
+               :tendon_rgba=>(m.ntendon,4),
 
-   :wrap_type=>(m.nwrap,1),
-   :wrap_objid=>(m.nwrap,1),
-   :wrap_prm=>(m.nwrap,1),
+               :wrap_type=>(m.nwrap,1),
+               :wrap_objid=>(m.nwrap,1),
+               :wrap_prm=>(m.nwrap,1),
 
-   :actuator_trntype=>(m.nu,1),
-   :actuator_dyntype=>(m.nu,1),
-   :actuator_gaintype=>(m.nu,1),
-   :actuator_biastype=>(m.nu,1),
-   :actuator_trnid=>(m.nu,2),
-   :actuator_group=>(m.nu,1),
-   :actuator_ctrllimited=>(m.nu,1),
-   :actuator_forcelimited=>(m.nu,1),
-   :actuator_dynprm=>(m.nu,NDYN),
-   :actuator_gainprm=>(m.nu,NGAIN),
-   :actuator_biasprm=>(m.nu,NBIAS),
-   :actuator_ctrlrange=>(m.nu,2),
-   :actuator_forcerange=>(m.nu,2),
-   :actuator_gear=>(m.nu,6),
-   :actuator_cranklength=>(m.nu,1),
-   :actuator_acc0=>(m.nu,1),
-   :actuator_length0=>(m.nu,1),
-   :actuator_lengthrange=>(m.nu,2),
-   :actuator_user=>(m.nu,m.nuser_actuator),
+               :actuator_trntype=>(m.nu,1),
+               :actuator_dyntype=>(m.nu,1),
+               :actuator_gaintype=>(m.nu,1),
+               :actuator_biastype=>(m.nu,1),
+               :actuator_trnid=>(m.nu,2),
+               :actuator_group=>(m.nu,1),
+               :actuator_ctrllimited=>(m.nu,1),
+               :actuator_forcelimited=>(m.nu,1),
+               :actuator_dynprm=>(m.nu,NDYN),
+               :actuator_gainprm=>(m.nu,NGAIN),
+               :actuator_biasprm=>(m.nu,NBIAS),
+               :actuator_ctrlrange=>(m.nu,2),
+               :actuator_forcerange=>(m.nu,2),
+               :actuator_gear=>(m.nu,6),
+               :actuator_cranklength=>(m.nu,1),
+               :actuator_acc0=>(m.nu,1),
+               :actuator_length0=>(m.nu,1),
+               :actuator_lengthrange=>(m.nu,2),
+               :actuator_user=>(m.nu,m.nuser_actuator),
 
-   :sensor_type=>(m.nsensor,1),
-   :sensor_datatype=>(m.nsensor,1),
-   :sensor_needstage=>(m.nsensor,1),
-   :sensor_objtype=>(m.nsensor,1),
-   :sensor_objid=>(m.nsensor,1),
-   :sensor_dim=>(m.nsensor,1),
-   :sensor_adr=>(m.nsensor,1),
-   :sensor_cutoff=>(m.nsensor,1),
-   :sensor_noise=>(m.nsensor,1),
-   :sensor_user=>(m.nsensor,m.nuser_sensor),
+               :sensor_type=>(m.nsensor,1),
+               :sensor_datatype=>(m.nsensor,1),
+               :sensor_needstage=>(m.nsensor,1),
+               :sensor_objtype=>(m.nsensor,1),
+               :sensor_objid=>(m.nsensor,1),
+               :sensor_dim=>(m.nsensor,1),
+               :sensor_adr=>(m.nsensor,1),
+               :sensor_cutoff=>(m.nsensor,1),
+               :sensor_noise=>(m.nsensor,1),
+               :sensor_user=>(m.nsensor,m.nuser_sensor),
 
-   :numeric_adr=>(m.nnumeric,1),
-   :numeric_size=>(m.nnumeric,1),
-   :numeric_data=>(m.nnumericdata,1),
+               :numeric_adr=>(m.nnumeric,1),
+               :numeric_size=>(m.nnumeric,1),
+               :numeric_data=>(m.nnumericdata,1),
 
-   :text_adr=>(m.ntext,1),
-   :text_size=>(m.ntext,1),
-   :text_data=>(m.ntextdata,1),
+               :text_adr=>(m.ntext,1),
+               :text_size=>(m.ntext,1),
+               :text_data=>(m.ntextdata,1),
 
-   :tuple_adr=>(m.ntuple,1),
-   :tuple_size=>(m.ntuple,1),
-   :tuple_objtype=>(m.ntupledata,1),
-   :tuple_objid=>(m.ntupledata,1),
-   :tuple_objprm=>(m.ntupledata,1),
+               :tuple_adr=>(m.ntuple,1),
+               :tuple_size=>(m.ntuple,1),
+               :tuple_objtype=>(m.ntupledata,1),
+               :tuple_objid=>(m.ntupledata,1),
+               :tuple_objprm=>(m.ntupledata,1),
 
-   :key_time=>(m.nkey,1),
-   :key_qpos=>(m.nkey,m.nq),
-   :key_qvel=>(m.nkey,m.nv),
-   :key_act=>(m.nkey,m.na),
+               :key_time=>(m.nkey,1),
+               :key_qpos=>(m.nkey,m.nq),
+               :key_qvel=>(m.nkey,m.nv),
+               :key_act=>(m.nkey,m.na),
 
-   :name_bodyadr=>(m.nbody,1),
-   :name_jntadr=>(m.njnt,1),
-   :name_geomadr=>(m.ngeom,1),
-   :name_siteadr=>(m.nsite,1),
-   :name_camadr=>(m.ncam,1),
-   :name_lightadr=>(m.nlight,1),
-   :name_meshadr=>(m.nmesh,1),
-   :name_skinadr=>(m.nskin,1),
-   :name_hfieldadr=>(m.nhfield,1),
-   :name_texadr=>(m.ntex,1),
-   :name_matadr=>(m.nmat,1),
-   :name_pairadr=>(m.npair,1),
-   :name_excludeadr=>(m.nexclude,1),
-   :name_eqadr=>(m.neq,1),
-   :name_tendonadr=>(m.ntendon,1),
-   :name_actuatoradr=>(m.nu,1),
-   :name_sensoradr=>(m.nsensor,1),
-   :name_numericadr=>(m.nnumeric,1),
-   :name_textadr=>(m.ntext,1),
-   :name_tupleadr=>(m.ntuple,1),
-   :name_keyadr=>(m.nkey,1),
-   :names=>(m.nnames,1)
-  )
+               :name_bodyadr=>(m.nbody,1),
+               :name_jntadr=>(m.njnt,1),
+               :name_geomadr=>(m.ngeom,1),
+               :name_siteadr=>(m.nsite,1),
+               :name_camadr=>(m.ncam,1),
+               :name_lightadr=>(m.nlight,1),
+               :name_meshadr=>(m.nmesh,1),
+               :name_skinadr=>(m.nskin,1),
+               :name_hfieldadr=>(m.nhfield,1),
+               :name_texadr=>(m.ntex,1),
+               :name_matadr=>(m.nmat,1),
+               :name_pairadr=>(m.npair,1),
+               :name_excludeadr=>(m.nexclude,1),
+               :name_eqadr=>(m.neq,1),
+               :name_tendonadr=>(m.ntendon,1),
+               :name_actuatoradr=>(m.nu,1),
+               :name_sensoradr=>(m.nsensor,1),
+               :name_numericadr=>(m.nnumeric,1),
+               :name_textadr=>(m.ntext,1),
+               :name_tupleadr=>(m.ntuple,1),
+               :name_keyadr=>(m.nkey,1),
+               :names=>(m.nnames,1)
+              )
 end
 
