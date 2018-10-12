@@ -2,6 +2,7 @@
 const version = v"2.00"
 
 using BinDeps
+using Libdl
 @BinDeps.setup
 
 function compatible_version(lib, handle)
@@ -18,7 +19,7 @@ unpack = joinpath(basedir, "mujoco200")
 libpath = unpack*"/bin"
 
 # library source code
-if Sys.is_linux()
+if Sys.islinux()
    push!(BinDeps.defaults, Binaries)
 
    # First find three library dependents
@@ -41,7 +42,7 @@ if Sys.is_linux()
 
    provides(Binaries, URI(url), mujoco_glfw, unpacked_dir=unpack, installed_libpath=libpath)
    provides(Binaries, URI(url), mujoco_glew, unpacked_dir=unpack, installed_libpath=libpath)
-   eval(parse(preloads))
+   eval(Meta.parse(preloads))
    provides(Binaries, URI(url), mujoco_nix, unpacked_dir=unpack, installed_libpath=libpath, preload=preloads)
 
    @BinDeps.install Dict([(:libglfw, :libglfw),
@@ -62,5 +63,5 @@ elseif Sys.is_windows()
    @BinDeps.install Dict(:libmujoco=>:libmujoco)
 end
 
-Sys.is_linux() && pop!(BinDeps.defaults)
+Sys.islinux() && pop!(BinDeps.defaults)
 
