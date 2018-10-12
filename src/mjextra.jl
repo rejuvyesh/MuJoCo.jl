@@ -90,31 +90,38 @@ const mjstructs = Dict(mjContact     => structinfo(mjContact),
                        mjvFigure     => structinfo(mjvFigure))
 
 # access mujoco struct fields through the julia version of model and data
+myconvert(T, m::Ptr{mjModel})::T = convert(T, m)
+myconvert(T, d::Ptr{mjData})::T = convert(T, d)
+addr_to_val(T::Type{Float64}, p::UInt64)::Float64 = unsafe_load(convert(Ptr{Float64}, p))
+addr_to_val(T::Type{Float32}, p::UInt64)::Float32 = unsafe_load(convert(Ptr{Float32}, p))
+addr_to_val(T::Type{Int32},   p::UInt64)::Int32   = unsafe_load(convert(Ptr{Int32},   p))
+addr_to_val(T::Type{UInt8},   p::UInt64)::UInt8   = unsafe_load(convert(Ptr{UInt8},   p))
+addr_to_val(T::Type{Int8},    p::UInt64)::Int8    = unsafe_load(convert(Ptr{Int8},    p))
+
 function get(m::jlModel, field::Symbol)
    f_off, f_type = minfo[field]
-   pntr = Ptr{f_type}(m.m)
-   return unsafe_load(pntr+f_off)
+   pntr = myconvert(UInt64, m.m) + f_off
+   addr_to_val(f_type, pntr)
 end
 function get(m::jlModel, fstruct::Symbol, field::Symbol)
    s_off, s_type = minfo[fstruct]
-   @assert s_type in (mjOption, mjVisual, mjStatistic)
+   #@assert s_type in (mjOption, mjVisual, mjStatistic)
 
-   #f_off, f_type = structinfo(s_type)[field]
    f_off, f_type = mjstructs[s_type][field]
-   pntr = Ptr{f_type}(m.m)
-   return unsafe_load(pntr+s_off+f_off, 1)
+   pntr = myconvert(UInt64, m.m) + s_off + f_off
+   addr_to_val(f_type, pntr)
 end
 function get(d::jlData, field::Symbol)
    f_off, f_type = dinfo[field]
-   pntr = Ptr{f_type}(d.d)
-   return unsafe_load(pntr+f_off, 1)
+   pntr = myconvert(UInt64, d.d) + f_off
+   addr_to_val(f_type, pntr)
 end
-function get(p::Ptr{T}, field::Symbol) where T
+function get(p::Ptr{T}, field::Symbol) where {T}
    f_off, f_type = mjstructs[T][field]
-   pntr = Ptr{f_type}(p)
-   return unsafe_load(pntr+f_off, 1)
+   pntr = myconvert(UInt64, d.d) + f_off
+   return unsafe_load(pntr, 1)
 end
-function get(p::Ptr{T}, field::Symbol, i::Int) where T
+function get(p::Ptr{T}, field::Symbol, i::Int) where {T}
    f_off, f_type = mjstructs[T][field]
    ET = eltype(f_type)
    @assert f_type <: SVector
@@ -143,7 +150,6 @@ function update_ptr(p::Ptr, offset::Integer, val::mjtNum)
    unsafe_store!(convert(Ptr{mjtNum}, (p + offset)), val)
 end
 function update_ptr(p::Ptr, offset::Integer, val::SVector)
-   #T = eltype(SVector)
    T = typeof(val[1])
    for i=1:length(val)
       unsafe_store!(convert(Ptr{T}, p+offset+(i-1)*sizeof(T)),

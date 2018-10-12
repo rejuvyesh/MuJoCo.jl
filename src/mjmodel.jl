@@ -342,87 +342,87 @@ struct mjOption
 end
 
 struct _global
-	fovy::Float32
-	ipd::Float32
-	linewidth::Float32
-	glow::Float32
-	offwidth::Int32
-	offheight::Int32
+	fovy::Cfloat
+	ipd::Cfloat
+	linewidth::Cfloat
+	glow::Cfloat
+	offwidth::Cint
+	offheight::Cint
 end
 
 struct quality
-	shadowsize::Int32
-	offsamples::Int32
-	numslices::Int32
-	numstacks::Int32
-	numquads::Int32
+	shadowsize::Cint
+	offsamples::Cint
+	numslices::Cint
+	numstacks::Cint
+	numquads::Cint
 end
 
 struct headlight
-   ambient::SVector{3, Float32}
-   diffuse::SVector{3, Float32}
-   specular::SVector{3, Float32}
-	active::Int32
+   ambient::SVector{3, Cfloat}
+   diffuse::SVector{3, Cfloat}
+   specular::SVector{3, Cfloat}
+	active::Cint
 end
 
 struct map
-	stiffness::Float32
-	stiffnessrot::Float32
-	force::Float32
-	torque::Float32
-	alpha::Float32
-	fogstart::Float32
-	fogend::Float32
-	znear::Float32
-	zfar::Float32
-	haze::Float32
-	shadowclip::Float32
-	shadowscale::Float32
-	actuatortendon::Float32
+	stiffness::Cfloat
+	stiffnessrot::Cfloat
+	force::Cfloat
+	torque::Cfloat
+	alpha::Cfloat
+	fogstart::Cfloat
+	fogend::Cfloat
+	znear::Cfloat
+	zfar::Cfloat
+	haze::Cfloat
+	shadowclip::Cfloat
+	shadowscale::Cfloat
+	actuatortendon::Cfloat
 end
 
 struct scale
-	forcewidth::Float32
-	contactwidth::Float32
-	contactheight::Float32
-	connect::Float32
-	com::Float32
-	camera::Float32
-	light::Float32
-	selectpoint::Float32
-	jointlength::Float32
-	jointwidth::Float32
-	actuatorlength::Float32
-	actuatorwidth::Float32
-	framelength::Float32
-	framewidth::Float32
-	constraint::Float32
-	slidercrank::Float32
+	forcewidth::Cfloat
+	contactwidth::Cfloat
+	contactheight::Cfloat
+	connect::Cfloat
+	com::Cfloat
+	camera::Cfloat
+	light::Cfloat
+	selectpoint::Cfloat
+	jointlength::Cfloat
+	jointwidth::Cfloat
+	actuatorlength::Cfloat
+	actuatorwidth::Cfloat
+	framelength::Cfloat
+	framewidth::Cfloat
+	constraint::Cfloat
+	slidercrank::Cfloat
 end
 
 struct rgba
-	fog::SVector{4, Float32}
-	haze::SVector{4, Float32}
-	force::SVector{4, Float32}
-	inertia::SVector{4, Float32}
-	joint::SVector{4, Float32}
-	actuator::SVector{4, Float32}
-	actuatornegative::SVector{4, Float32}
-	actuatorpositive::SVector{4, Float32}
-	com::SVector{4, Float32}
-	camera::SVector{4, Float32}
-	light::SVector{4, Float32}
-	selectpoint::SVector{4, Float32}
-	connect::SVector{4, Float32}
-	contactpoint::SVector{4, Float32}
-	contactforce::SVector{4, Float32}
-	contactfriction::SVector{4, Float32}
-	contacttorque::SVector{4, Float32}
-	contactgap::SVector{4, Float32}
-	rangefinder::SVector{4, Float32}
-	constraint::SVector{4, Float32}
-	slidercrank::SVector{4, Float32}
-	crankbroken::SVector{4, Float32}
+	fog::SVector{4, Cfloat}
+	haze::SVector{4, Cfloat}
+	force::SVector{4, Cfloat}
+	inertia::SVector{4, Cfloat}
+	joint::SVector{4, Cfloat}
+	actuator::SVector{4, Cfloat}
+	actuatornegative::SVector{4, Cfloat}
+	actuatorpositive::SVector{4, Cfloat}
+	com::SVector{4, Cfloat}
+	camera::SVector{4, Cfloat}
+	light::SVector{4, Cfloat}
+	selectpoint::SVector{4, Cfloat}
+	connect::SVector{4, Cfloat}
+	contactpoint::SVector{4, Cfloat}
+	contactforce::SVector{4, Cfloat}
+	contactfriction::SVector{4, Cfloat}
+	contacttorque::SVector{4, Cfloat}
+	contactgap::SVector{4, Cfloat}
+	rangefinder::SVector{4, Cfloat}
+	constraint::SVector{4, Cfloat}
+	slidercrank::SVector{4, Cfloat}
+	crankbroken::SVector{4, Cfloat}
 end
 
 struct mjVisual
@@ -639,8 +639,8 @@ struct mjModel
 	mesh_graph::Ptr{Cint}
 
    skin_matid::Ptr{Cint}
-   skin_rgba::Ptr{Float32}
-   skin_inflate::Ptr{Float32}
+   skin_rgba::Ptr{Cfloat}
+   skin_inflate::Ptr{Cfloat}
    skin_vertadr::Ptr{Cint}
    skin_vertnum::Ptr{Cint}
    skin_texcoordadr::Ptr{Cint}
@@ -648,16 +648,16 @@ struct mjModel
    skin_facenum::Ptr{Cint}
    skin_boneadr::Ptr{Cint}
    skin_bonenum::Ptr{Cint}
-   skin_vert::Ptr{Float32}
-   skin_texcoord::Ptr{Float32}
+   skin_vert::Ptr{Cfloat}
+   skin_texcoord::Ptr{Cfloat}
    skin_face::Ptr{Cint}
    skin_bonevertadr::Ptr{Cint}
    skin_bonevertnum::Ptr{Cint}
-   skin_bonebindpos::Ptr{Float32}
-   skin_bonebindquat::Ptr{Float32}
+   skin_bonebindpos::Ptr{Cfloat}
+   skin_bonebindquat::Ptr{Cfloat}
    skin_bonebodyid::Ptr{Cint}
    skin_bonevertid::Ptr{Cint}
-   skin_bonevertweight::Ptr{Float32}
+   skin_bonevertweight::Ptr{Cfloat}
 
 	hfield_size::Ptr{mjtNum}
 	hfield_nrow::Ptr{Cint}
