@@ -1,4 +1,3 @@
-
 #MARKSTACK(d::jlData) = return mj.get(d, :pstack)
 #FREESTACK(d::jlData, mark::Cint) = mj.set(d, :pstack, mark)
 
@@ -27,17 +26,25 @@
 ## collision function table
 # extern mjfCollision mjCOLLISIONFUNC[mjNGEOMTYPES][mjNGEOMTYPES];
 
-global const DISABLESTRING = ["Constraint","Equality","Frictionloss","Limit","Contact","Passive","Gravity","Clampctrl","Warmstart","Filterparent","Actuation","Refsafe","","",""]
-global const ENABLESTRING  = ["Override","Energy","Fwdinv","Sensornoise","Constraint"]
-global const TIMERSTRING   = ["step","apirate","impratio","noslip_tolerance","mpr_tolerance","gravity","wind","density","viscosity","o_margin","o_solref","o_solimp","integrator"]
-global const LABELSTRING   = ["None","Body","Geom","Site","World","Tendon","Actuator","Selection","SelPoint","ContactForce","","",""]
-global const FRAMESTRING   = ["None","Body","Geom","Site","World","Tendon","Actuator"]
+# p = convert(Ptr{Ptr{Cchar}}, cglobal((:mjDISABLESTRING, libmujoco)))
+# all_p = unsafe_wrap(Array, p, mj.NDISABLE)
+# DISABLESTRING = [ unsafe_string(all_p[i]) for i=1:Int(mj.NDISABLE) ]
+
+global const DISABLESTRING = ["Constraint","Equality","Frictionloss","Limit","Contact","Passive","Gravity","Clampctrl","Warmstart","Filterparent","Actuation","Refsafe"]
+global const ENABLESTRING  = ["Override","Energy","Fwdinv","Sensornoise"]
+global const TIMERSTRING   = ["step","forward","inverse","position",
+                              "velocity","actuation","acceleration","constraint",
+                              "pos_kinematics","pos_inertia","pos_collision","pos_make","pos_project"]
+global const LABELSTRING   = ["None","Body","Joint","Geom","Site","Camera","Light","Tendon","Actuator","Constraint","Skin","Selection","SelPoint","ContactForce"]
+global const FRAMESTRING   = ["None","Body","Geom","Site","Camera","Light","World"]
 global const VISSTRING     = ["Convex Hull"     "0"  "H";
                               "Texture"         "1"  "X";
                               "Joint"           "0"  "J";
                               "Actuator"        "0"  "U";
                               "Camera"          "0"  "Q";
                               "Light"           "0"  "Z";
+                              "Tendon"          "1"  "V";
+                              "Range Finder"    "1"  "Y";
                               "Constraint"      "0"  "N";
                               "Inertia"         "0"  "I";
                               "Perturb Force"   "0"  "B";
@@ -49,14 +56,17 @@ global const VISSTRING     = ["Convex Hull"     "0"  "H";
                               "Auto Connect"    "0"  "A";
                               "Center of Mass"  "0"  "M";
                               "Select Point"    "0"  "E";
-                              "Static Body"     "1"  "D"]
+                              "Static Body"     "1"  "D";
+                              "Skin"            "1"  ";"]
 global const RNDSTRING     = ["Shadow"      "1"  "S";
                               "Wireframe"   "0"  "W";
                               "Reflection"  "1"  "R";
+                              "Additive"    "0"  "L";
+                              "Skybox"      "1"  "K";
                               "Fog"         "0"  "G";
-                              "Skybox"      "1"  "K";]
-
-
+                              "Haze"        "1"  "/";
+                              "Segment"     "0"  ",";
+                              "Id Color"    "0"  "."]
 
 const PV{T} = Union{Ptr{T},AbstractVector{T},Ptr{Cvoid}}
 
