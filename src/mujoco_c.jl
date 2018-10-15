@@ -1,5 +1,5 @@
-#MARKSTACK(d::jlData) = return mj.get(d, :pstack)
-#FREESTACK(d::jlData, mark::Cint) = mj.set(d, :pstack, mark)
+MARKSTACK(d::jlData) = return mj.get(d, :pstack)
+FREESTACK(d::jlData, mark::Cint) = mj.set(d, :pstack, mark)
 
 # Skipping MacroDefinition: mjDISABLED ( x ) ( m -> opt . disableflags & ( x ) )
 # Skipping MacroDefinition: mjENABLED ( x ) ( m -> opt . enableflags & ( x ) )
