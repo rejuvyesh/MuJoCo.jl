@@ -206,12 +206,12 @@ end
 
 """ forward dynamics with skip; skipstage is mjtStage"""
 function mj_forwardSkip(m::MODEL,d::DATA,skipstage::Integer,skipsensorenergy::Integer)
-   ccall((:mj_forwardSkip,libmujoco),Cvoid,(Ptr{mjModel},Ptr{mjData},Cint,Cint),m,d,skipstage,skipsensor)
+   ccall((:mj_forwardSkip,libmujoco),Cvoid,(Ptr{mjModel},Ptr{mjData},Cint,Cint),m,d,skipstage,skipsensorenergy)
 end
 
 """ inverse dynamics with skip; skipstage is mjtStage"""
 function mj_inverseSkip(m::MODEL,d::DATA,skipstage::Integer,skipsensorenergy::Integer)
-   ccall((:mj_inverseSkip,libmujoco),Cvoid,(Ptr{mjModel},Ptr{mjData},Cint,Cint),m,d,skipstage,skipsensor)
+   ccall((:mj_inverseSkip,libmujoco),Cvoid,(Ptr{mjModel},Ptr{mjData},Cint,Cint),m,d,skipstage,skipsensorenergy)
 end
 
 #---------------------- Model and data initialization ----------------------------------
